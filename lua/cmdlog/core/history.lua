@@ -3,14 +3,14 @@ local M = {}
 --- Fetch raw Neovim command-line history
 --- @return string[] Raw history (oldest to newest)
 function M.get_command_history()
+  local output = vim.api.nvim_exec2("history :", { output = true }).output
   local entries = {}
-  local i = 1
 
-  while true do
-    local entry = vim.fn.histget(":", i)
-    if not entry or entry == "" then break end
-    table.insert(entries, entry)
-    i = i + 1
+  for line in vim.gsplit(output, "\n") do
+    local cmd = line:match("^%s*%d+%s+(.*)")
+    if cmd and cmd ~= "" then
+      table.insert(entries, cmd)
+    end
   end
 
   return entries

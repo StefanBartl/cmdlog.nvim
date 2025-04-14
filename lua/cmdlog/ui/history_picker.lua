@@ -37,6 +37,7 @@ function M.show_history_picker()
       end,
     },
     sorter = require("telescope.config").values.generic_sorter({}),
+    previewer = require("cmdlog.ui.previewer").command_previewer(),
     attach_mappings = function(prompt_bufnr, map)
       local actions = require("telescope.actions")
       local action_state = require("telescope.actions.state")
