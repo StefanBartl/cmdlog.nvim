@@ -112,6 +112,10 @@ After installation, run `:Cmdlog` to open the interactive history picker.
 - Favorites are displayed with a ★ prefix.
 - The list is sorted by most recent commands (top down).
 
+`:CmdlogAll` shows both favorites and history in one view
+  - Favorites appear at the top
+  - History entries are de-duplicated
+
 ---
 
 ## Development & Contribution

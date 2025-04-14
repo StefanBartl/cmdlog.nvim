@@ -12,3 +12,9 @@ Opens an interactive Telescope picker showing your `:`-command history.
 - Delete command (planned)
 
 More commands will be added in future versions.
+
+## :CmdlogFavorites
+-- TODO
+
+## :CmdlogAll
+-- TODO
