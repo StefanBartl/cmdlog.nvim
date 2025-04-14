@@ -33,7 +33,8 @@ A lightweight, modern Neovim plugin to interactively view, search, and reuse com
 }
 ```
 
-- Note: Requires [Telescope.nvim](https://github.com/nvim-telescope/telescope.nvim) to be installed.
+- Note: Requires [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim) to be installed.
+- Note: Requires [plenary.nvim](https://github.com/nvim-lua/plenary.nvim) (for favorites) to be installed.
 
 ---
 
@@ -41,8 +42,11 @@ A lightweight, modern Neovim plugin to interactively view, search, and reuse com
 
 After installation, run `:Cmdlog` to open the interactive history picker.
 
-You can select an entry to insert it into the command-line (it will not be executed automatically).
-Favorites will be saved and persist across sessions.
+- Press `<CR>` to insert a command into the `:` prompt (without executing it).
+- Press `<C-f>` to toggle a command as favorite (★).
+- Favorite commands are saved persistently to a JSON file.
+- Favorites are displayed with a ★ prefix.
+- The list is sorted by most recent commands (top down).
 
 ---
 
