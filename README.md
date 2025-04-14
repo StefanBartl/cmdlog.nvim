@@ -20,21 +20,85 @@ A lightweight, modern Neovim plugin to interactively view, search, and reuse com
 
 ---
 
-## Installation (with Lazy)
+Guter Punkt – wir bringen das eleganter und vollständiger unter.
+Ziel: Klare Anleitung für **nicht-lazy** UND **lazy mit `event`, `cmd` oder `keys`**.
+
+---
+
+## Installation (with Lazy.nvim)
+
+You can install `nvim-cmdlog` like this:
+
+### Load immediately (recommended for most setups)
+
+This registers all commands (`:Cmdlog`, `:CmdlogFavorites`) on startup.
 
 ```lua
 {
   "StefanBartl/nvim-cmdlog",
-  lazy = true,
-  cmd = { "Cmdlog" },
+  lazy = false, -- loads immediately
   config = function()
     require("cmdlog").setup()
   end,
 }
 ```
 
-- Note: Requires [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim) to be installed.
-- Note: Requires [plenary.nvim](https://github.com/nvim-lua/plenary.nvim) (for favorites) to be installed.
+### Load lazily (alternative)
+
+You can also lazy-load the plugin if you prefer:
+
+#### Option 1: Lazy-load on specific commands
+
+```lua
+{
+  "StefanBartl/nvim-cmdlog",
+  lazy = true,
+  cmd = { "Cmdlog", "CmdlogFavorites" },
+  config = function()
+    require("cmdlog").setup()
+  end,
+}
+```
+
+#### Option 2: Lazy-load on keybinding
+
+```lua
+{
+  "StefanBartl/nvim-cmdlog",
+  lazy = true,
+  keys = {
+    { "<leader>cl", "<cmd>Cmdlog<CR>", desc = "Show command history" },
+    { "<leader>cf", "<cmd>CmdlogFavorites<CR>", desc = "Show favorites" },
+  },
+  config = function()
+    require("cmdlog").setup()
+  end,
+}
+```
+
+#### Option 3: Lazy-load on startup event
+
+```lua
+{
+  "StefanBartl/nvim-cmdlog",
+  lazy = true,
+  event = "VeryLazy", -- or e.g. "BufReadPost"
+  config = function()
+    require("cmdlog").setup()
+  end,
+}
+```
+
+Note: If you lazy-load the plugin, make sure to define how it should be triggered (`cmd`, `keys`, `event`, etc.), otherwise commands like `:Cmdlog` won’t be available.
+
+---
+
+## Dependencies
+
+Make sure the following plugins are installed:
+
+- [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim)
+- [plenary.nvim](https://github.com/nvim-lua/plenary.nvim) – required for favorites functionality
 
 ---
 
