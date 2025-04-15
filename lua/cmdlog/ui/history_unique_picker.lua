@@ -3,12 +3,12 @@ local favorites = require("cmdlog.core.favorites")
 
 local M = {}
 
-function M.show_history_picker()
-  local entries = history.process_history(history.get_command_history(), { unique = false })
+function M.show_history_unique_picker()
+  local entries = history.process_history(history.get_command_history(), { unique = true })
   local favs = favorites.load()
 
   require("telescope.pickers").new({}, {
-    prompt_title = ":history (all)",
+    prompt_title = ":history (unique)",
     finder = require("telescope.finders").new_table {
       results = entries,
       entry_maker = function(entry)
@@ -22,9 +22,8 @@ function M.show_history_picker()
     },
     sorter = require("telescope.config").values.generic_sorter({}),
     previewer = require("cmdlog.ui.previewer").command_previewer(),
-    attach_mappings = require("cmdlog.ui.mappings")(M.show_history_picker),
+    attach_mappings = require("cmdlog.ui.mappings")(M.show_history_unique_picker),
   }):find()
 end
 
 return M
-

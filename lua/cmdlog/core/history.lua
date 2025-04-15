@@ -16,20 +16,44 @@ function M.get_command_history()
   return entries
 end
 
---- Clean and reverse history (remove duplicates, newest first)
---- @param entries string[] Raw history
---- @return string[] Processed history
-function M.process_history(entries)
+--- Reverses the list (newest entries first)
+--- @param entries string[]
+--- @return string[]
+function M.reverse_history(entries)
+  local result = {}
+  for i = #entries, 1, -1 do
+    table.insert(result, entries[i])
+  end
+  return result
+end
+
+--- Removes duplicate commands, keeping latest occurrence only
+--- @param entries string[]
+--- @return string[]
+function M.deduplicate_history(entries)
   local seen = {}
   local result = {}
 
-  -- iterate backwards to preserve most recent entry if duplicate
-  for i = #entries, 1, -1 do
-    local cmd = entries[i]
+  for _, cmd in ipairs(entries) do
     if not seen[cmd] then
       table.insert(result, cmd)
       seen[cmd] = true
     end
+  end
+
+  return result
+end
+
+--- Optional processing pipeline: reverse + dedup (if enabled)
+--- @param entries string[]
+--- @param opts { unique: boolean }
+--- @return string[]
+function M.process_history(entries, opts)
+  opts = opts or {}
+  local result = M.reverse_history(entries)
+
+  if opts.unique then
+    result = M.deduplicate_history(result)
   end
 
   return result
