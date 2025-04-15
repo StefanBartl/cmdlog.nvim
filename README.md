@@ -104,17 +104,21 @@ Make sure the following plugins are installed:
 
 ## Usage
 
-After installation, run `:Cmdlog` to open the interactive history picker.
+This plugin provides several Telescope-based pickers to explore and reuse command-line history:
 
-- Press `<CR>` to insert a command into the `:` prompt (without executing it).
-- Press `<C-f>` to toggle a command as favorite (★).
-- Favorite commands are saved persistently to a JSON file.
-- Favorites are displayed with a ★ prefix.
-- The list is sorted by most recent commands (top down).
+| Command              | Description                                                  |
+|----------------------|--------------------------------------------------------------|
+| `:Cmdlog`            | Shows full `:` history, including duplicates                |
+| `:CmdlogUnique`      | Shows only unique `:` commands (latest occurrence kept)     |
+| `:CmdlogFavorites`   | Shows commands you've marked as favorites                   |
+| `:CmdlogAll`         | Combines favorites + full history (duplicates allowed)      |
+| `:CmdlogAllUnique`   | Combines favorites + history (only unique commands)         |
 
-`:CmdlogAll` shows both favorites and history in one view
-  - Favorites appear at the top
-  - History entries are de-duplicated
+### Shortcuts (inside pickers)
+
+- `<CR>`: Insert command into `:` (does not execute)
+- `<C-f>`: Toggle favorite
+- `<C-r>`: Refresh picker
 
 ---
 

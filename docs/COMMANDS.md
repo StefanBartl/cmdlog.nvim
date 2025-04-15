@@ -1,20 +1,30 @@
-# Commands
+# Cmdlog Commands
 
-This file documents the available commands provided by `nvim-cmdlog`.
+## `:Cmdlog`
 
-## :Cmdlog
+Shows the full list of commands from Neovim's `:`-history, including repeated entries. Useful for reviewing recent activity.
 
-Opens an interactive Telescope picker showing your `:`-command history.
+## `:CmdlogUnique`
 
-- Search through all commands
-- Select a command to insert it into the `:`-prompt
-- Mark a command as favorite (planned)
-- Delete command (planned)
+Same as `:Cmdlog`, but filters out duplicates. Only the most recent occurrence of each command is kept.
 
-More commands will be added in future versions.
+## `:CmdlogFavorites`
 
-## :CmdlogFavorites
--- TODO
+Shows only your favorite commands. Use `<C-f>` inside any picker to toggle favorite status.
 
-## :CmdlogAll
--- TODO
+## `:CmdlogAll`
+
+Combines your favorites and the full `:` history into a single list.
+- Favorites appear at the top.
+- Duplicate entries are shown.
+
+## `:CmdlogAllUnique`
+
+Same as `:CmdlogAll`, but filters the history to show each command only once.
+
+---
+
+### Notes
+
+- Favorites are stored in: `~/.local/share/nvim-cmdlog/favorites.json`
+- All views support preview and insertion
