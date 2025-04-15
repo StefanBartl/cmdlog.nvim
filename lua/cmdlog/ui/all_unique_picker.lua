@@ -21,7 +21,7 @@ function M.show_all_unique_picker()
   local combined = vim.list_extend(vim.deepcopy(favs), rest)
 
   require("telescope.pickers").new({}, {
-    prompt_title = "★ All Commands (unique)",
+    prompt_title = ":history & favorites (unique)",
     finder = require("telescope.finders").new_table {
       results = combined,
       entry_maker = function(entry)

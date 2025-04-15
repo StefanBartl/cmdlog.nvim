@@ -8,6 +8,8 @@ A lightweight, modern Neovim plugin to interactively view, search, and reuse com
 
 ## Features
 
+![Cmdlog Picker UI](./docs/assets/Cmdlog-Picker-UI.png)
+
 - Interactive listing of `:` command history using [Telescope.nvim](https://github.com/nvim-telescope/telescope.nvim)
 - Select an entry to insert it into the command-line (without auto-execution)
 - Mark and manage favorites (`~/.local/share/nvim-cmdlog/favorites.json`)
@@ -18,10 +20,7 @@ A lightweight, modern Neovim plugin to interactively view, search, and reuse com
   - Highlighting for error-prone commands
   - Preview view for commands like `:edit`, `:term`
 
----
-
-Guter Punkt – wir bringen das eleganter und vollständiger unter.
-Ziel: Klare Anleitung für **nicht-lazy** UND **lazy mit `event`, `cmd` oder `keys`**.
+![Favorites Picker](./docs/assets/Cmdlog-Favorites-Picker.png)
 
 ---
 
@@ -31,12 +30,16 @@ You can install `nvim-cmdlog` like this:
 
 ### Load immediately (recommended for most setups)
 
-This registers all commands (`:Cmdlog`, `:CmdlogFavorites`) on startup.
+This ensures all commands (:Cmdlog, :CmdlogFavorites, etc.) are available without delay.
 
 ```lua
 {
   "StefanBartl/nvim-cmdlog",
   lazy = false, -- loads immediately
+  dependencies = {
+    "nvim-lua/plenary.nvim",   -- Required for JSON + file handling
+    "nvim-telescope/telescope.nvim", -- Required for UI
+  },
   config = function()
     require("cmdlog").setup()
   end,
@@ -47,25 +50,33 @@ This registers all commands (`:Cmdlog`, `:CmdlogFavorites`) on startup.
 
 You can also lazy-load the plugin if you prefer:
 
-#### Option 1: Lazy-load on specific commands
+#### Option 1: Lazy-load on demand (command)
 
 ```lua
 {
   "StefanBartl/nvim-cmdlog",
   lazy = true,
   cmd = { "Cmdlog", "CmdlogFavorites" },
+  dependencies = {
+    "nvim-lua/plenary.nvim",
+    "nvim-telescope/telescope.nvim",
+  },
   config = function()
     require("cmdlog").setup()
   end,
 }
 ```
 
-#### Option 2: Lazy-load on keybinding
+#### Option 2: Lazy-load via keybindings
 
 ```lua
 {
   "StefanBartl/nvim-cmdlog",
   lazy = true,
+  dependencies = {
+    "nvim-lua/plenary.nvim",
+    "nvim-telescope/telescope.nvim",
+  },
   keys = {
     { "<leader>cl", "<cmd>Cmdlog<CR>", desc = "Show command history" },
     { "<leader>cf", "<cmd>CmdlogFavorites<CR>", desc = "Show favorites" },
@@ -76,13 +87,17 @@ You can also lazy-load the plugin if you prefer:
 }
 ```
 
-#### Option 3: Lazy-load on startup event
+#### Option 3: Lazy-load on specific event
 
 ```lua
 {
   "StefanBartl/nvim-cmdlog",
   lazy = true,
   event = "VeryLazy", -- or e.g. "BufReadPost"
+  dependencies = {
+    "nvim-lua/plenary.nvim",
+    "nvim-telescope/telescope.nvim",
+  },
   config = function()
     require("cmdlog").setup()
   end,
@@ -122,9 +137,20 @@ This plugin provides several Telescope-based pickers to explore and reuse comman
 
 ---
 
-## Development & Contribution
+## Development
 
-Clone this repo and symlink or add to your Neovim runtime path for local development.
+To develop or contribute:
+
+1. Clone the repo:
+
+```bash
+git clone https://github.com/StefanBartl/nvim-cmdlog ~/.config/nvim/lua/plugins/nvim-cmdlog
+```
+
+2. Symlink or load manually via your plugin manager.
+3. Make changes, test with :Cmdlog, submit PRs or open issues.
+
+**Contributions are welcome** – whether it's a bugfix, feature, or idea!
 
 ---
 

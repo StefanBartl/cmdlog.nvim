@@ -11,7 +11,7 @@ function M.show_favorites_picker()
   end
 
   require("telescope.pickers").new({}, {
-    prompt_title = "★ Favorites",
+    prompt_title = ":history (Favorites)",
     finder = require("telescope.finders").new_table {
       results = favs,
       entry_maker = function(entry)
