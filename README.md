@@ -2,8 +2,6 @@
 
 A lightweight, modern Neovim plugin to interactively view, search, and reuse command-line mode (`:`) history using Telescope.
 
-- ⚠️ This is an **alpha version** – features and APIs are subject to change.
-
 ---
 
 ## Features
@@ -162,7 +160,24 @@ git clone https://github.com/StefanBartl/nvim-cmdlog ~/.config/nvim/lua/plugins/
 
 ## Disclaimer
 
-This is **alpha software**. Expect changes, rough edges, and bugs.
-Your feedback will help shape the future of container management in Neovim.
+ℹ️ This plugin is under active development – some features are planned or experimental.
+Expect changes in upcoming releases.
+
+---
+
+
+## Feedback
+
+Your feedback is very welcome!
+
+Please use the [GitHub issue tracker](https://github.com/StefanBartl/nvim-cmdlog/issues) to:
+- Report bugs
+- Suggest new features
+- Ask questions about usage
+- Share thoughts on UI or functionality
+
+For general discussion, feel free to open a [GitHub Discussion](https://github.com/StefanBartl/nvim-cmdlog/discussions).
+
+If you find this plugin helpful, consider giving it a ⭐ on GitHub — it helps others discover the project.
 
 ---
