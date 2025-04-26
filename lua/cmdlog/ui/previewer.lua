@@ -15,22 +15,23 @@ function M.command_previewer()
                 or cmd:match("^%s*:?%s*vs%s+(%S+)$")
 
       if file and vim.fn.filereadable(file) == 1 then
-        Job:new({
-          command = "head",
-          args = { "-n", "50", file },
-          on_stdout = function(_, line)
-            vim.schedule(function()
-              vim.api.nvim_buf_set_lines(self.state.bufnr, -1, -1, false, { line })
-            end)
-          end,
-          on_stderr = function(_, err)
-            if err and err ~= "" then
+        local job_opts = {
+            command = "head",
+            args = { "-n", "50", file },
+            on_stdout = function(_, line)
               vim.schedule(function()
-                vim.api.nvim_buf_set_lines(self.state.bufnr, -1, -1, false, { "Error: " .. err })
+                vim.api.nvim_buf_set_lines(self.state.bufnr, -1, -1, false, { line })
               end)
-            end
-          end,
-        }):start()
+            end,
+            on_stderr = function(_, err)
+              if err and err ~= "" then
+                vim.schedule(function()
+                  vim.api.nvim_buf_set_lines(self.state.bufnr, -1, -1, false, { "Error: " .. err })
+                end)
+              end
+            end,
+          }
+        Job:new(job_opts):start()
       else
         vim.api.nvim_buf_set_lines(self.state.bufnr, 0, -1, false, {
           "No preview available",
