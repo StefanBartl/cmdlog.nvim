@@ -8,7 +8,7 @@ function M.setup(opts)
   -- Merge user options with defaults
   config.setup(opts)
 
-  -- Register Telescope command
+  -- Register command
   local ok, picker = pcall(require, "cmdlog.ui.picker")
   if ok and picker.register_command then
     picker.register_command()

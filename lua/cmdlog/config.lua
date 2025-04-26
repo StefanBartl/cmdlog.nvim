@@ -6,7 +6,9 @@ local default_config = {
 local M = {}
 
 --- Store the merged config
-M.options = {}
+M.options = {
+  picker = "telescope" -- or fzf
+}
 
 --- Setup config by merging user options with defaults
 --- @param user_config table|nil

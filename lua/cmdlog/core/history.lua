@@ -1,8 +1,16 @@
 local M = {}
 
+-- Internal cache for history
+local history_cache = nil
+
 --- Fetch raw Neovim command-line history
 --- @return string[] Raw history (oldest to newest)
 function M.get_command_history()
+  -- Return cached version if available
+  if history_cache then
+    return history_cache
+  end
+
   local output = vim.api.nvim_exec2("history :", { output = true }).output
   local entries = {}
 
@@ -13,7 +21,13 @@ function M.get_command_history()
     end
   end
 
+  history_cache = entries -- Cache the loaded history
   return entries
+end
+
+--- Clears the internal history cache
+function M.clear_cache()
+  history_cache = nil
 end
 
 --- Reverses the list (newest entries first)

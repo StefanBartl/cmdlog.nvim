@@ -9,6 +9,7 @@ A lightweight, modern Neovim plugin to interactively view, search, and reuse com
 ![Cmdlog Picker UI](./docs/assets/Cmdlog-Picker-UI.png)
 
 - Interactive listing of `:` command history using [Telescope.nvim](https://github.com/nvim-telescope/telescope.nvim)
+- Picker backend selectable: Telescope.nvim or fzf-lua
 - Select an entry to insert it into the command-line (without auto-execution)
 - Mark and manage favorites (`~/.local/share/nvim-cmdlog/favorites.json`)
 - Planned:
@@ -33,13 +34,16 @@ This ensures all commands (:Cmdlog, :CmdlogFavorites, etc.) are available withou
 ```lua
 {
   "StefanBartl/nvim-cmdlog",
-  lazy = false, -- loads immediately
+  lazy = false,
   dependencies = {
-    "nvim-lua/plenary.nvim",   -- Required for JSON + file handling
-    "nvim-telescope/telescope.nvim", -- Required for UI
+    "nvim-lua/plenary.nvim",
+    "nvim-telescope/telescope.nvim", -- Required if you use picker = "telescope"
+    "ibhagwan/fzf-lua",              -- Required if you use picker = "fzf"
   },
   config = function()
-    require("cmdlog").setup()
+    require("cmdlog").setup({
+      picker = "telescope",  -- or "fzf"
+    })
   end,
 }
 ```
@@ -54,13 +58,16 @@ You can also lazy-load the plugin if you prefer:
 {
   "StefanBartl/nvim-cmdlog",
   lazy = true,
-  cmd = { "Cmdlog", "CmdlogFavorites" },
+  cmd = { "Cmdlog", "CmdlogFavorites", "CmdlogAll", "CmdlogUnique", "CmdlogAllUnique" },
   dependencies = {
     "nvim-lua/plenary.nvim",
     "nvim-telescope/telescope.nvim",
+    "ibhagwan/fzf-lua",
   },
   config = function()
-    require("cmdlog").setup()
+    require("cmdlog").setup({
+      picker = "fzf", -- or "telescope"
+    })
   end,
 }
 ```
@@ -71,16 +78,19 @@ You can also lazy-load the plugin if you prefer:
 {
   "StefanBartl/nvim-cmdlog",
   lazy = true,
-  dependencies = {
-    "nvim-lua/plenary.nvim",
-    "nvim-telescope/telescope.nvim",
-  },
   keys = {
     { "<leader>cl", "<cmd>Cmdlog<CR>", desc = "Show command history" },
     { "<leader>cf", "<cmd>CmdlogFavorites<CR>", desc = "Show favorites" },
   },
+  dependencies = {
+    "nvim-lua/plenary.nvim",
+    "nvim-telescope/telescope.nvim",
+    "ibhagwan/fzf-lua",
+  },
   config = function()
-    require("cmdlog").setup()
+    require("cmdlog").setup({
+      picker = "telescope",
+    })
   end,
 }
 ```
@@ -97,8 +107,9 @@ You can also lazy-load the plugin if you prefer:
     "nvim-telescope/telescope.nvim",
   },
   config = function()
-    require("cmdlog").setup()
-  end,
+    require("cmdlog").setup({
+      picker = "telescope",  -- or "fzf"
+  })
 }
 ```
 
@@ -112,6 +123,39 @@ Make sure the following plugins are installed:
 
 - [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim)
 - [plenary.nvim](https://github.com/nvim-lua/plenary.nvim) – required for favorites functionality
+- [fzf-lua](https://github.com/ibhagwan/fzf-lua) (only if picker = "fzf")
+
+---
+
+## Picker configuration (Telescope vs FzfLua)
+
+By default, `nvim-cmdlog` uses **Telescope** for all pickers and UI interactions.
+However, you can switch to [fzf-lua](https://github.com/ibhagwan/fzf-lua) by setting:
+
+```lua
+require("cmdlog").setup({
+  picker = "fzf",
+})
+```
+
+| Picker | Notes |
+|:---|:---|
+| `telescope` (default) | Full feature support, including command previews (e.g., file contents for `:edit somefile.txt`) |
+| `fzf` | Minimal, fast UI. **Currently no preview support** for commands like `:edit`. (Planned for future versions.) |
+
+### When to use which picker?
+
+- **Telescope**: Recommended if you want previews, fuzzy sorting, and a richer UI experience.
+- **FzfLua**: Recommended if you prefer speed, simplicity, and minimal dependencies.
+
+| Feature                       | Telescope             | FzfLua            |
+|:-------------------------------|:----------------------|:------------------|
+| Fuzzy Search                  | ✅ Built-in            | ✅ Built-in        |
+| Command Previews (`:edit`)     | ✅ Available           | ❌ Not available yet |
+| Favorite toggling (`<C-f>`)    | ✅ Available           | ✅ Available       |
+| Performance (Speed)            | ⚡ Good                | ⚡⚡ Very fast      |
+| UI Customization (Prompt, Border) | ✅ Highly customizable | ✅ Highly customizable |
+| External Dependencies          | Telescope + Plenary   | Only Plenary       |
 
 ---
 
