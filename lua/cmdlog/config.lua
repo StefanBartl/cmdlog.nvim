@@ -7,7 +7,8 @@ local M = {}
 
 --- Store the merged config
 M.options = {
-  picker = "telescope" -- or fzf
+  picker = "telescope", -- or fzf
+  shell_history_path = "default"
 }
 
 --- Setup config by merging user options with defaults
