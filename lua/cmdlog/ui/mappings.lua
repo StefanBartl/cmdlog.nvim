@@ -21,7 +21,7 @@ return function(refresh_fn)
       end
     end)
 
-    map("i", "<C-f>", function()
+    map("i", "<Tab>", function()
       local selected = state.get_selected_entry()
       if selected and selected.value then
         favorites.toggle(selected.value)
