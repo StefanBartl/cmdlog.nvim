@@ -1,11 +1,12 @@
 local history = require("cmdlog.core.history")
+local process_list = require("cmdlog.core.utils").process_list
 local favorites = require("cmdlog.core.favorites")
 local config = require("cmdlog.config")
 
 local M = {}
 
 function M.show_history_unique_picker()
-  local entries = history.process_history(history.get_command_history(), { unique = true })
+  local entries = process_list(history.get_command_history(), { unique = true })
   local favs = favorites.load()
 
   if config.options.picker == "telescope" then
@@ -35,7 +36,7 @@ function M.show_history_unique_picker()
       actions = {
         ["default"] = function(selected)
           if selected[1] then
-            vim.cmd(selected[1]) -- Direkt das Kommando ausführen
+            vim.cmd(selected[1])
           end
         end,
       },

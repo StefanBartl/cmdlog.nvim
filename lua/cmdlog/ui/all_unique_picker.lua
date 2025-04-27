@@ -1,5 +1,6 @@
 local favorites = require("cmdlog.core.favorites")
 local history = require("cmdlog.core.history")
+local process_list = require("cmdlog.core.utils").process_list
 local config = require("cmdlog.config")
 
 local M = {}
@@ -7,7 +8,7 @@ local M = {}
 function M.show_all_unique_picker()
   local favs = favorites.load()
   local raw = history.get_command_history()
-  local hist = history.process_history(raw, { unique = true })
+  local hist = process_list(raw, { unique = true })
 
   local set = {}
   for _, f in ipairs(favs) do

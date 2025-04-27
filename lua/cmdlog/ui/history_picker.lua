@@ -1,11 +1,12 @@
 local history = require("cmdlog.core.history")
+local process_list = require("cmdlog.core.utils").process_list
 local favorites = require("cmdlog.core.favorites")
 local config = require("cmdlog.config")
 
 local M = {}
 
 function M.show_history_picker()
-  local entries = history.process_history(history.get_command_history(), { unique = false })
+  local entries = process_list(history.get_command_history(), { unique = false })
   local favs = favorites.load()
 
   if config.options.picker == "telescope" then
