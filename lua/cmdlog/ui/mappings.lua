@@ -1,7 +1,3 @@
--- cmdlog/ui/mappings.lua
-
-local M = {}
-
 --- Creates a Telescope attach_mappings function
 --- Handles <CR> to execute, <C-f> to toggle favorite, <C-r> to refresh
 --- @param refresh_fn function Function to refresh the picker

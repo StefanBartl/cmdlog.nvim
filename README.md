@@ -170,6 +170,11 @@ require("cmdlog").setup({
 
 This plugin provides several Telescope-based pickers to explore and reuse command-line history.
 
+### Plugin Demo
+
+![Cmdlog Picker Demo](./docs/assets/Cmdlog-Picker-Demo.mp4)
+
+
 ### Command Syntax
 
 `{Cmdlog}{Util}[optional Full]`
