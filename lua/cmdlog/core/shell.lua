@@ -96,3 +96,5 @@ function M.get_shell_history()
 
   return history
 end
+
+return M
