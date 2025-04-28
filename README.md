@@ -145,24 +145,24 @@ require("cmdlog").setup({
 })
 ```
 
-| Picker | Notes |
-|:---|:---|
-| `telescope` (default) | Full feature support, including command previews (e.g., file contents for `:edit somefile.txt`) |
-| `fzf` | Minimal, fast UI. **Currently no preview support** for commands like `:edit`. (Planned for future versions.) |
+| Picker                | Notes                                                                                                        |
+| :-------------------- | :----------------------------------------------------------------------------------------------------------- |
+| `telescope` (default) | Full feature support, including command previews (e.g., file contents for `:edit somefile.txt`)              |
+| `fzf`                 | Minimal, fast UI. **Currently no preview support** for commands like `:edit`. (Planned for future versions.) |
 
 ### When to use which picker?
 
 - **Telescope**: Recommended if you want previews, fuzzy sorting, and a richer UI experience.
 - **FzfLua**: Recommended if you prefer speed, simplicity, and minimal dependencies.
 
-| Feature                       | Telescope             | FzfLua            |
-|:-------------------------------|:----------------------|:------------------|
-| Fuzzy Search                  | ✅ Built-in            | ✅ Built-in        |
-| Command Previews (`:edit`)     | ✅ Available           | ❌ Not available yet |
-| Favorite toggling (`<C-f>`)    | ✅ Available           | ✅ Available       |
-| Performance (Speed)            | ⚡ Good                | ⚡⚡ Very fast      |
+| Feature                           | Telescope             | FzfLua                |
+| :-------------------------------- | :-------------------- | :-------------------- |
+| Fuzzy Search                      | ✅ Built-in            | ✅ Built-in            |
+| Command Previews (`:edit`)        | ✅ Available           | ❌ Not available yet   |
+| Favorite toggling (`<C-f>`)       | ✅ Available           | ✅ Available           |
+| Performance (Speed)               | ⚡ Good                | ⚡⚡ Very fast          |
 | UI Customization (Prompt, Border) | ✅ Highly customizable | ✅ Highly customizable |
-| External Dependencies          | Telescope + Plenary   | Only Plenary       |
+| External Dependencies             | Telescope + Plenary   | Only Plenary          |
 
 ---
 
@@ -170,10 +170,9 @@ require("cmdlog").setup({
 
 This plugin provides several Telescope-based pickers to explore and reuse command-line history.
 
-### Plugin Demo
+### Cmdlog Picker Demo
 
-![Cmdlog Picker Demo](./docs/assets/Cmdlog-Picker-Demo.mp4)
-
+![Cmdlog Picker Demo](./docs/assets/Cmdlog-Picker-Demo.gif)
 
 ### Command Syntax
 
@@ -181,15 +180,15 @@ This plugin provides several Telescope-based pickers to explore and reuse comman
 
 ### Commands
 
-| Command              | Description                                                            |
-|----------------------|------------------------------------------------------------------------|
-| `:CmdlogFavorites`    | Shows commands you've marked as favorites                              |
-| `:Cmdlog`             | Combines favorites and history, showing only unique commands (no duplicates) |
-| `:CmdlogFull`         | Combines favorites and full history, allowing duplicates               |
-| `:CmdlogNvim`         | Shows only unique Neovim (`:`) commands (latest occurrence kept)      |
-| `:CmdlogNvimFull`     | Shows full Neovim (`:`) history, including duplicates                 |
-| `:CmdlogShell`        | Shows unique shell history (latest occurrence kept)                   |
-| `:CmdlogShellFull`    | Shows full shell history, including duplicates                         |
+| Command            | Description                                                                  |
+| ------------------ | ---------------------------------------------------------------------------- |
+| `:CmdlogFavorites` | Shows commands you've marked as favorites                                    |
+| `:Cmdlog`          | Combines favorites and history, showing only unique commands (no duplicates) |
+| `:CmdlogFull`      | Combines favorites and full history, allowing duplicates                     |
+| `:CmdlogNvim`      | Shows only unique Neovim (`:`) commands (latest occurrence kept)             |
+| `:CmdlogNvimFull`  | Shows full Neovim (`:`) history, including duplicates                        |
+| `:CmdlogShell`     | Shows unique shell history (latest occurrence kept)                          |
+| `:CmdlogShellFull` | Shows full shell history, including duplicates                               |
 
 ---
 
