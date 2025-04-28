@@ -8,16 +8,34 @@ A lightweight, modern Neovim plugin to interactively view, search, and reuse com
 
 ![Cmdlog Picker UI](./docs/assets/Cmdlog-Picker-UI.png)
 
-- Interactive listing of `:` command history using [Telescope.nvim](https://github.com/nvim-telescope/telescope.nvim)
-- Picker backend selectable: Telescope.nvim or fzf-lua
-- Select an entry to insert it into the command-line (without auto-execution)
-- Mark and manage favorites (`~/.local/share/nvim-cmdlog/favorites.json`)
-- Planned:
-  - Delete single history entries
-  - Project-based history (per `.git` root)
-  - Integration with `which-key`
-  - Highlighting for error-prone commands
-  - Preview view for commands like `:edit`, `:term`
+- **Interactive command history listing**: View and search through your `:` command history interactively using [Telescope.nvim](https://github.com/nvim-telescope/telescope.nvim).
+
+- **Shell History Integration**: In addition to the standard Neovim command history, shell history for various supported shells is also included, such as:
+  - `zsh`: `~/.zsh_history`
+  - `bash`: `~/.bash_history`
+  - `fish`: `~/.local/share/fish/fish_history`
+  - `nu`: `~/.config/nushell/history.txt`
+  - `ksh`: `~/.ksh_history`
+  - `csh`: `~/.history`
+
+- **Picker Backend Options**: Choose between [Telescope.nvim](https://github.com/nvim-telescope/telescope.nvim) or [fzf-lua](https://github.com/ibhagwan/fzf-lua) for the picker backend, depending on your preference.
+
+- **Favorites Management**: Mark and manage favorite commands with ease. Your favorites are saved in the `~/.local/share/nvim-cmdlog/favorites.json` file for easy access.
+
+- **Command Execution**: Select an entry from the history to insert it into the command-line (without auto-execution), giving you control over your workflow.
+
+- **Command Previews**: Preview the output of various commands directly within the picker. Currently supported preview types include:
+  - **`:edit <file>`**: Shows the file preview if the file is readable.
+  - **`:!<shell>`**: Simulates shell command output for supported shell commands.
+  - **`:term`, `:make`, `:lua`, and `:help`**: These command previews are in progress, with plans to cover more commands in the future.
+
+- **Custom Pickers**: Developers and users can easily create their own custom pickers. A utility file, `picker_utils.lua`, abstracts much of the configuration, making it simple to extend the functionality. Comprehensive documentation on how to create and add custom pickers is available in the `/docs/` directory.
+
+### Planned Features:
+- **Delete Single History Entries**: Easily remove individual entries from your history.
+- **Project-Based History**: Maintain separate command histories per Git project (`.git` root).
+- **Integration with `which-key`**: Add quick key bindings and descriptions for commands within your workflow.
+- **Error-Prone Command Highlighting**: Highlight commands that are prone to errors, helping you avoid mistakes.
 
 ![Favorites Picker](./docs/assets/Cmdlog-Favorites-Picker.png)
 
