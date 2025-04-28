@@ -58,7 +58,10 @@ You can also lazy-load the plugin if you prefer:
 {
   "StefanBartl/nvim-cmdlog",
   lazy = true,
-  cmd = { "Cmdlog", "CmdlogFavorites", "CmdlogAll", "CmdlogUnique", "CmdlogAllUnique" },
+  cmd = {
+    "CmdlogNvimFull", "CmdlogNvim", "CmdlogFull", "Cmdlog",  -- see Note!
+    "CmdlogShellFull", "CmdlogShell", "CmdlogFavorites"
+  },
   dependencies = {
     "nvim-lua/plenary.nvim",
     "nvim-telescope/telescope.nvim",
@@ -71,6 +74,8 @@ You can also lazy-load the plugin if you prefer:
   end,
 }
 ```
+
+> **Note**: Only the commands listed here will be available for lazy-loading. Make sure to include the ones you intend to use, such as `Cmdlog`, `CmdlogFavorites`, etc. If a command is omitted, it won't work when lazy-loaded.
 
 #### Option 2: Lazy-load via keybindings
 
@@ -94,6 +99,8 @@ You can also lazy-load the plugin if you prefer:
   end,
 }
 ```
+
+---
 
 #### Option 3: Lazy-load on specific event
 
@@ -161,20 +168,30 @@ require("cmdlog").setup({
 
 ## Usage
 
-This plugin provides several Telescope-based pickers to explore and reuse command-line history:
+This plugin provides several Telescope-based pickers to explore and reuse command-line history.
 
-| Command              | Description                                                  |
-|----------------------|--------------------------------------------------------------|
-| `:Cmdlog`            | Shows full `:` history, including duplicates                |
-| `:CmdlogUnique`      | Shows only unique `:` commands (latest occurrence kept)     |
-| `:CmdlogFavorites`   | Shows commands you've marked as favorites                   |
-| `:CmdlogAll`         | Combines favorites + full history (duplicates allowed)      |
-| `:CmdlogAllUnique`   | Combines favorites + history (only unique commands)         |
+### Command Syntax
+
+`{Cmdlog}{Util}[optional Full]`
+
+### Commands
+
+| Command              | Description                                                            |
+|----------------------|------------------------------------------------------------------------|
+| `:CmdlogFavorites`    | Shows commands you've marked as favorites                              |
+| `:Cmdlog`             | Combines favorites and history, showing only unique commands (no duplicates) |
+| `:CmdlogFull`         | Combines favorites and full history, allowing duplicates               |
+| `:CmdlogNvim`         | Shows only unique Neovim (`:`) commands (latest occurrence kept)      |
+| `:CmdlogNvimFull`     | Shows full Neovim (`:`) history, including duplicates                 |
+| `:CmdlogShell`        | Shows unique shell history (latest occurrence kept)                   |
+| `:CmdlogShellFull`    | Shows full shell history, including duplicates                         |
+
+---
 
 ### Shortcuts (inside pickers)
 
 - `<CR>`: Insert command into `:` (does not execute)
-- `<C-f>`: Toggle favorite
+- `<Tab>`: Toggle favorite
 - `<C-r>`: Refresh picker
 
 ---
