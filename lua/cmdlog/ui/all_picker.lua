@@ -1,13 +1,13 @@
 local favorites = require("cmdlog.core.favorites")
 local history = require("cmdlog.core.history")
 local process_list = require("cmdlog.core.utils").process_list
-local config = require("cmdlog.config")
+local picker_utils = require("cmdlog.ui.picker_utils")
 
 local M = {}
 
---- Loads and shows a picker that combines favorites and history entries.
+--- Loads and shows a picker that combines favorites and all history entries.
 --- Favorites are always shown at the top.
---- The picker can be Telescope or fzf, based on configuration.
+--- Supports Telescope and fzf as picker backends.
 --- @return nil
 function M.show_all_picker()
   local favs = favorites.load()
@@ -16,42 +16,11 @@ function M.show_all_picker()
 
   local combined = vim.list_extend(vim.deepcopy(favs), hist)
 
-  if config.options.picker == "telescope" then
-    require("telescope.pickers").new({}, {
-      prompt_title = ":history & favorites",
-      finder = require("telescope.finders").new_table {
-        results = combined,
-        entry_maker = function(entry)
-          local is_fav = vim.tbl_contains(favs, entry)
-          return {
-            value = entry,
-            display = (is_fav and "★ " or "   ") .. entry,
-            ordinal = entry,
-          }
-        end,
-      },
-      sorter = require("telescope.config").values.generic_sorter({}),
-      previewer = require("cmdlog.ui.telescope-previewer").command_previewer(),
-      attach_mappings = require("cmdlog.ui.mappings")(M.show_all_picker),
-    }):find()
-
-  elseif config.options.picker == "fzf" then
-    local fzf = require("fzf-lua")
-    fzf.fzf_exec(combined, {
-      prompt = ":history & favorites> ",
-      previewer = require("cmdlog.ui.fzf-previewer").command_previewer(),
-      actions = {
-        ["default"] = function(selected)
-          if selected[1] then
-            vim.fn.feedkeys(":" .. selected[1], "n")
-          end
-        end,
-      },
-    })
-
-  else
-    vim.notify("[cmdlog] Unknown picker: " .. tostring(config.options.picker), vim.log.levels.ERROR)
-  end
+  picker_utils.open_picker(combined, favs, {
+    prompt_title = ":history & favorites",
+    fzf_prompt = ":history & favorites> ",
+    attach_mappings = require("cmdlog.ui.mappings")(M.show_all_picker),
+  })
 end
 
 return M
