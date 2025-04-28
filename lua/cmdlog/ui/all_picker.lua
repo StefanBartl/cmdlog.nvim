@@ -1,20 +1,38 @@
 local favorites = require("cmdlog.core.favorites")
-local history = require("cmdlog.core.history")
+local history_mod = require("cmdlog.core.history")
+local shell_mod = require("cmdlog.core.shell")
 local process_list = require("cmdlog.core.utils").process_list
 local picker_utils = require("cmdlog.ui.picker_utils")
 
 local M = {}
 
---- Loads and shows a picker that combines favorites and all history entries.
---- Favorites are always shown at the top.
+--- Loads and shows a picker combining all history entries and favorites.
+--- Favorites are always displayed at the top.
+--- Combined list: Favorites first, then Nvim history, then Shell history
 --- Supports Telescope and fzf as picker backends.
 --- @return nil
 function M.show_all_picker()
   local favs = favorites.load()
-  local raw = history.get_command_history()
-  local hist = process_list(raw, { unique = false })
 
-  local combined = vim.list_extend(vim.deepcopy(favs), hist)
+  local raw_hist = history_mod.get_command_history()
+  local raw_shell = shell_mod.get_shell_history()
+
+  local history = process_list(raw_hist, { unique = false })
+  local shell = process_list(raw_shell, { unique = false })
+
+  local combined = {}
+
+  for _, f in ipairs(favs) do
+    table.insert(combined, f)
+  end
+
+  for _, h in ipairs(history) do
+    table.insert(combined, h)
+  end
+
+  for _, s in ipairs(shell) do
+    table.insert(combined, s)
+  end
 
   picker_utils.open_picker(combined, favs, {
     prompt_title = ":history & favorites",
