@@ -5,6 +5,11 @@ local config = require("cmdlog.config")
 
 local M = {}
 
+--- Loads and shows a picker displaying unique command history entries.
+--- Commands are deduplicated to show each command only once.
+--- Favorites are highlighted but not prioritized at the top.
+--- Supports Telescope and fzf as picker backends.
+--- @return nil
 function M.show_history_unique_picker()
   local entries = process_list(history.get_command_history(), { unique = true })
   local favs = favorites.load()

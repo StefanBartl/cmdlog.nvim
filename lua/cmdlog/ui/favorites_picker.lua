@@ -3,6 +3,10 @@ local config = require("cmdlog.config")
 
 local M = {}
 
+--- Loads and shows a picker displaying all favorite commands.
+--- Allows executing a command or toggling its favorite status directly from the picker.
+--- Supports Telescope and fzf as picker backends.
+--- @return nil
 function M.show_favorites_picker()
   local favs = favorites.load()
 

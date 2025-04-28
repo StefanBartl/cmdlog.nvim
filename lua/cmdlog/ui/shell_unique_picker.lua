@@ -5,6 +5,11 @@ local config = require("cmdlog.config")
 
 local M = {}
 
+--- Loads and shows a picker displaying unique shell history commands combined with favorites.
+--- Shell history commands are deduplicated to show each command only once.
+--- Favorites are always displayed at the top.
+--- Supports Telescope and fzf as picker backends.
+--- @return nil
 function M.show_shell_unique_picker()
   local favs = favorites.load()
   local raw = shell_mod.get_shell_history()

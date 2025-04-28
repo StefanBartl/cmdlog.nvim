@@ -5,6 +5,10 @@ local config = require("cmdlog.config")
 
 local M = {}
 
+--- Loads and shows a picker combining favorites and unique history entries.
+--- Ensures that favorites are always displayed first, and history entries are unique (no duplicate favorites).
+--- The picker used can be Telescope or fzf, depending on user configuration.
+--- @return nil
 function M.show_all_unique_picker()
   local favs = favorites.load()
   local raw = history.get_command_history()

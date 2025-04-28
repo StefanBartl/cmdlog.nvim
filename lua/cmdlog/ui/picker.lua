@@ -8,6 +8,9 @@ local shell_unique_picker = require("cmdlog.ui.shell_unique_picker")
 
 local M = {}
 
+--- Registers user commands for various pickers like history, favorites, shell history, etc.
+--- Commands are available as :Cmdlog, :CmdlogUnique, :CmdlogFavorites, :CmdlogAll, :CmdlogAllUnique, :CmdlogShell, and :CmdlogShellUnique.
+--- @return nil
 function M.register_command()
   vim.api.nvim_create_user_command("Cmdlog", history_picker.show_history_picker, {})
   vim.api.nvim_create_user_command("CmdlogUnique", unique_picker.show_history_unique_picker, {})

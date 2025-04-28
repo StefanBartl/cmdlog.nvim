@@ -3,7 +3,10 @@ local Job = require("plenary.job")
 
 local M = {}
 
---- Returns a previewer that shows file contents if the command is e.g. :edit somefile.txt
+--- Returns a Telescope buffer previewer that shows file contents if the command targets a readable file.
+--- If the command matches patterns like ":edit filename" or ":vsp filename", the file contents are previewed.
+--- If the file is not readable or no match is found, a fallback message is displayed.
+--- @return table
 function M.command_previewer()
   return previewers.new_buffer_previewer {
     define_preview = function(self, entry, _)

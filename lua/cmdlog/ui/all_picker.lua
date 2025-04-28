@@ -5,6 +5,10 @@ local config = require("cmdlog.config")
 
 local M = {}
 
+--- Loads and shows a picker that combines favorites and history entries.
+--- Favorites are always shown at the top.
+--- The picker can be Telescope or fzf, based on configuration.
+--- @return nil
 function M.show_all_picker()
   local favs = favorites.load()
   local raw = history.get_command_history()

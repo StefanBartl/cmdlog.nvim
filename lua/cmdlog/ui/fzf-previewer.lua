@@ -1,7 +1,9 @@
 local M = {}
 
---- Returns a previewer function for fzf-lua
---- Shows file contents if the command is e.g. :edit somefile.txt
+--- Returns a previewer function for fzf-lua.
+--- The previewer attempts to show the contents of a file if the command is a simple edit command (e.g., :edit filename.txt).
+--- If no file is matched or readable, no preview is provided.
+--- @return fun(entry: string, _: any): string|nil
 function M.command_previewer()
   return function(entry, _)
     local cmd = entry or ""
