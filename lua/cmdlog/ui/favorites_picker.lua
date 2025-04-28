@@ -30,7 +30,7 @@ function M.show_favorites_picker()
         end
       end)
 
-      map("i", "<C-f>", function()
+      map("i", "<Tab>", function()
         local selected = action_state.get_selected_entry()
         if selected and selected.value then
           favorites.toggle(selected.value)
