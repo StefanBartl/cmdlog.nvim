@@ -1,6 +1,6 @@
 # nvim-cmdlog
 
-A lightweight, modern Neovim plugin to interactively view, search, and reuse command-line mode (`:`) history using Telescope.
+A lightweight, modern Neovim plugin to interactively view, search, and reuse command-line mode (`:`) history and shell history using Telescope (standard) ord fzf.
 
 ---
 
