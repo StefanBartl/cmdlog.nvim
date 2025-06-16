@@ -4,6 +4,28 @@ A lightweight, modern Neovim plugin to interactively view, search, and reuse com
 
 ---
 
+- [Features](#features)
+- [Installation (with Lazy.nvim)](#installation-with-lazynvim)
+  - [Load immediately](#load-immediately-recommended-for-most-setups)
+  - [Load lazily (alternative)](#load-lazily-alternative)
+    - [Option 1: Lazy-load on demand (command)](#option-1-lazy-load-on-demand-command)
+    - [Option 2: Lazy-load via keybindings](#option-2-lazy-load-via-keybindings)
+    - [Option 3: Lazy-load on specific event](#option-3-lazy-load-on-specific-event)
+- [Dependencies](#dependencies)
+- [Picker configuration (Telescope vs FzfLua)](#picker-configuration-telescope-vs-fzflua)
+  - [When to use which picker?](#when-to-use-which-picker)
+- [Usage](#usage)
+  - [Cmdlog Picker Demo](#cmdlog-picker-demo)
+  - [Command Syntax](#command-syntax)
+  - [Commands](#commands)
+  - [Shortcuts (inside pickers)](#shortcuts-inside-pickers)
+- [Development](#development)
+- [License](#license)
+- [Disclaimer](#disclaimer)
+- [Feedback](#feedback)
+
+---
+
 ## Features
 
 ![Cmdlog Picker UI](./docs/assets/Cmdlog-Picker-UI.png)
