@@ -1,3 +1,6 @@
+--- @module 'cmdlog.ui.favorites_picker'
+--- @brief Zeigt alle Favoriten an (aus JSON), inkl. Ausführen/Toggle im Picker.
+
 local favorites = require("cmdlog.core.favorites")
 local picker_utils = require("cmdlog.ui.picker_utils")
 
@@ -22,6 +25,7 @@ function M.show_favorites_picker()
       local actions = require("telescope.actions")
       local action_state = require("telescope.actions.state")
 
+      -- Enter: ausführen
       map("i", "<CR>", function()
         local selected = action_state.get_selected_entry()
         actions.close(prompt_bufnr)
@@ -30,6 +34,7 @@ function M.show_favorites_picker()
         end
       end)
 
+      -- Tab: toggle + neu laden
       map("i", "<Tab>", function()
         local selected = action_state.get_selected_entry()
         if selected and selected.value then
