@@ -1,7 +1,6 @@
 ---@module 'cmdlog.ui.fzf-previewer'
---- Cross-OS preview for fzf-lua builtin previewer.
---- IMPORTANT: fzf-lua's builtin previewer expects TEXT, not a command.
---- We execute the command ourselves (sync) and return its stdout as text.
+--- Cross-OS preview for fzf-lua builtin previewer (returns TEXT, not commands).
+--- We exec the command ourselves and return stdout, files via readfile.
 
 local shell = require("cmdlog.core.shell")
 local Job = require("plenary.job")
@@ -21,6 +20,16 @@ end
 ---@param s string
 ---@return string
 local function trim(s) return (tostring(s or ""):gsub("^%s+", ""):gsub("%s+$", "")) end
+
+--- remove leading "★ " or leading spaces used as favorite marker
+---@param s string
+---@return string
+local function unwrap_cmd(s)
+  s = trim(s)
+  s = s:gsub("^%s*[★%*]%s+", "") -- remove star + space if present
+  s = s:gsub("^%s%s%s", "")      -- or the 3-space non-fav pad
+  return s
+end
 
 ---@param p string
 ---@return boolean
@@ -68,7 +77,6 @@ end
 ---@return string
 local function run_argv(argv, max)
   max = max or 120
-  -- Prefer Neovim 0.10+ sync system()
   if vim.system then
     local res = vim.system(argv, { text = true }):wait()
     local out = take_lines(res.stdout or "", max)
@@ -78,7 +86,6 @@ local function run_argv(argv, max)
     if out == "" then out = "[no output]" end
     return out
   end
-  -- Fallback: plenary.job sync
   local cmd = table.remove(argv, 1)
   local job = Job:new({ command = cmd, args = argv })
   local ok, out = pcall(function() return job:sync() end)
@@ -89,12 +96,11 @@ local function run_argv(argv, max)
 end
 
 ---@param variant "posix"|"powershell"|"cmd"
----@param exe string
+---@param _exe string
 ---@param file string
 ---@param n integer
 ---@return string
-local function file_preview_text(variant, exe, file, n)
-  -- Pure Lua read for files (fast, portable)
+local function file_preview_text(variant, _exe, file, n)
   local ok, lines = pcall(vim.fn.readfile, file, "", n)
   if not ok or type(lines) ~= "table" or #lines == 0 then
     return "[preview error] failed to read file: " .. tostring(file)
@@ -120,28 +126,26 @@ local function bang_preview_text(variant, exe, bang, n)
 end
 
 --- Returns a previewer function for fzf-lua builtin previewer.
---- MUST return text (string) or nil. Do NOT return command tables here.
+--- MUST return text (string) or nil.
 --- @return fun(entry: any, _: any): (string|nil)
 function M.command_previewer()
   return function(entry, _)
-    local cmd = trim(to_s(entry))
+    local raw = to_s(entry)
+    local cmd = unwrap_cmd(raw)
     local info = shell.get_shell_info()
     local variant = (info and info.variant) or "posix" ---@type "posix"|"powershell"|"cmd"
     local exe = (info and info.exe) or (variant == "powershell" and "powershell" or (variant == "cmd" and "cmd" or "sh"))
 
-    -- File preview
     local file = extract_file_from_edit(cmd)
     if file and is_readable(file) then
       return file_preview_text(variant, exe, file, 120)
     end
 
-    -- :! preview
     local bang = string.match(cmd, "^%s*:?%s*!%s*(.+)$")
     if bang and bang ~= "" then
       return bang_preview_text(variant, exe, bang, 120)
     end
 
-    -- Return nil to show nothing
     return nil
   end
 end
