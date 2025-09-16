@@ -1,3 +1,12 @@
+---@module 'cmdlog.ui.telescope_previewer'
+-- Text-returning previewer for fzf-lua.
+-- Supports:
+--   * :!<shell> ...          (runs via sh/pwsh/cmd wrapper)
+--   * :edit/:vsp/:vs <file>  (reads first lines)
+--   * Introspective Ex cmds  (:messages, :registers, :marks, :jumps, :changes, :ls/:buffers,
+--                             :scriptnames, :set..., :map..., :autocmd...)
+--   * :help {topic}          (resolves via doc/tags and shows the section around *{topic}*)
+
 local previewers = require("telescope.previewers")
 local Job = require("plenary.job")
 local vim = vim
