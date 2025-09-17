@@ -1,85 +1,35 @@
 ---@module 'cmdlog.ui.telescope_previewer'
--- Text-returning previewer for fzf-lua.
--- Supports:
---   * :!<shell> ...          (runs via sh/pwsh/cmd wrapper)
---   * :edit/:vsp/:vs <file>  (reads first lines)
---   * Introspective Ex cmds  (:messages, :registers, :marks, :jumps, :changes, :ls/:buffers,
---                             :scriptnames, :set..., :map..., :autocmd...)
---   * :help {topic}          (resolves via doc/tags and shows the section around *{topic}*)
+---@brief Text-returning previewer for Telescope (feature-parity with fzf previewer).
+---@description
+--- Single buffer previewer that computes text synchronously and writes lines safely.
 
 local previewers = require("telescope.previewers")
-local Job = require("plenary.job")
-local vim = vim
+local api        = vim.api
+local common     = require("cmdlog.ui.preview_utils.common")
+local cpt_preview     = require("cmdlog.ui.preview_utils.compute_preview_text")
 
 local M = {}
 
---- Returns a Telescope buffer previewer that shows file contents if the command targets a readable file.
---- If the command matches patterns like ":edit filename" or ":vsp filename", the file contents are previewed.
---- If the command is a `:help`, `:!<shell>`, `:term`, or `:lua`, show the appropriate preview.
---- @return table
+---@param self table
+---@param text string|nil
+local function set_preview_text(self, text)
+  if not (self and self.state and self.state.bufnr) then return end
+  local bufnr = self.state.bufnr
+  if not api.nvim_buf_is_valid(bufnr) then return end
+  local lines = vim.split(text or "", "\n", { plain = true })
+  api.nvim_buf_set_lines(bufnr, 0, -1, false, lines)
+end
+
+--- Returns a Telescope buffer previewer with the same logic as the fzf previewer.
+---@return table
 function M.command_previewer()
-  return previewers.new_buffer_previewer {
+  return previewers.new_buffer_previewer({
     define_preview = function(self, entry, _)
-      local cmd = entry.value or ""
-
-      -- TODO: Preview for ':help <topic>'
-      -- TODO: Preview for ':term', ':make', ':lua' commands (context-dependent preview)
-
-      -- Preview for ':!<shell>' - Simulating shell command output
-      local shell_cmd = cmd:match("^%s*:?%s*!%s*(.*)$")
-      if shell_cmd then
-        local job_opts = {
-          command = shell_cmd,
-          on_stdout = function(_, line)
-            vim.schedule(function()
-              vim.api.nvim_buf_set_lines(self.state.bufnr, -1, -1, false, { line })
-            end)
-          end,
-          on_stderr = function(_, err)
-            if err and err ~= "" then
-              vim.schedule(function()
-                vim.api.nvim_buf_set_lines(self.state.bufnr, -1, -1, false, { "Error: " .. err })
-              end)
-            end
-          end,
-        }
-        Job:new(job_opts):start()
-        return
-      end
-
-
-      -- Preview for ':edit <file>', ':vsp <file>', or ':vs <file>'
-      local file = cmd:match("^%s*:?%s*e%d?dit%s+(%S+)$")
-                or cmd:match("^%s*:?%s*vsp%s+(%S+)$")
-                or cmd:match("^%s*:?%s*vs%s+(%S+)$")
-      if file and vim.fn.filereadable(file) == 1 then
-        local job_opts = {
-          command = "head",
-          args = { "-n", "50", file },
-          on_stdout = function(_, line)
-            vim.schedule(function()
-              vim.api.nvim_buf_set_lines(self.state.bufnr, -1, -1, false, { line })
-            end)
-          end,
-          on_stderr = function(_, err)
-            if err and err ~= "" then
-              vim.schedule(function()
-                vim.api.nvim_buf_set_lines(self.state.bufnr, -1, -1, false, { "Error: " .. err })
-              end)
-            end
-          end,
-        }
-        Job:new(job_opts):start()
-      else
-        -- No match for file-related command
-        vim.api.nvim_buf_set_lines(self.state.bufnr, 0, -1, false, {
-          "No preview available",
-          "",
-          "This command does not match any preview pattern."
-        })
-      end
+      local raw = common.to_s(entry and entry.value or entry)
+      local text = cpt_preview(raw, {})
+      set_preview_text(self, text)
     end,
-  }
+  })
 end
 
 return M

@@ -12,11 +12,6 @@ local M = {}
 
 local help = require("cmdlog.ui.preview_utils.help")
 
----@class ShortExInfo
----@field label string        -- canonical display of the command (e.g. ":w", ":w!")
----@field help  string|nil    -- help tag to try (e.g. ":w", ":quit", ":bdelete")
----@field desc  string        -- concise human-readable explanation
-
 ---@type table<string, ShortExInfo>
 local SHORT_EX = {
   -- Writing / quitting

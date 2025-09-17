@@ -124,10 +124,10 @@ function M.try_preview(cmd)
   local key = string.upper(name)
 
   -- Check buffer-local first (more specific), then global
-  local buf_idx = _usercmd_index_buffer(2)
+  local buf_idx = _usercmd_index_buffer(10)
   local spec = buf_idx[key]
   if not spec then
-    local glob_idx = _usercmd_index_global(2)
+    local glob_idx = _usercmd_index_global(10)
     spec = glob_idx[key]
   end
   if not spec then return nil end

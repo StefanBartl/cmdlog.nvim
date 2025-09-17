@@ -10,15 +10,6 @@
 --- Returned `source` helps diagnosing which branch matched.
 --- Note: Noice internals may change; this detector prefers stable hints first.
 
----@class NoiceDetectCache
----@field val boolean|nil  -- cached result
----@field src string|nil   -- where the result came from
----@field ts  integer|nil  -- unix timestamp of cache fill
-
----@class NoiceDetectOpts
----@field soft boolean|nil  -- if true: never require(); only check package.loaded/globals/heuristics
----@field ttl  integer|nil  -- cache TTL in seconds (default: 2)
-
 local M = {}
 
 -- Internal, module-local cache (not global)
