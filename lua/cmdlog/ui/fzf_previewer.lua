@@ -1,16 +1,5 @@
 ---@module 'cmdlog.ui.fzf_previewer'
 --- Text-returning previewer for fzf-lua pickers.
---- Responsibilities:
----   - Given a command-like entry (e.g. ":messages", ":help foo", ":e file"),
----     return a short textual preview WITHOUT changing window focus or opening UI windows.
----   - Handle introspection Ex-commands (messages/registers/marks/…),
----     file previews, help topics, and shell bang commands (:!…).
---- Design notes:
----   - This module returns a closure `M.command_previewer()` suitable for fzf-lua's `previewer`.
----   - It never returns nil; a textual fallback like "[no preview]" is produced instead.
----   - For ":messages" it delegates to a passive capture module to avoid opening the messages window.
----   - For commands that might spawn ephemeral windows, it captures output via `nvim_exec2` and then
----     defensively closes any newly created messages/noice-like windows; afterwards it refocuses the picker.
 
 local shell = require("cmdlog.core.shell") ---@module 'cmdlog.core.shell'
 local Job = require("plenary.job") ---@module 'plenary.job'
@@ -255,7 +244,7 @@ function M.command_previewer()
 		-- normalize
 		local raw = to_s(entry)
 		local cmd = unwrap_cmd(raw)
-    -- local head = excmds.head_token(cmd)            ---@type string  -- cached once
+		-- local head = excmds.head_token(cmd)            ---@type string  -- cached once
 		local exhead = (excmds.ex_head_after_mods(cmd)):lower() ---@type string -- compute Ex head AFTER modifiers once (robuster als head_token)
 
 		-- Resolve shell info once for :!bang invocations (lazy use below).
@@ -264,68 +253,69 @@ function M.command_previewer()
 		local exe = (info and info.exe)
 			or (variant == "powershell" and "powershell" or (variant == "cmd" and "cmd" or "sh"))
 
-    -- -----------------------------------------------------------------
+		-- -----------------------------------------------------------------
 		-- :help {topic}
-    -- -----------------------------------------------------------------
+		-- -----------------------------------------------------------------
+		--  BUG: more restrictive: only capture :h & :help
 		local help_topic = cmd:match("^%s*:?%s*h%w*%s+(.+)$")
 		if help_topic then
 			return help.try_preview(help_topic, 120) or "[no preview] for this help tag"
 		end
 
-    -- -----------------------------------------------------------------
-    -- echo branch
-    -- -----------------------------------------------------------------
-    do
-      local echo_text = echo.try_preview(cmd)
-      if echo_text ~= nil then
-        -- Never return nil; echo_text may be empty string if nothing after 'echo'
-        return echo_text ~= "" and echo_text or "[empty echo]"
-      end
-    end
+		-- -----------------------------------------------------------------
+		-- echo branch
+		-- -----------------------------------------------------------------
+		do
+			local echo_text = echo.try_preview(cmd)
+			if echo_text ~= nil then
+				-- Never return nil; echo_text may be empty string if nothing after 'echo'
+				return echo_text ~= "" and echo_text or "[empty echo]"
+			end
+		end
 
-    -- 3) NEW: user-command branch (global + buffer-local)
-    do
-      local u = usercmd.try_preview(cmd)
-      if u and u ~= "" then
-        return u
-      end
-    end
+		-- 3) NEW: user-command branch (global + buffer-local)
+		do
+			local u = usercmd.try_preview(cmd)
+			if u and u ~= "" then
+				return u
+			end
+		end
 		-- -----------------------------------------------------------------------
 		-- Introspection commands
 		-- -----------------------------------------------------------------------
 
-    if excmds.SAFE[exhead] or excmds.is_messages_ex(cmd) then
-      if exhead == "messages" then
-        local protection = require("cmdlog.ui.noice_detection")
-        if not protection.is_cmdlog_messages_enabled({ soft = true }) then
-          return "[no preview] ':messages' preview disabled if 'noice.messages' is active"
-        end
-        return exec_preview_text("silent messages", 200)
-      end
-      return exec_preview_text(cmd, 200)
-    end
+		if excmds.SAFE[exhead] or excmds.is_messages_ex(cmd) then
+			if exhead == "messages" then
+				local protection = require("cmdlog.ui.preview_utils.noice_detection")
+				if protection.is_noice_messages_enabled({ soft = true }) then
+					return "[no preview] ':messages' preview disabled if 'noice.messages' is active"
+				end
+				return exec_preview_text("silent messages", 200)
+			end
+			return exec_preview_text(cmd, 200)
+		end
 
 		-- -----------------------------------------------------------------------
-    -- Short-Ex-Erklärer (w, q, bd, p, …) – NACH Introspection,
+		-- Short-Ex-Erklärer (w, q, bd, p, …) – NACH Introspection,
 		-- -----------------------------------------------------------------------
-    do
-      local explained = short_ex.try_preview(cmd)
-      if explained and explained ~= "" then
-        return explained
-      end
-    end
+		do
+			local explained = short_ex.try_preview(cmd)
+			if explained and explained ~= "" then
+				return explained
+			end
+		end
 
-    -- -----------------------------------------------------------------
+		-- -----------------------------------------------------------------
 		-- File previews from edit-like commands
-    -- -----------------------------------------------------------------
+		-- -----------------------------------------------------------------
 		local file = extract_file_from_edit(cmd)
 		if file and is_readable(file) then
 			return file_preview_text(file, 120)
 		end
 
-    -- -----------------------------------------------------------------
+		-- -----------------------------------------------------------------
 		-- :!bang commands
-    -- -----------------------------------------------------------------
+		-- -----------------------------------------------------------------
 		local bang = string.match(cmd, "^%s*:?%s*!%s*(.+)$")
 		if bang and bang ~= "" then
 			return bang_preview_text(exe, variant, bang, 120)

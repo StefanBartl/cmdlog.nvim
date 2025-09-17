@@ -58,9 +58,6 @@ function M.open_picker(entries, favs, opts)
   entries = entries or {}
   favs = favs or {}
 
-  -- NEW: remember the window where the picker was opened from
-  vim.g.__cmdlog_caller_win = vim.api.nvim_get_current_win()
-
   if config.options.picker == "telescope" then
     -- … (unverändert) …
   elseif config.options.picker == "fzf" or config.options.picker == "fzf-lua" then
@@ -71,9 +68,6 @@ function M.open_picker(entries, favs, opts)
       -- refresh favorites right before opening
       local current_favs = require("cmdlog.core.favorites").load()
       local list = decorate_for_fzf(entries, current_favs)
-
-      -- keep the caller win up to date in case user reopens
-      vim.g.__cmdlog_caller_win = vim.api.nvim_get_current_win()
 
       fzf.fzf_exec(list, {
         prompt = opts.fzf_prompt or ":commands> ",
@@ -117,90 +111,6 @@ function M.open_picker(entries, favs, opts)
     vim.notify("[nvim-cmdlog] Unknown picker: " .. tostring(config.options.picker), vim.log.levels.ERROR)
   end
 end
-local _closing_guard = false
 
---- Capture :messages without letting any UI steal the preview window focus.
----@param max integer|nil
----@return string
-function M.capture_messages_safely(max)
-  max = max or 200
 
-  -- current = preview window (because previewer runs in it)
-  local preview_win = vim.api.nvim_get_current_win()
-
-  -- prefer the user window that opened the picker
-  local caller_win = vim.g.__cmdlog_caller_win
-  if not (caller_win and vim.api.nvim_win_is_valid(caller_win)) then
-    -- fallback: try to find any *other* normal window
-    for _, w in ipairs(vim.api.nvim_list_wins()) do
-      if w ~= preview_win then
-        caller_win = w
-        break
-      end
-    end
-  end
-
-  -- snapshot windows before
-  local before = {}
-  for _, w in ipairs(vim.api.nvim_list_wins()) do before[w] = true end
-
-  -- mark phase for external UIs (e.g. Noice routes)
-  local had_flag = vim.g.__cmdlog_capturing_messages
-  vim.g.__cmdlog_capturing_messages = true
-
-  local function do_capture()
-    -- 1) quiet execute
-    local ok, out = pcall(vim.fn.execute, "silent messages")
-    if not ok then out = "" end
-    if (out or "") == "" then
-      -- 2) :redir fallback
-      local script = table.concat({
-        "redir => g:__cmdlog_msgs",
-        "silent messages",
-        "redir END",
-        "echo g:__cmdlog_msgs",
-        "unlet g:__cmdlog_msgs",
-      }, " | ")
-      local ok2, res = pcall(vim.api.nvim_exec2, script, { output = true })
-      out = (ok2 and res and res.output) or ""
-    end
-    return tostring(out or "")
-  end
-
-  -- run the capture in the *caller* window, not in the preview window
-  local out
-  if caller_win and vim.api.nvim_win_is_valid(caller_win) then
-    local ok, res = pcall(vim.api.nvim_win_call, caller_win, do_capture)
-    out = ok and res or ""
-  else
-    out = do_capture()
-  end
-
-  -- cleanup (close any *new* windows and restore focus to preview)
-  if not _closing_guard then
-    _closing_guard = true
-    vim.schedule(function()
-      for _, w in ipairs(vim.api.nvim_list_wins()) do
-        if not before[w] then
-          pcall(vim.api.nvim_win_close, w, true)
-        end
-      end
-      if vim.api.nvim_win_is_valid(preview_win) then
-        pcall(vim.api.nvim_set_current_win, preview_win)
-      end
-      vim.g.__cmdlog_capturing_messages = had_flag and true or nil
-      _closing_guard = false
-    end)
-  end
-
-  if out == "" then out = "[no messages]" end
-
-  -- trim to N lines
-  local n, buf = 0, {}
-  for line in out:gmatch("([^\n]*)\n?") do
-    n = n + 1; buf[n] = line
-    if n >= max then break end
-  end
-  return table.concat(buf, "\n")
-end
 return M
