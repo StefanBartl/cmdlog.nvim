@@ -1,4 +1,4 @@
-🔧 Beta stage – under active development. Changes possible. Expect bugs, especially on windows systems.
+🔧 Beta stage – under active development. Changes possible. Expect bugs, especially with the history feature on windows systems.
 
 # nvim-cmdlog
 
