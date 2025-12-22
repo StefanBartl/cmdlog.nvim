@@ -1,6 +1,12 @@
-🔧 Beta stage – under active development. Changes possible. Expect bugs, especially with the history feature on windows systems.
-
 # nvim-cmdlog
+![status](https://img.shields.io/badge/status-beta-orange.svg)
+![Lazy.nvim compatible](https://img.shields.io/badge/lazy.nvim-supported-success)
+![Neovim](https://img.shields.io/badge/Neovim-0.9+-success.svg)
+![Lua](https://img.shields.io/badge/language-Lua-yellow.svg)
+![License](https://img.shields.io/badge/license-MIT-green.svg)
+![Contributions](https://img.shields.io/badge/contributions-welcome-brightgreen.svg)
+
+🔧 Beta stage – under active development. Changes possible. Expect bugs, especially with the history feature on windows systems.
 
 A lightweight, modern Neovim plugin to interactively view, search, and reuse command-line mode (`:`) history and shell history using Telescope (standard) ord fzf.
 
