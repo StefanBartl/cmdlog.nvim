@@ -1,0 +1,166 @@
+*nvim-cmdlog.txt*  Interactive command-line history viewer for Neovim
+
+==============================================================================
+NVIM-CMDLOG                                            *nvim-cmdlog*
+
+nvim-cmdlog is a lightweight Neovim plugin that provides interactive access
+to Neovim command-line (:) history and shell history using a fuzzy picker UI.
+It integrates with Telescope.nvim or fzf-lua and allows searching, previewing,
+favoriting, and reusing past commands.
+
+This plugin focuses on inspection and reuse of existing history entries.
+Commands are inserted into the command-line but are never executed
+automatically.
+
+==============================================================================
+FEATURES                                               *nvim-cmdlog-features*
+
+- Interactive listing of Neovim command-line (:) history
+- Optional integration of shell history (bash, zsh, fish, nu, ksh, csh)
+- Picker backend selection:
+  - Telescope.nvim (default, with previews)
+  - fzf-lua (minimal, fast, no previews yet)
+- Favorites system with persistent storage
+- Non-destructive command reuse (insert only, no auto-exec)
+- Extensible picker infrastructure for custom pickers
+
+==============================================================================
+REQUIREMENTS                                           *nvim-cmdlog-requirements*
+
+Required plugins:
+
+- telescope.nvim        (required when picker = "telescope")
+- fzf-lua               (required when picker = "fzf")
+- plenary.nvim          (required for favorites and utilities)
+
+==============================================================================
+SETUP                                                  *nvim-cmdlog-setup*
+
+The plugin is configured via a setup() call.
+
+Example:
+
+    lua require("cmdlog").setup({
+      picker = "telescope",
+    })
+
+Available options:
+
+picker    Picker backend to use.
+          Values: "telescope" (default), "fzf"
+
+==============================================================================
+COMMANDS                                               *nvim-cmdlog-commands*
+
+:CmdlogFavorites                                       *:CmdlogFavorites*
+    Show only commands marked as favorites.
+
+:Cmdlog                                                *:Cmdlog*
+    Show favorites and history combined.
+    Only unique commands are shown; duplicates are removed.
+
+:CmdlogFull                                            *:CmdlogFull*
+    Show favorites and full history.
+    Duplicate commands are allowed.
+
+:CmdlogNvim                                            *:CmdlogNvim*
+    Show only Neovim (:) commands.
+    Only unique commands are shown; the latest occurrence is kept.
+
+:CmdlogNvimFull                                        *:CmdlogNvimFull*
+    Show full Neovim (:) command history, including duplicates.
+
+:CmdlogShell                                           *:CmdlogShell*
+    Show shell history entries.
+    Only unique commands are shown; the latest occurrence is kept.
+
+:CmdlogShellFull                                       *:CmdlogShellFull*
+    Show full shell history, including duplicates.
+
+==============================================================================
+PICKER USAGE                                           *nvim-cmdlog-usage*
+
+Inside the picker, the following mappings are available:
+
+<CR>        Insert the selected command into the command-line.
+            The command is not executed automatically.
+
+<Tab>       Toggle favorite status for the selected command.
+
+<C-r>       Refresh the picker contents.
+
+==============================================================================
+COMMAND PREVIEWS                                       *nvim-cmdlog-previews*
+
+When using Telescope.nvim, previews may be available depending on the command:
+
+:edit {file}
+    Shows a preview of the file if it is readable.
+
+:!{shell-command}
+    Simulates shell command output for supported shells.
+
+:term, :make, :lua, :help
+    Preview support is experimental or in progress.
+
+When using fzf-lua, previews are currently not available.
+
+==============================================================================
+FAVORITES                                              *nvim-cmdlog-favorites*
+
+Favorites are stored persistently on disk.
+
+Default location:
+
+  ~/.local/share/nvim-cmdlog/favorites.json
+
+On Windows, the path resolves via stdpath("data").
+
+Favorites are shared across all Neovim sessions.
+
+==============================================================================
+SHELL HISTORY                                          *nvim-cmdlog-shell*
+
+Shell history is read from standard history files, depending on the shell:
+
+- zsh   ~/.zsh_history
+- bash  ~/.bash_history
+- fish  ~/.local/share/fish/fish_history
+- nu    ~/.config/nushell/history.txt
+- ksh   ~/.ksh_history
+- csh   ~/.history
+- pwsh  %APPDATA%\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt
+
+The plugin only reads these files and never modifies them.
+
+==============================================================================
+EXTENDING                                              *nvim-cmdlog-extending*
+
+nvim-cmdlog is designed to be extensible.
+
+Utility helpers are provided in picker_utils.lua to simplify the creation
+of custom pickers. Custom pickers can reuse sorting, preview, and action
+logic without reimplementing common behavior.
+
+See the /docs directory in the repository for developer-oriented guides.
+
+==============================================================================
+NOTES                                                  *nvim-cmdlog-notes*
+
+- nvim-cmdlog relies on Neovim's persisted command-line history (shada).
+  Ensure that the 'shada' option includes ':' to enable command history
+  persistence.
+- Commands are never executed automatically by this plugin.
+- Multiple concurrent Neovim instances may affect history ordering.
+
+==============================================================================
+LICENSE                                                *nvim-cmdlog-license*
+
+MIT License.
+
+==============================================================================
+AUTHOR                                                 *nvim-cmdlog-author*
+
+Stefan Bartl
+
+==============================================================================
