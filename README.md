@@ -41,6 +41,7 @@ A lightweight, modern Neovim plugin to interactively view, search, and reuse com
   - `nu`: `~/.config/nushell/history.txt`
   - `ksh`: `~/.ksh_history`
   - `csh`: `~/.history`
+  - pwsh  %APPDATA%\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt
 
 - **Picker Backend Options**: Choose between [Telescope.nvim](https://github.com/nvim-telescope/telescope.nvim) or [fzf-lua](https://github.com/ibhagwan/fzf-lua) for the picker backend, depending on your preference.
 
