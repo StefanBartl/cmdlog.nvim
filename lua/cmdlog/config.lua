@@ -1,20 +1,47 @@
+---@module 'cmdlog.config'
+--- Configuration handling for cmdlog.
+
 local M = {}
 
--- Default-Konfiguration
-local default_config = {
-  favorites_path = vim.fn.stdpath("data") .. "/nvim-cmdlog/favorites.json",
-  picker = "telescope",           -- or "fzf"
-  shell_history_path = "default", -- or a specific file path
+---@type CmdlogConfig
+M.options = {
+  picker = "telescope",
+  favorites_path = vim.fn.stdpath("data") .. "/cmdlog/favorites.json",
+  shell_history_path = "default",
+
+  notes = {
+    enabled = true,
+    dir = vim.fn.stdpath("data") .. "/nvim-cmdlog/notes",
+    format = "markdown",
+    width = 60,
+    autosave = true,
+    persist = true,
+  },
 }
 
--- Speichert die aktuelle Konfiguration
-M.options = vim.deepcopy(default_config)
+---@param opts table|nil
+function M.setup(opts)
+  opts = opts or {}
+  M.options = vim.tbl_deep_extend("force", M.options, opts)
 
---- Setup config by merging user options with defaults
---- @param user_config table|nil
-function M.setup(user_config)
-  M.options = vim.tbl_deep_extend("force", {}, default_config, user_config or {})
+  local notes = M.options.notes
+  if type(notes) ~= "table" then
+    notes = { enabled = false }
+  end
+
+  if notes.format ~= "markdown" then
+    notes.format = "text"
+  end
+
+  if notes.dir == "" then
+    notes.dir = vim.fn.stdpath("data") .. "/nvim-cmdlog/notes"
+  end
+
+  if type(notes.width) ~= "number" then
+    notes.width = 60
+  end
+
+  M.options.notes = notes
 end
 
 return M
-

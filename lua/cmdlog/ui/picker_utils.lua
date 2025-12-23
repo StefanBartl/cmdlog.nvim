@@ -1,51 +1,102 @@
+---@module 'cmdlog.ui.picker_utils'
+--- Picker abstraction with optional notes integration.
+
 local config = require("cmdlog.config")
+local notes = require("cmdlog.core.notes")
 
 local M = {}
 
---- Opens a picker (Telescope or fzf-lua) based on configuration.
---- @param entries string[]: List of entries (already combined if needed)
---- @param favs string[]: List of favorite commands
---- @param opts table: Table with options like prompt_title, fzf_prompt, attach_mappings, actions
---- @return nil
+---@param prompt_bufnr number
+---@return string|nil
+---@diagnostic disable-next-line: unused-local
+local function get_selected_value(prompt_bufnr)
+  local state = require("telescope.actions.state")
+  local entry = state.get_selected_entry()
+  return entry and entry.value or nil
+end
+
+---@return number|nil
+local function open_notes_window()
+  if not config.options.notes.enabled then
+    return nil
+  end
+
+  vim.cmd("vsplit")
+  local win = vim.api.nvim_get_current_win()
+
+  vim.api.nvim_win_set_width(win, config.options.notes.width)
+  vim.api.nvim_set_option_value("number", false, { win = win })
+  vim.api.nvim_set_option_value("relativenumber", false, { win = win })
+  vim.api.nvim_set_option_value("wrap", true, { win = win })
+
+  return win
+end
+
+---@param entries string[]
+---@param favs string[]
+---@param opts table
 function M.open_picker(entries, favs, opts)
   opts = opts or {}
 
-  if config.options.picker == "telescope" then
-    require("telescope.pickers").new({}, {
-      prompt_title = opts.prompt_title or ":commands",
-      finder = require("telescope.finders").new_table {
-        results = entries,
-        entry_maker = function(entry)
-          local is_fav = vim.tbl_contains(favs, entry)
-          return {
-            value = entry,
-            display = (is_fav and "★ " or "   ") .. entry,
-            ordinal = entry,
-          }
-        end,
-      },
-      sorter = require("telescope.config").values.generic_sorter({}),
-      previewer = require("cmdlog.ui.telescope-previewer").command_previewer(),
-      attach_mappings = opts.attach_mappings,
-    }):find()
+  local pickers = require("telescope.pickers")
+  local finders = require("telescope.finders")
+  local conf = require("telescope.config").values
+  local actions = require("telescope.actions")
+  local action_state = require("telescope.actions.state")
 
-  elseif config.options.picker == "fzf" then
-    local fzf = require("fzf-lua")
-    fzf.fzf_exec(entries, {
-      prompt = opts.fzf_prompt or ":commands> ",
-      previewer = require("cmdlog.ui.fzf-previewer").command_previewer(),
-      actions = opts.actions or {
-        ["default"] = function(selected)
-          if selected[1] then
-            vim.cmd(selected[1])
-          end
-        end,
-      },
-    })
+  pickers.new({}, {
+    prompt_title = opts.prompt_title or ":commands",
+    finder = finders.new_table({
+      results = entries,
+      entry_maker = function(entry)
+        return {
+          value = entry,
+          display = entry,
+          ordinal = entry,
+        }
+      end,
+    }),
+    sorter = conf.generic_sorter({}),
+    previewer = false,
 
-  else
-    vim.notify("[nvim-cmdlog] Unknown picker: " .. tostring(config.options.picker), vim.log.levels.ERROR)
-  end
+    attach_mappings = function(prompt_bufnr, map)
+      local notes_win = open_notes_window()
+
+      local function sync_notes()
+        if not notes_win or not vim.api.nvim_win_is_valid(notes_win) then
+          return
+        end
+
+        local entry = action_state.get_selected_entry()
+        if not entry then return end
+
+        local buf = notes.open(entry.value)
+        if buf and vim.api.nvim_buf_is_valid(buf) then
+          vim.api.nvim_win_set_buf(notes_win, buf)
+        end
+      end
+
+      -- Initial buffer fill
+      sync_notes()
+
+      -- Register change on CursorMoved in prompt buffer
+      vim.api.nvim_buf_attach(prompt_bufnr, false, {
+        on_lines = function()
+          vim.schedule(sync_notes)
+        end,
+        on_detach = function() end,
+      })
+
+      actions.select_default:replace(function()
+        actions.close(prompt_bufnr)
+        if notes_win and vim.api.nvim_win_is_valid(notes_win) and not config.options.notes.persist then
+          vim.api.nvim_win_close(notes_win, true)
+        end
+      end)
+
+      return true
+    end,
+  }):find()
 end
 
 return M
