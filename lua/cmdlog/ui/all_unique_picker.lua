@@ -6,6 +6,19 @@ local picker_utils = require("cmdlog.ui.picker_utils")
 
 local M = {}
 
+--- Best-effort delete across both underlying history sources; see all_picker.lua.
+---@param cmd string
+---@return boolean ok
+---@return string|nil err
+local function delete_from_any_history(cmd)
+  local nvim_ok = history_mod.delete_entry(cmd)
+  local shell_ok, shell_err = shell_mod.delete_entry(cmd)
+  if nvim_ok or shell_ok then
+    return true
+  end
+  return false, shell_err
+end
+
 --- Loads and shows a picker combining favorites and unique history entries from both Nvim and shell.
 --- Ensures that favorites are always displayed first, and history entries are unique (no duplicate favorites).
 --- Combined list: Favorites first, then Nvim history, then Shell history
@@ -43,7 +56,7 @@ function M.show_all_unique_picker()
   picker_utils.open_picker(combined, favs, {
     prompt_title = ":history & favorites (unique)",
     fzf_prompt = ":history & favorites (unique)> ",
-    attach_mappings = require("cmdlog.ui.mappings")(M.show_all_unique_picker),
+    attach_mappings = require("cmdlog.ui.mappings")(M.show_all_unique_picker, delete_from_any_history),
   })
 end
 

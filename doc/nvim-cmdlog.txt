@@ -29,6 +29,7 @@ REQUIREMENTS                                           *nvim-cmdlog-requirements
 
 Required plugins:
 
+- lib.nvim              (required, cross-platform fs/notify helpers)
 - telescope.nvim        (required when picker = "telescope")
 - fzf-lua               (required when picker = "fzf")
 - plenary.nvim          (required for favorites and utilities)
@@ -48,6 +49,37 @@ Available options:
 
 picker    Picker backend to use.
           Values: "telescope" (default), "fzf"
+
+mappings  Keymaps used inside pickers. Set an entry to `false` to disable
+          it, or `mappings.enabled = false` to disable all of them.
+            select           (default "<CR>")
+            toggle_favorite  (default "<Tab>")
+            refresh          (default "<C-r>")
+            delete           (default "<C-x>")
+
+          `delete` removes the selected command from its underlying
+          history: Neovim's `:` history via histdel() (no prompt), or the
+          shell history file (rewritten on disk after a confirm prompt).
+
+keymaps   Optional normal-mode entry-point keymaps for the :Cmdlog*
+          commands. Disabled by default (`enabled = false`). Each entry
+          you set carries a `desc`, so which-key.nvim shows it
+          automatically. See docs/BINDINGS.md in the repository for all
+          available keys.
+
+highlight_risky   Highlight commands matching `risky_patterns` (e.g.
+                  "rm -rf", "git reset --hard") with the CmdlogRiskyCommand
+                  highlight group. Default: true. Telescope-only.
+
+risky_patterns    List of Lua patterns checked against each command when
+                  `highlight_risky` is enabled. Set to `{}` to disable.
+
+project_scoped    Opt-in per-project favorites. Disabled by default.
+                  `{ enabled = true }` stores favorites in a dedicated file
+                  under `<favorites_path dir>/projects/`, named after the
+                  Git root detected upward from the current working
+                  directory. Outside a Git repo, or when disabled, the
+                  global `favorites_path` is used.
 
 ==============================================================================
 COMMANDS                                               *nvim-cmdlog-commands*
@@ -88,6 +120,10 @@ Inside the picker, the following mappings are available:
 <Tab>       Toggle favorite status for the selected command.
 
 <C-r>       Refresh the picker contents.
+
+<C-x>       Delete the selected command from its underlying history
+            (Neovim `:` history or the shell history file). See |nvim-cmdlog-setup|
+            for how the shell-history deletion confirmation works.
 
 ==============================================================================
 COMMAND PREVIEWS                                       *nvim-cmdlog-previews*
@@ -143,6 +179,13 @@ of custom pickers. Custom pickers can reuse sorting, preview, and action
 logic without reimplementing common behavior.
 
 See the /docs directory in the repository for developer-oriented guides.
+
+==============================================================================
+HEALTH                                                 *nvim-cmdlog-health*
+
+Run `:checkhealth cmdlog` to verify dependencies (plenary.nvim,
+telescope.nvim/fzf-lua depending on `picker`), shell-history detection,
+and the notes directory.
 
 ==============================================================================
 NOTES                                                  *nvim-cmdlog-notes*

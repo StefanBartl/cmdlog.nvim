@@ -6,6 +6,21 @@ local picker_utils = require("cmdlog.ui.picker_utils")
 
 local M = {}
 
+--- Best-effort delete across both underlying history sources: a combined-view
+--- entry might originate from Neovim's `:` history, the shell history file, or
+--- both. Neither call prompts/errors when `cmd` isn't found in that source.
+---@param cmd string
+---@return boolean ok
+---@return string|nil err
+local function delete_from_any_history(cmd)
+  local nvim_ok = history_mod.delete_entry(cmd)
+  local shell_ok, shell_err = shell_mod.delete_entry(cmd)
+  if nvim_ok or shell_ok then
+    return true
+  end
+  return false, shell_err
+end
+
 --- Loads and shows a picker combining all history entries and favorites.
 --- Favorites are always displayed at the top.
 --- Combined list: Favorites first, then Nvim history, then Shell history
@@ -37,7 +52,7 @@ function M.show_all_picker()
   picker_utils.open_picker(combined, favs, {
     prompt_title = ":history & favorites",
     fzf_prompt = ":history & favorites> ",
-    attach_mappings = require("cmdlog.ui.mappings")(M.show_all_picker),
+    attach_mappings = require("cmdlog.ui.mappings")(M.show_all_picker, delete_from_any_history),
   })
 end
 

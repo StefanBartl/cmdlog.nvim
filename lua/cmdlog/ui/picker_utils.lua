@@ -3,6 +3,7 @@
 
 local config = require("cmdlog.config")
 local notes = require("cmdlog.core.notes")
+local risky = require("cmdlog.core.risky")
 
 local M = {}
 
@@ -51,8 +52,13 @@ function M.open_picker(entries, favs, opts)
       entry_maker = function(entry)
         return {
           value = entry,
-          display = entry,
           ordinal = entry,
+          display = function()
+            if risky.is_risky(entry) then
+              return entry, { { { 0, #entry }, "CmdlogRiskyCommand" } }
+            end
+            return entry
+          end,
         }
       end,
     }),
@@ -93,6 +99,12 @@ function M.open_picker(entries, favs, opts)
           vim.api.nvim_win_close(notes_win, true)
         end
       end)
+
+      -- Let the caller register its own mappings (e.g. select/toggle_favorite/refresh
+      -- via cmdlog.ui.mappings, which respects config.options.mappings).
+      if opts.attach_mappings then
+        return opts.attach_mappings(prompt_bufnr, map)
+      end
 
       return true
     end,

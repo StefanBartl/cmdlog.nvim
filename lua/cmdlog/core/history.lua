@@ -16,4 +16,15 @@ function M.get_command_history()
   return entries
 end
 
+--- Deletes every entry matching `cmd` from Neovim's `:` command-line history.
+--- Uses `histdel()`, which affects only the in-memory (and, on exit, shada-persisted)
+--- history — nothing on disk is touched directly.
+---@param cmd string
+---@return boolean ok
+function M.delete_entry(cmd)
+  local pattern = "^" .. vim.fn.escape(cmd, "\\/.*$^~[]") .. "$"
+  local ok, result = pcall(vim.fn.histdel, ":", pattern)
+  return ok and result == 1
+end
+
 return M
