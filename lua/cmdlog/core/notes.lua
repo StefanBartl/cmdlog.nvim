@@ -2,18 +2,17 @@
 --- Persistent per-command notes storage and buffer management.
 
 local config = require("cmdlog.config")
+local is_dir = require("lib.nvim.fs.is_dir")
 
 local api = vim.api
 local fn  = vim.fn
-local uv  = vim.uv
 
 local M = {}
 
 ---@param path string
 local function ensure_dir(path)
   if path == "" then return end
-  local ok = uv.fs_stat(path)
-  if not ok then
+  if not is_dir(path) then
     fn.mkdir(path, "p")
   end
 end
