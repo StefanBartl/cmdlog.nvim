@@ -11,21 +11,13 @@ function M.reverse_list(entries)
   return result
 end
 
---- Removes duplicate entries, keeping latest occurrence only
+--- Removes duplicate entries, keeping first occurrence in `entries` (paired
+--- with M.reverse_list in M.process_list, this keeps the *latest* occurrence
+--- of the original, pre-reverse order). Delegates to lib.lua.tables.dedup_list.
 --- @param entries string[]
 --- @return string[]
 function M.deduplicate_list(entries)
-  local seen = {}
-  local result = {}
-
-  for _, entry in ipairs(entries) do
-    if not seen[entry] then
-      table.insert(result, entry)
-      seen[entry] = true
-    end
-  end
-
-  return result
+  return require("lib.lua.tables").dedup_list(entries)
 end
 
 --- Optional processing pipeline: reverse + deduplicate (if enabled)
