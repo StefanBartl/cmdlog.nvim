@@ -54,6 +54,8 @@ local default_history_templates = {
 ---  - %VARNAME% -> environment variable (Windows style)
 ---  - $VARNAME -> env var (POSIX style)
 ---  - returns expanded string
+--- Delegates the ~/%VAR%/$VAR expansion to lib.nvim.cross.fs.expand_path
+--- (this module's own version re-implemented the same thing by hand).
 ---@param tpl string
 ---@return string
 local function expand_path_template(tpl)
@@ -61,22 +63,7 @@ local function expand_path_template(tpl)
     return ""
   end
 
-  -- Expand ~
-  local expanded = tpl
-  if expanded:sub(1, 2) == "~/" or expanded == "~" then
-    local home = vim.env.HOME or vim.env.USERPROFILE or ""
-    expanded = home .. expanded:sub(2)
-  end
-
-  -- Expand POSIX $VAR patterns using vim.env
-  expanded = expanded:gsub("%$([%w_]+)", function(k)
-    return vim.env[k] or ""
-  end)
-
-  -- Expand Windows style %VAR% occurrences
-  expanded = expanded:gsub("%%([%w_]+)%%", function(k)
-    return vim.env[k] or ""
-  end)
+  local expanded = require("lib.nvim.cross.fs.expand_path")(tpl)
 
   -- normalize forward slashes (vim.readfile and fs checks accept / on Windows)
   expanded = expanded:gsub("\\", "/")
