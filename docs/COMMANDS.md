@@ -1,26 +1,39 @@
 # Cmdlog Commands
 
+One command, `:Cmdlog [subcommand]`, built via
+[`lib.nvim.usercmd.composer`](https://github.com/StefanBartl/lib.nvim) with
+`<Tab>` completion on the subcommand.
+
 ## `:Cmdlog`
 
-Shows the full list of commands from Neovim's `:`-history, including repeated entries. Useful for reviewing recent activity.
+Bare invocation (no subcommand). Combines favorites and Neovim `:`-history
+into a single list, showing each command only once (duplicates filtered,
+most recent occurrence kept).
 
-## `:CmdlogUnique`
+## `:Cmdlog favorites`
 
-Same as `:Cmdlog`, but filters out duplicates. Only the most recent occurrence of each command is kept.
+Shows only your favorite commands. Use `<C-f>` inside any picker to toggle
+favorite status.
 
-## `:CmdlogFavorites`
+## `:Cmdlog full`
 
-Shows only your favorite commands. Use `<C-f>` inside any picker to toggle favorite status.
+Same as bare `:Cmdlog`, but keeps duplicate entries.
 
-## `:CmdlogAll`
+## `:Cmdlog nvim`
 
-Combines your favorites and the full `:` history into a single list.
-- Favorites appear at the top.
-- Duplicate entries are shown.
+Shows only Neovim `:`-history, deduplicated (most recent occurrence kept).
 
-## `:CmdlogAllUnique`
+## `:Cmdlog nvim-full`
 
-Same as `:CmdlogAll`, but filters the history to show each command only once.
+Shows the full Neovim `:`-history, including duplicates.
+
+## `:Cmdlog shell`
+
+Shows shell command history, deduplicated (most recent occurrence kept).
+
+## `:Cmdlog shell-full`
+
+Shows the full shell command history, including duplicates.
 
 ---
 
