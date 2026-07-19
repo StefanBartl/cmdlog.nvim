@@ -1,3 +1,5 @@
+local composer = require("lib.nvim.usercmd.composer")
+
 local history_picker = require("cmdlog.ui.history_picker")
 local unique_picker = require("cmdlog.ui.history_unique_picker")
 local favorites_picker = require("cmdlog.ui.favorites_picker")
@@ -8,17 +10,30 @@ local shell_unique_picker = require("cmdlog.ui.shell_unique_picker")
 
 local M = {}
 
---- Registers user commands for various pickers like history, favorites, shell history, etc.
---- Commands are available as :CmdlogNvimFull, :CmdlogNvim, :CmdlogFull, :Cmdlog, :CmdlogShellFull, :CmdlogShell, and :CmdlogFavorites.
+--- Registers :Cmdlog <subcommand>, built via lib.nvim.usercmd.composer.
+--- Bare `:Cmdlog` (no subcommand) keeps its original meaning -- the
+--- all-repos, deduplicated picker -- via the verb's `default` handler.
+--- Every picker function is unchanged; only the registration site moved.
 --- @return nil
 function M.register_command()
-  vim.api.nvim_create_user_command("CmdlogNvimFull", history_picker.show_history_picker, {})
-  vim.api.nvim_create_user_command("CmdlogNvim", unique_picker.show_history_unique_picker, {})
-  vim.api.nvim_create_user_command("CmdlogFull", all_picker.show_all_picker, {})
-  vim.api.nvim_create_user_command("Cmdlog", all_unique_picker.show_all_unique_picker, {})
-  vim.api.nvim_create_user_command("CmdlogShellFull", shell_picker.show_shell_picker, {})
-  vim.api.nvim_create_user_command("CmdlogShell", shell_unique_picker.show_shell_unique_picker, {})
-  vim.api.nvim_create_user_command("CmdlogFavorites", favorites_picker.show_favorites_picker, {})
+  composer.verb("Cmdlog", {
+    desc = "Command history pickers",
+    default = all_unique_picker.show_all_unique_picker,
+    routes = {
+      { path = { "full" }, desc = "All commands, including duplicates",
+        run = all_picker.show_all_picker },
+      { path = { "nvim" }, desc = "Neovim command-line history, deduplicated",
+        run = unique_picker.show_history_unique_picker },
+      { path = { "nvim-full" }, desc = "Neovim command-line history, including duplicates",
+        run = history_picker.show_history_picker },
+      { path = { "shell" }, desc = "Shell command history, deduplicated",
+        run = shell_unique_picker.show_shell_unique_picker },
+      { path = { "shell-full" }, desc = "Shell command history, including duplicates",
+        run = shell_picker.show_shell_picker },
+      { path = { "favorites" }, desc = "Favorited commands",
+        run = favorites_picker.show_favorites_picker },
+    },
+  })
 end
 
 return M

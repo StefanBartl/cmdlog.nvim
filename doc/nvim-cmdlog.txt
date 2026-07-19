@@ -29,6 +29,8 @@ REQUIREMENTS                                           *nvim-cmdlog-requirements
 
 Required plugins:
 
+- lib.nvim               (required: the :Cmdlog command layer is built on
+                           lib.nvim.usercmd.composer)
 - telescope.nvim        (required when picker = "telescope")
 - fzf-lua               (required when picker = "fzf")
 - plenary.nvim          (required for favorites and utilities)
@@ -52,29 +54,33 @@ picker    Picker backend to use.
 ==============================================================================
 COMMANDS                                               *nvim-cmdlog-commands*
 
-:CmdlogFavorites                                       *:CmdlogFavorites*
-    Show only commands marked as favorites.
+One command, :Cmdlog [subcommand], built via lib.nvim.usercmd.composer
+(https://github.com/StefanBartl/lib.nvim) with <Tab> completion on the
+subcommand.
 
 :Cmdlog                                                *:Cmdlog*
-    Show favorites and history combined.
+    Bare invocation (no subcommand). Show favorites and history combined.
     Only unique commands are shown; duplicates are removed.
 
-:CmdlogFull                                            *:CmdlogFull*
+:Cmdlog favorites                                      *:Cmdlog-favorites*
+    Show only commands marked as favorites.
+
+:Cmdlog full                                           *:Cmdlog-full*
     Show favorites and full history.
     Duplicate commands are allowed.
 
-:CmdlogNvim                                            *:CmdlogNvim*
+:Cmdlog nvim                                           *:Cmdlog-nvim*
     Show only Neovim (:) commands.
     Only unique commands are shown; the latest occurrence is kept.
 
-:CmdlogNvimFull                                        *:CmdlogNvimFull*
+:Cmdlog nvim-full                                      *:Cmdlog-nvim-full*
     Show full Neovim (:) command history, including duplicates.
 
-:CmdlogShell                                           *:CmdlogShell*
+:Cmdlog shell                                          *:Cmdlog-shell*
     Show shell history entries.
     Only unique commands are shown; the latest occurrence is kept.
 
-:CmdlogShellFull                                       *:CmdlogShellFull*
+:Cmdlog shell-full                                     *:Cmdlog-shell-full*
     Show full shell history, including duplicates.
 
 ==============================================================================

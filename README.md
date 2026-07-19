@@ -79,13 +79,14 @@ You can install `nvim-cmdlog` like this:
 
 ### Load immediately (recommended for most setups)
 
-This ensures all commands (:Cmdlog, :CmdlogFavorites, etc.) are available without delay.
+This ensures `:Cmdlog` and all its subcommands (`:Cmdlog favorites`, etc.) are available without delay.
 
 ```lua
 {
   "StefanBartl/nvim-cmdlog",
   lazy = false,
   dependencies = {
+    "StefanBartl/lib.nvim",          -- Required: the :Cmdlog command layer is built on it
     "nvim-lua/plenary.nvim",
     "nvim-telescope/telescope.nvim", -- Required if you use picker = "telescope"
     "ibhagwan/fzf-lua",              -- Required if you use picker = "fzf"
@@ -108,11 +109,9 @@ You can also lazy-load the plugin if you prefer:
 {
   "StefanBartl/nvim-cmdlog",
   lazy = true,
-  cmd = {
-    "CmdlogNvimFull", "CmdlogNvim", "CmdlogFull", "Cmdlog",  -- see Note!
-    "CmdlogShellFull", "CmdlogShell", "CmdlogFavorites"
-  },
+  cmd = { "Cmdlog" },
   dependencies = {
+    "StefanBartl/lib.nvim",
     "nvim-lua/plenary.nvim",
     "nvim-telescope/telescope.nvim",
     "ibhagwan/fzf-lua",
@@ -125,7 +124,9 @@ You can also lazy-load the plugin if you prefer:
 }
 ```
 
-> **Note**: Only the commands listed here will be available for lazy-loading. Make sure to include the ones you intend to use, such as `Cmdlog`, `CmdlogFavorites`, etc. If a command is omitted, it won't work when lazy-loaded.
+> **Note**: All seven pickers live under the single `:Cmdlog` command now
+> (`:Cmdlog`, `:Cmdlog favorites`, `:Cmdlog nvim`, ...), so `cmd = { "Cmdlog" }`
+> covers every one of them for lazy-loading — no need to list each variant.
 
 #### Option 2: Lazy-load via keybindings
 
@@ -135,9 +136,10 @@ You can also lazy-load the plugin if you prefer:
   lazy = true,
   keys = {
     { "<leader>cl", "<cmd>Cmdlog<CR>", desc = "Show command history" },
-    { "<leader>cf", "<cmd>CmdlogFavorites<CR>", desc = "Show favorites" },
+    { "<leader>cf", "<cmd>Cmdlog favorites<CR>", desc = "Show favorites" },
   },
   dependencies = {
+    "StefanBartl/lib.nvim",
     "nvim-lua/plenary.nvim",
     "nvim-telescope/telescope.nvim",
     "ibhagwan/fzf-lua",
@@ -160,6 +162,7 @@ You can also lazy-load the plugin if you prefer:
   lazy = true,
   event = "VeryLazy", -- or e.g. "BufReadPost"
   dependencies = {
+    "StefanBartl/lib.nvim",
     "nvim-lua/plenary.nvim",
     "nvim-telescope/telescope.nvim",
   },
@@ -178,6 +181,7 @@ Note: If you lazy-load the plugin, make sure to define how it should be triggere
 
 Make sure the following plugins are installed:
 
+- [lib.nvim](https://github.com/StefanBartl/lib.nvim) – required: the `:Cmdlog` command tree is built on `lib.nvim.usercmd.composer`
 - [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim)
 - [plenary.nvim](https://github.com/nvim-lua/plenary.nvim) – required for favorites functionality
 - [fzf-lua](https://github.com/ibhagwan/fzf-lua) (only if picker = "fzf")
@@ -226,19 +230,21 @@ This plugin provides several Telescope-based pickers to explore and reuse comman
 
 ### Command Syntax
 
-`{Cmdlog}{Util}[optional Full]`
+`:Cmdlog [subcommand]` — built via [`lib.nvim.usercmd.composer`](https://github.com/StefanBartl/lib.nvim),
+with `<Tab>` completion on the subcommand. Bare `:Cmdlog` (no subcommand)
+keeps its original meaning.
 
 ### Commands
 
-| Command            | Description                                                                  |
-| ------------------ | ---------------------------------------------------------------------------- |
-| `:CmdlogFavorites` | Shows commands you've marked as favorites                                    |
-| `:Cmdlog`          | Combines favorites and history, showing only unique commands (no duplicates) |
-| `:CmdlogFull`      | Combines favorites and full history, allowing duplicates                     |
-| `:CmdlogNvim`      | Shows only unique Neovim (`:`) commands (latest occurrence kept)             |
-| `:CmdlogNvimFull`  | Shows full Neovim (`:`) history, including duplicates                        |
-| `:CmdlogShell`     | Shows unique shell history (latest occurrence kept)                          |
-| `:CmdlogShellFull` | Shows full shell history, including duplicates                               |
+| Command                | Description                                                                  |
+| ----------------------- | ---------------------------------------------------------------------------- |
+| `:Cmdlog`               | Combines favorites and history, showing only unique commands (no duplicates) |
+| `:Cmdlog favorites`     | Shows commands you've marked as favorites                                    |
+| `:Cmdlog full`          | Combines favorites and full history, allowing duplicates                     |
+| `:Cmdlog nvim`          | Shows only unique Neovim (`:`) commands (latest occurrence kept)             |
+| `:Cmdlog nvim-full`     | Shows full Neovim (`:`) history, including duplicates                        |
+| `:Cmdlog shell`         | Shows unique shell history (latest occurrence kept)                          |
+| `:Cmdlog shell-full`    | Shows full shell history, including duplicates                               |
 
 ---
 
