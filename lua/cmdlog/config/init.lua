@@ -28,6 +28,7 @@ function M.setup(opts)
   if notes.dir == "" then
     notes.dir = DEFAULTS.notes.dir
   end
+  notes.dir = require("lib.nvim.cross.fs.expand_path")(notes.dir)
 
   if type(notes.width) ~= "number" then
     notes.width = DEFAULTS.notes.width
