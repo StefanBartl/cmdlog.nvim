@@ -7,6 +7,8 @@
 ---        sensible delete target (e.g. the favorites picker, where <Tab> already removes) can
 ---        omit this — the delete mapping is then simply not bound.
 --- @return function
+local notify = require("lib.nvim.notify.safe").create_safe("[nvim-cmdlog.mappings]")
+
 return function(refresh_fn, delete_fn)
   return function(prompt_bufnr, map)
     local actions = require("telescope.actions")

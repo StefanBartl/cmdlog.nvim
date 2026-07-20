@@ -1,4 +1,5 @@
 local config = require("cmdlog.config")
+local notify = require("lib.nvim.notify.safe").create_safe("[nvim-cmdlog]")
 
 local M = {}
 
@@ -13,7 +14,7 @@ function M.setup(opts)
     require("cmdlog.bindings").register()
   end)
   if not ok then
-    vim.notify("[nvim-cmdlog] Failed to register bindings: " .. tostring(err), vim.log.levels.ERROR)
+    notify.error("Failed to register bindings: " .. tostring(err))
   end
 
   -- Highlight group used for risky/destructive commands (see cmdlog.core.risky)

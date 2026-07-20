@@ -1,5 +1,6 @@
 local favorites = require("cmdlog.core.favorites")
 local picker_utils = require("cmdlog.ui.picker_utils")
+local notify = require("lib.nvim.notify.safe").create_safe("[nvim-cmdlog.favorites_picker]")
 
 local M = {}
 
@@ -11,7 +12,7 @@ function M.show_favorites_picker()
   local favs = favorites.load()
 
   if #favs == 0 then
-    vim.notify("[nvim-cmdlog] No favorites found", vim.log.levels.INFO)
+    notify.info("No favorites found")
     return
   end
 
