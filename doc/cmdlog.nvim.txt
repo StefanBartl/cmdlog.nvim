@@ -1,9 +1,9 @@
-*nvim-cmdlog.txt*  Interactive command-line history viewer for Neovim
+*cmdlog.nvim.txt*  Interactive command-line history viewer for Neovim
 
 ==============================================================================
-NVIM-CMDLOG                                            *nvim-cmdlog*
+CMDLOG.NVIM                                            *cmdlog.nvim*
 
-nvim-cmdlog is a lightweight Neovim plugin that provides interactive access
+cmdlog.nvim is a lightweight Neovim plugin that provides interactive access
 to Neovim command-line (:) history and shell history using a fuzzy picker UI.
 It integrates with Telescope.nvim or fzf-lua and allows searching, previewing,
 favoriting, and reusing past commands.
@@ -13,7 +13,7 @@ Commands are inserted into the command-line but are never executed
 automatically.
 
 ==============================================================================
-FEATURES                                               *nvim-cmdlog-features*
+FEATURES                                               *cmdlog.nvim-features*
 
 - Interactive listing of Neovim command-line (:) history
 - Optional integration of shell history (bash, zsh, fish, nu, ksh, csh)
@@ -25,7 +25,7 @@ FEATURES                                               *nvim-cmdlog-features*
 - Extensible picker infrastructure for custom pickers
 
 ==============================================================================
-REQUIREMENTS                                           *nvim-cmdlog-requirements*
+REQUIREMENTS                                           *cmdlog.nvim-requirements*
 
 Required plugins:
 
@@ -35,7 +35,7 @@ Required plugins:
 - plenary.nvim          (required for favorites and utilities)
 
 ==============================================================================
-SETUP                                                  *nvim-cmdlog-setup*
+SETUP                                                  *cmdlog.nvim-setup*
 
 The plugin is configured via a setup() call.
 
@@ -82,7 +82,7 @@ project_scoped    Opt-in per-project favorites. Disabled by default.
                   global `favorites_path` is used.
 
 ==============================================================================
-COMMANDS                                               *nvim-cmdlog-commands*
+COMMANDS                                               *cmdlog.nvim-commands*
 
 :CmdlogFavorites                                       *:CmdlogFavorites*
     Show only commands marked as favorites.
@@ -110,7 +110,7 @@ COMMANDS                                               *nvim-cmdlog-commands*
     Show full shell history, including duplicates.
 
 ==============================================================================
-PICKER USAGE                                           *nvim-cmdlog-usage*
+PICKER USAGE                                           *cmdlog.nvim-usage*
 
 Inside the picker, the following mappings are available:
 
@@ -122,11 +122,11 @@ Inside the picker, the following mappings are available:
 <C-r>       Refresh the picker contents.
 
 <C-x>       Delete the selected command from its underlying history
-            (Neovim `:` history or the shell history file). See |nvim-cmdlog-setup|
+            (Neovim `:` history or the shell history file). See |cmdlog.nvim-setup|
             for how the shell-history deletion confirmation works.
 
 ==============================================================================
-COMMAND PREVIEWS                                       *nvim-cmdlog-previews*
+COMMAND PREVIEWS                                       *cmdlog.nvim-previews*
 
 When using Telescope.nvim, previews may be available depending on the command:
 
@@ -142,20 +142,20 @@ When using Telescope.nvim, previews may be available depending on the command:
 When using fzf-lua, previews are currently not available.
 
 ==============================================================================
-FAVORITES                                              *nvim-cmdlog-favorites*
+FAVORITES                                              *cmdlog.nvim-favorites*
 
 Favorites are stored persistently on disk.
 
 Default location:
 
-  ~/.local/share/nvim-cmdlog/favorites.json
+  ~/.local/share/cmdlog.nvim/favorites.json
 
 On Windows, the path resolves via stdpath("data").
 
 Favorites are shared across all Neovim sessions.
 
 ==============================================================================
-SHELL HISTORY                                          *nvim-cmdlog-shell*
+SHELL HISTORY                                          *cmdlog.nvim-shell*
 
 Shell history is read from standard history files, depending on the shell:
 
@@ -170,9 +170,9 @@ Shell history is read from standard history files, depending on the shell:
 The plugin only reads these files and never modifies them.
 
 ==============================================================================
-EXTENDING                                              *nvim-cmdlog-extending*
+EXTENDING                                              *cmdlog.nvim-extending*
 
-nvim-cmdlog is designed to be extensible.
+cmdlog.nvim is designed to be extensible.
 
 Utility helpers are provided in picker_utils.lua to simplify the creation
 of custom pickers. Custom pickers can reuse sorting, preview, and action
@@ -181,28 +181,28 @@ logic without reimplementing common behavior.
 See the /docs directory in the repository for developer-oriented guides.
 
 ==============================================================================
-HEALTH                                                 *nvim-cmdlog-health*
+HEALTH                                                 *cmdlog.nvim-health*
 
 Run `:checkhealth cmdlog` to verify dependencies (plenary.nvim,
 telescope.nvim/fzf-lua depending on `picker`), shell-history detection,
 and the notes directory.
 
 ==============================================================================
-NOTES                                                  *nvim-cmdlog-notes*
+NOTES                                                  *cmdlog.nvim-notes*
 
-- nvim-cmdlog relies on Neovim's persisted command-line history (shada).
+- cmdlog.nvim relies on Neovim's persisted command-line history (shada).
   Ensure that the 'shada' option includes ':' to enable command history
   persistence.
 - Commands are never executed automatically by this plugin.
 - Multiple concurrent Neovim instances may affect history ordering.
 
 ==============================================================================
-LICENSE                                                *nvim-cmdlog-license*
+LICENSE                                                *cmdlog.nvim-license*
 
 MIT License.
 
 ==============================================================================
-AUTHOR                                                 *nvim-cmdlog-author*
+AUTHOR                                                 *cmdlog.nvim-author*
 
 Stefan Bartl
 

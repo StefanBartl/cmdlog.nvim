@@ -15,7 +15,7 @@
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 ![Contributions](https://img.shields.io/badge/contributions-welcome-brightgreen.svg)
 
-> **Pairs well with [filetree.nvim](https://github.com/StefanBartl/filetree.nvim)** — nvim-cmdlog gives you fast recall of past `:` and shell commands, filetree.nvim gives you adapter-agnostic file-tree actions. Together they cover command reuse and file navigation in one consistent style.
+> **Pairs well with [filetree.nvim](https://github.com/StefanBartl/filetree.nvim)** — cmdlog.nvim gives you fast recall of past `:` and shell commands, filetree.nvim gives you adapter-agnostic file-tree actions. Together they cover command reuse and file navigation in one consistent style.
 
 🔧 Beta stage – under active development. Changes possible. Expect bugs, especially with the history feature on windows systems.
 
@@ -63,7 +63,7 @@ A lightweight, modern Neovim plugin to interactively view, search, and reuse com
 
 - **Picker Backend Options**: Choose between [Telescope.nvim](https://github.com/nvim-telescope/telescope.nvim) or [fzf-lua](https://github.com/ibhagwan/fzf-lua) for the picker backend, depending on your preference.
 
-- **Favorites Management**: Mark and manage favorite commands with ease. Your favorites are saved in the `~/.local/share/nvim-cmdlog/favorites.json` file for easy access.
+- **Favorites Management**: Mark and manage favorite commands with ease. Your favorites are saved in the `~/.local/share/cmdlog.nvim/favorites.json` file for easy access.
 
 - **Command Execution**: Select an entry from the history to insert it into the command-line (without auto-execution), giving you control over your workflow.
 
@@ -93,7 +93,7 @@ A lightweight, modern Neovim plugin to interactively view, search, and reuse com
 
 ## Installation (with Lazy.nvim)
 
-You can install `nvim-cmdlog` like this:
+You can install `cmdlog.nvim` like this:
 
 ### Load immediately (recommended for most setups)
 
@@ -101,7 +101,7 @@ This ensures all commands (:Cmdlog, :CmdlogFavorites, etc.) are available withou
 
 ```lua
 {
-  "StefanBartl/nvim-cmdlog",
+  "StefanBartl/cmdlog.nvim",
   lazy = false,
   dependencies = {
     "StefanBartl/lib.nvim",
@@ -125,7 +125,7 @@ You can also lazy-load the plugin if you prefer:
 
 ```lua
 {
-  "StefanBartl/nvim-cmdlog",
+  "StefanBartl/cmdlog.nvim",
   lazy = true,
   cmd = {
     "CmdlogNvimFull", "CmdlogNvim", "CmdlogFull", "Cmdlog",  -- see Note!
@@ -151,7 +151,7 @@ You can also lazy-load the plugin if you prefer:
 
 ```lua
 {
-  "StefanBartl/nvim-cmdlog",
+  "StefanBartl/cmdlog.nvim",
   lazy = true,
   keys = {
     { "<leader>cl", "<cmd>Cmdlog<CR>", desc = "Show command history" },
@@ -177,7 +177,7 @@ You can also lazy-load the plugin if you prefer:
 
 ```lua
 {
-  "StefanBartl/nvim-cmdlog",
+  "StefanBartl/cmdlog.nvim",
   lazy = true,
   event = "VeryLazy", -- or e.g. "BufReadPost"
   dependencies = {
@@ -202,7 +202,7 @@ Note: If you lazy-load the plugin, make sure to define how it should be triggere
 
 ```lua
 use({
-  "StefanBartl/nvim-cmdlog",
+  "StefanBartl/cmdlog.nvim",
   requires = {
     "StefanBartl/lib.nvim",
     "nvim-lua/plenary.nvim",
@@ -220,7 +220,7 @@ use({
 Plug 'StefanBartl/lib.nvim'
 Plug 'nvim-lua/plenary.nvim'
 Plug 'nvim-telescope/telescope.nvim' " or 'ibhagwan/fzf-lua'
-Plug 'StefanBartl/nvim-cmdlog'
+Plug 'StefanBartl/cmdlog.nvim'
 ```
 
 ```lua
@@ -242,7 +242,7 @@ Make sure the following plugins are installed:
 
 ## Picker configuration (Telescope vs FzfLua)
 
-By default, `nvim-cmdlog` uses **Telescope** for all pickers and UI interactions.
+By default, `cmdlog.nvim` uses **Telescope** for all pickers and UI interactions.
 However, you can switch to [fzf-lua](https://github.com/ibhagwan/fzf-lua) by setting:
 
 ```lua
@@ -313,7 +313,7 @@ To develop or contribute:
 1. Clone the repo:
 
 ```bash
-git clone https://github.com/StefanBartl/nvim-cmdlog ~/.config/nvim/lua/plugins/nvim-cmdlog
+git clone https://github.com/StefanBartl/cmdlog.nvim ~/.config/nvim/lua/plugins/cmdlog.nvim
 ```
 
 2. Symlink or load manually via your plugin manager.
@@ -340,13 +340,13 @@ Expect changes in upcoming releases.
 
 Your feedback is very welcome!
 
-Please use the [GitHub issue tracker](https://github.com/StefanBartl/nvim-cmdlog/issues) to:
+Please use the [GitHub issue tracker](https://github.com/StefanBartl/cmdlog.nvim/issues) to:
 - Report bugs
 - Suggest new features
 - Ask questions about usage
 - Share thoughts on UI or functionality
 
-For general discussion, feel free to open a [GitHub Discussion](https://github.com/StefanBartl/nvim-cmdlog/discussions).
+For general discussion, feel free to open a [GitHub Discussion](https://github.com/StefanBartl/cmdlog.nvim/discussions).
 
 If you find this plugin helpful, consider giving it a ⭐ on GitHub — it helps others discover the project.
 

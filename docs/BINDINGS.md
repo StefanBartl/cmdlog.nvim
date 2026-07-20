@@ -1,7 +1,7 @@
 # Bindings Cheatsheet
 
 Single reference for every user command, in-picker keymap and autocmd that
-`nvim-cmdlog` registers. The source of truth lives in
+`cmdlog.nvim` registers. The source of truth lives in
 [`lua/cmdlog/bindings/`](../lua/cmdlog/bindings/) — this file documents it in
 prose. Inspect it at runtime (plugin must be loaded) with:
 

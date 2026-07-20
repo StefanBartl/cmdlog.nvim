@@ -1,6 +1,6 @@
-# Options Workflow for nvim-cmdlog
+# Options Workflow for cmdlog.nvim
 
-This document describes how configuration options are structured, merged, and accessed within the `nvim-cmdlog` plugin.
+This document describes how configuration options are structured, merged, and accessed within the `cmdlog.nvim` plugin.
 
 ## Overview
 
@@ -19,7 +19,7 @@ Defaults are defined once in `lua/cmdlog/config/DEFAULTS.lua` like this:
 
 ```lua
 local DEFAULTS = {
-  favorites_path = vim.fn.stdpath("data") .. "/nvim-cmdlog/favorites.json",
+  favorites_path = vim.fn.stdpath("data") .. "/cmdlog.nvim/favorites.json",
   picker = "telescope", -- or "fzf"
   shell_history_path = "default", -- or custom shell history file path
   mappings = {

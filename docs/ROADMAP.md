@@ -1,6 +1,6 @@
 # Roadmap
 
-This file outlines the planned milestones for `nvim-cmdlog`.
+This file outlines the planned milestones for `cmdlog.nvim`.
 
 ## Next Features
 

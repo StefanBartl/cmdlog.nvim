@@ -7,7 +7,7 @@ local config = require("cmdlog.config")
 local Path = require("plenary.path")
 local write_to_file = require("lib.nvim.fs.write.to_file")
 local find_upward_dir = require("lib.nvim.fs.find_upward_dir")
-local notify = require("lib.nvim.notify.safe").create_safe("[nvim-cmdlog.favorites]")
+local notify = require("lib.nvim.notify.safe").create_safe("[cmdlog.nvim.favorites]")
 
 local M = {}
 

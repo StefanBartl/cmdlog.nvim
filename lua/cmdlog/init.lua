@@ -1,5 +1,5 @@
 local config = require("cmdlog.config")
-local notify = require("lib.nvim.notify.safe").create_safe("[nvim-cmdlog]")
+local notify = require("lib.nvim.notify.safe").create_safe("[cmdlog.nvim]")
 
 local M = {}
 
