@@ -80,6 +80,9 @@ end
 local function attach_autosave(bufnr, path)
   if not config.options.notes.autosave then return end
 
+  -- NOTE: lib.nvim.autocmd.create does not forward a `buffer` option (only
+  -- group/pattern/desc/once/nested), so it cannot express a buffer-local
+  -- autocmd without turning this into a global one. Left on the raw API.
   api.nvim_create_autocmd({ "BufWritePost", "TextChanged", "TextChangedI" }, {
     buffer = bufnr,
     callback = function()
