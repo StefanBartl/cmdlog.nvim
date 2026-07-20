@@ -7,7 +7,7 @@
 ---        sensible delete target (e.g. the favorites picker, where <Tab> already removes) can
 ---        omit this — the delete mapping is then simply not bound.
 --- @return function
-local notify = require("lib.nvim.notify.safe").create_safe("[nvim-cmdlog.mappings]")
+local notify = require("lib.nvim.notify.safe").create_safe("[cmdlog.nvim.mappings]")
 
 return function(refresh_fn, delete_fn)
   return function(prompt_bufnr, map)
@@ -61,7 +61,7 @@ return function(refresh_fn, delete_fn)
           actions.close(prompt_bufnr)
           vim.schedule(refresh_fn)
         elseif err and err ~= "cancelled" then
-          vim.notify("[nvim-cmdlog] Could not delete entry: " .. tostring(err), vim.log.levels.WARN)
+          vim.notify("[cmdlog.nvim] Could not delete entry: " .. tostring(err), vim.log.levels.WARN)
         end
       end)
     end

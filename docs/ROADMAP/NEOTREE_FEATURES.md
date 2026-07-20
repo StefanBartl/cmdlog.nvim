@@ -1,6 +1,6 @@
-# Features from nvim-cmdlog worth porting into filetree.nvim
+# Features from cmdlog.nvim worth porting into filetree.nvim
 
-Cross-check of `nvim-cmdlog` features against `e:\repos\filetree.nvim`.
+Cross-check of `cmdlog.nvim` features against `e:\repos\filetree.nvim`.
 These are candidates only — nothing here has been implemented in
 filetree.nvim yet. Target: cross-platform, filetree-manager-agnostic
 (Neotree, NvimTree, Netrw, ...).

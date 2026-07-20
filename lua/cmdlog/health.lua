@@ -16,12 +16,12 @@ function M.check()
   local warn = health.warn or health.report_warn
   local error_ = health.error or health.report_error
 
-  start("nvim-cmdlog")
+  start("cmdlog.nvim")
 
   if vim.fn.has("nvim-0.9") == 1 then
     ok("Neovim version >= 0.9")
   else
-    warn("Neovim < 0.9 detected — nvim-cmdlog targets 0.9+")
+    warn("Neovim < 0.9 detected — cmdlog.nvim targets 0.9+")
   end
 
   if has_module("plenary") then

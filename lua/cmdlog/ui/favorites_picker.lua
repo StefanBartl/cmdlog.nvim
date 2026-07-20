@@ -1,6 +1,6 @@
 local favorites = require("cmdlog.core.favorites")
 local picker_utils = require("cmdlog.ui.picker_utils")
-local notify = require("lib.nvim.notify.safe").create_safe("[nvim-cmdlog.favorites_picker]")
+local notify = require("lib.nvim.notify.safe").create_safe("[cmdlog.nvim.favorites_picker]")
 
 local M = {}
 

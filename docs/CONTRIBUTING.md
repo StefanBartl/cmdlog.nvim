@@ -1,12 +1,12 @@
 # Contributing
 
-Thanks for your interest in contributing to `nvim-cmdlog`!
+Thanks for your interest in contributing to `cmdlog.nvim`!
 
 ## Development Setup
 
 1. Clone the repository:
    ```sh
-   git clone https://github.com/StefanBartl/nvim-cmdlog.git
+   git clone https://github.com/StefanBartl/cmdlog.nvim.git
    ```
 2. Link or add the plugin to your Neovim runtime path.
 3. Use `:Cmdlog` to start testing.

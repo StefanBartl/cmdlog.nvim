@@ -62,7 +62,7 @@ local function attach_notes(picker, prompt_bufnr, history)
 
 	local notes_buf = notes.open(initial)
 	if not notes_buf then
-		vim.notify("[nvim-cmdlog.notes_picker] notes_buf is nil", vim.log.levels.ERROR)
+		vim.notify("[cmdlog.nvim.notes_picker] notes_buf is nil", vim.log.levels.ERROR)
 		return
 	end
 	local notes_win = open_notes_window()
@@ -86,7 +86,7 @@ local function attach_notes(picker, prompt_bufnr, history)
 
 		local new_buf = notes.open(cmd)
 		if not new_buf then
-			vim.notify("[nvim-cmdlog.notes_picker] new_buf is nil", vim.log.levels.ERROR)
+			vim.notify("[cmdlog.nvim.notes_picker] new_buf is nil", vim.log.levels.ERROR)
 			return
 		end
 		if api.nvim_buf_is_valid(new_buf) and api.nvim_win_is_valid(notes_win) then

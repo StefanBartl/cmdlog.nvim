@@ -19,7 +19,7 @@ local DEFAULTS = {
 
   notes = {
     enabled = true,
-    dir = vim.fn.stdpath("data") .. "/nvim-cmdlog/notes",
+    dir = vim.fn.stdpath("data") .. "/cmdlog.nvim/notes",
     format = "markdown",
     width = 60,
     autosave = true,

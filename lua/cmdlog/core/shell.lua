@@ -16,7 +16,7 @@
 ---  - All user-facing notifications are in German in calling code; this module logs
 ---    only warnings where parsing fails.
 local M = {}
-local notify = require("lib.nvim.notify.safe").create_safe("[nvim-cmdlog]")
+local notify = require("lib.nvim.notify.safe").create_safe("[cmdlog.nvim]")
 
 --AUDIT: Modularisieren, Annotationen klären
 
