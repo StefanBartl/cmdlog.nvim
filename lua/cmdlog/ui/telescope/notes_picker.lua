@@ -10,6 +10,7 @@ local conf = require("telescope.config").values
 local picker_utils = require("cmdlog.ui.picker_utils")
 local notes = require("cmdlog.core.notes")
 local config = require("cmdlog.config")
+local notify = require("lib.nvim.notify.safe").create_safe("[cmdlog.nvim.notes_picker]")
 
 local api = vim.api
 
@@ -62,12 +63,12 @@ local function attach_notes(picker, prompt_bufnr, history)
 
 	local notes_buf = notes.open(initial)
 	if not notes_buf then
-		vim.notify("[cmdlog.nvim.notes_picker] notes_buf is nil", vim.log.levels.ERROR)
+		notify.error("notes_buf is nil")
 		return
 	end
 	local notes_win = open_notes_window()
    if not notes_win then
-      vim.notify("notes win is nil in notes picker", 4)
+      notify.error("notes win is nil in notes picker")
         return
    end
 
@@ -86,7 +87,7 @@ local function attach_notes(picker, prompt_bufnr, history)
 
 		local new_buf = notes.open(cmd)
 		if not new_buf then
-			vim.notify("[cmdlog.nvim.notes_picker] new_buf is nil", vim.log.levels.ERROR)
+			notify.error("new_buf is nil")
 			return
 		end
 		if api.nvim_buf_is_valid(new_buf) and api.nvim_win_is_valid(notes_win) then
@@ -129,7 +130,7 @@ function M.open(history)
 			attach_mappings = function(prompt_bufnr, _)
 				local notes_win2 = open_notes_window()
                 if not notes_win2  then
-                    vim.notify("notes win 2 is nil in nptes picker", 4)
+                    notify.error("notes win 2 is nil in notes picker")
                     return
                 end
 
@@ -139,7 +140,7 @@ function M.open(history)
 					if cmd then
 						local buf = notes.open(cmd)
                         if not buf then
-                            vim.notify("buf is nil in notes picker", 4)
+                            notify.error("buf is nil in notes picker")
                             return
                         end
 						if vim.api.nvim_win_is_valid(notes_win2) then
@@ -161,7 +162,7 @@ function M.open(history)
 
 					local buf = notes.open(cmd)
                     if not buf then
-                        vim.notify("buf is nil in notes pciker", 4)
+                        notify.error("buf is nil in notes picker")
                         return
                     end
 					vim.api.nvim_win_set_buf(notes_win2, buf)

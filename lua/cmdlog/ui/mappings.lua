@@ -61,7 +61,7 @@ return function(refresh_fn, delete_fn)
           actions.close(prompt_bufnr)
           vim.schedule(refresh_fn)
         elseif err and err ~= "cancelled" then
-          vim.notify("[cmdlog.nvim] Could not delete entry: " .. tostring(err), vim.log.levels.WARN)
+          notify.warn("Could not delete entry: " .. tostring(err))
         end
       end)
     end
