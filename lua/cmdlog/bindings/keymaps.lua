@@ -3,6 +3,8 @@
 --- Every keymap set here carries a `desc`, so which-key.nvim (v3+) picks it
 --- up automatically without any extra registration step.
 
+local map = require("lib.nvim.map")
+
 local M = {}
 
 ---@type table<string, {cmd: string, desc: string}>
@@ -27,10 +29,7 @@ function M.register()
   for key, entry in pairs(M.catalog) do
     local lhs = keymaps[key]
     if type(lhs) == "string" and lhs ~= "" then
-      vim.keymap.set("n", lhs, "<cmd>" .. entry.cmd .. "<CR>", {
-        desc = entry.desc,
-        silent = true,
-      })
+      map("n", lhs, "<cmd>" .. entry.cmd .. "<CR>", { silent = true }, entry.desc)
     end
   end
 end
