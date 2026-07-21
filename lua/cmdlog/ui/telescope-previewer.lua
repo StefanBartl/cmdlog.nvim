@@ -19,17 +19,24 @@ function M.command_previewer()
       -- Preview for ':!<shell>' - Simulating shell command output
       local shell_cmd = cmd:match("^%s*:?%s*!%s*(.*)$")
       if shell_cmd then
+        local preview_bufnr = self.state.bufnr
         local job_opts = {
           command = shell_cmd,
           on_stdout = function(_, line)
             vim.schedule(function()
-              vim.api.nvim_buf_set_lines(self.state.bufnr, -1, -1, false, { line })
+              if not vim.api.nvim_buf_is_valid(preview_bufnr) then
+                return
+              end
+              vim.api.nvim_buf_set_lines(preview_bufnr, -1, -1, false, { line })
             end)
           end,
           on_stderr = function(_, err)
             if err and err ~= "" then
               vim.schedule(function()
-                vim.api.nvim_buf_set_lines(self.state.bufnr, -1, -1, false, { "Error: " .. err })
+                if not vim.api.nvim_buf_is_valid(preview_bufnr) then
+                  return
+                end
+                vim.api.nvim_buf_set_lines(preview_bufnr, -1, -1, false, { "Error: " .. err })
               end)
             end
           end,
@@ -44,18 +51,25 @@ function M.command_previewer()
                 or cmd:match("^%s*:?%s*vsp%s+(%S+)$")
                 or cmd:match("^%s*:?%s*vs%s+(%S+)$")
       if file and vim.fn.filereadable(file) == 1 then
+        local preview_bufnr = self.state.bufnr
         local job_opts = {
           command = "head",
           args = { "-n", "50", file },
           on_stdout = function(_, line)
             vim.schedule(function()
-              vim.api.nvim_buf_set_lines(self.state.bufnr, -1, -1, false, { line })
+              if not vim.api.nvim_buf_is_valid(preview_bufnr) then
+                return
+              end
+              vim.api.nvim_buf_set_lines(preview_bufnr, -1, -1, false, { line })
             end)
           end,
           on_stderr = function(_, err)
             if err and err ~= "" then
               vim.schedule(function()
-                vim.api.nvim_buf_set_lines(self.state.bufnr, -1, -1, false, { "Error: " .. err })
+                if not vim.api.nvim_buf_is_valid(preview_bufnr) then
+                  return
+                end
+                vim.api.nvim_buf_set_lines(preview_bufnr, -1, -1, false, { "Error: " .. err })
               end)
             end
           end,
