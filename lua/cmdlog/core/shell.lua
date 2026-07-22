@@ -71,14 +71,14 @@ local function expand_path_template(tpl)
   return expanded
 end
 
---- Utility: check whether a file exists (string path). Uses vim.loop.fs_stat for robust cross-platform check.
+--- Utility: check whether a file exists (string path). Uses vim.uv.fs_stat for robust cross-platform check.
 ---@param path string
 ---@return boolean
 local function file_exists(path)
   if not path or path == "" then
     return false
   end
-  local stat = vim.loop.fs_stat(path)
+  local stat = vim.uv.fs_stat(path)
   return stat ~= nil and stat.type == "file"
 end
 
