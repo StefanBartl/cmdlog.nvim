@@ -16,4 +16,19 @@ function M.get_command_history()
   return entries
 end
 
+--- Fetch Neovim command-line history entries that are Lua-mode commands:
+--- `:lua ...`, `:lua= ...` and `:= ...` (the expression register / `:lua=`
+--- shorthand). Plain `:lua` invocations already live in the regular `:`
+--- history; this is a filtered view for quickly finding just those.
+--- @return string[] Lua-mode entries (oldest to newest)
+function M.get_lua_history()
+  local entries = {}
+  for _, cmd in ipairs(M.get_command_history()) do
+    if cmd:match("^lua!?%s") or cmd:match("^lua!?=") or cmd:match("^=") then
+      table.insert(entries, cmd)
+    end
+  end
+  return entries
+end
+
 return M

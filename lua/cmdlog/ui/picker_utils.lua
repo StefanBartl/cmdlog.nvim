@@ -1,11 +1,13 @@
 local config = require("cmdlog.config")
+local errors = require("cmdlog.core.errors")
 
 local M = {}
 
 --- Opens a picker (Telescope or fzf-lua) based on configuration.
 --- @param entries string[]: List of entries (already combined if needed)
 --- @param favs string[]: List of favorite commands
---- @param opts table: Table with options like prompt_title, fzf_prompt, attach_mappings, actions
+--- @param opts table: Table with options like prompt_title, fzf_prompt, attach_mappings, actions.
+---   `opts.label(entry)` may return an extra string appended to the display (Telescope only).
 --- @return nil
 function M.open_picker(entries, favs, opts)
   opts = opts or {}
@@ -17,9 +19,19 @@ function M.open_picker(entries, favs, opts)
         results = entries,
         entry_maker = function(entry)
           local is_fav = vim.tbl_contains(favs, entry)
+          local is_bad = errors.is_known_bad(entry)
+          local marker = is_bad and "✗ " or (is_fav and "★ " or "   ")
+          local suffix = opts.label and opts.label(entry)
+          suffix = suffix and ("  [" .. suffix .. "]") or ""
           return {
             value = entry,
-            display = (is_fav and "★ " or "   ") .. entry,
+            display = function(e)
+              local text = marker .. e.value .. suffix
+              if is_bad then
+                return text, { { { 0, #marker + #e.value }, "ErrorMsg" } }
+              end
+              return text
+            end,
             ordinal = entry,
           }
         end,
@@ -30,6 +42,10 @@ function M.open_picker(entries, favs, opts)
     }):find()
 
   elseif config.options.picker == "fzf" then
+    -- Note: fzf-lua entries double as the selected value (see e.g. the
+    -- default action below), so decorating them like the Telescope
+    -- entry_maker does would corrupt `vim.cmd(selected[1])`. Known-bad
+    -- highlighting is therefore Telescope-only for now.
     local fzf = require("fzf-lua")
     fzf.fzf_exec(entries, {
       prompt = opts.fzf_prompt or ":commands> ",

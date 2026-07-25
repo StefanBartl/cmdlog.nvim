@@ -1,4 +1,5 @@
 local favorites = require("cmdlog.core.favorites")
+local tags = require("cmdlog.core.tags")
 local picker_utils = require("cmdlog.ui.picker_utils")
 
 local M = {}
@@ -18,6 +19,10 @@ function M.show_favorites_picker()
   picker_utils.open_picker(favs, favs, {
     prompt_title = ":history (Favorites)",
     fzf_prompt = ":favorites> ",
+    label = function(cmd)
+      local cmd_tags = tags.get_tags(cmd)
+      return #cmd_tags > 0 and table.concat(cmd_tags, ", ") or nil
+    end,
     attach_mappings = function(prompt_bufnr, map)
       local actions = require("telescope.actions")
       local action_state = require("telescope.actions.state")
@@ -39,6 +44,19 @@ function M.show_favorites_picker()
         end
       end)
 
+      map("i", "<C-t>", function()
+        local selected = action_state.get_selected_entry()
+        if selected and selected.value then
+          vim.ui.input({ prompt = "Add tag: " }, function(tag)
+            if tag and tag ~= "" then
+              tags.add_tag(selected.value, tag)
+              actions.close(prompt_bufnr)
+              vim.schedule(M.show_favorites_picker)
+            end
+          end)
+        end
+      end)
+
       return true
     end,
     actions = {
@@ -51,6 +69,16 @@ function M.show_favorites_picker()
         if selected[1] then
           favorites.toggle(selected[1])
           vim.schedule(M.show_favorites_picker)
+        end
+      end,
+      ["ctrl-t"] = function(selected)
+        if selected[1] then
+          vim.ui.input({ prompt = "Add tag: " }, function(tag)
+            if tag and tag ~= "" then
+              tags.add_tag(selected[1], tag)
+              vim.schedule(M.show_favorites_picker)
+            end
+          end)
         end
       end,
     },
