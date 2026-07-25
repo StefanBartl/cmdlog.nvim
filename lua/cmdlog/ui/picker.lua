@@ -7,6 +7,9 @@ local all_picker = require("cmdlog.ui.all_picker")
 local all_unique_picker = require("cmdlog.ui.all_unique_picker")
 local shell_picker = require("cmdlog.ui.shell_picker")
 local shell_unique_picker = require("cmdlog.ui.shell_unique_picker")
+local project_picker = require("cmdlog.ui.project_picker")
+local lua_picker = require("cmdlog.ui.lua_picker")
+local stats_picker = require("cmdlog.ui.stats_picker")
 
 local M = {}
 
@@ -32,6 +35,12 @@ function M.register_command()
         run = shell_picker.show_shell_picker },
       { path = { "favorites" }, desc = "Favorited commands",
         run = favorites_picker.show_favorites_picker },
+      { path = { "project" }, desc = "Command history for the current Git project",
+        run = project_picker.show_project_picker },
+      { path = { "lua" }, desc = "Lua-mode command history, deduplicated",
+        run = lua_picker.show_lua_picker },
+      { path = { "stats" }, desc = "Commands sorted by usage frequency",
+        run = stats_picker.show_stats_picker },
     },
   })
 end
