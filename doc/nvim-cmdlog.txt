@@ -20,7 +20,12 @@ FEATURES                                               *nvim-cmdlog-features*
 - Picker backend selection:
   - Telescope.nvim (default, with previews)
   - fzf-lua (minimal, fast, no previews yet)
-- Favorites system with persistent storage
+- Favorites system with persistent storage, plus custom tags
+- Project-local history, scoped to the current Git root
+- Dedicated Lua-mode history view
+- Command usage stats (frequency, last used)
+- Known-error highlighting (Telescope only)
+- Optional which-key.nvim integration for user-defined keymaps
 - Non-destructive command reuse (insert only, no auto-exec)
 - Extensible picker infrastructure for custom pickers
 
@@ -44,12 +49,32 @@ Example:
 
     lua require("cmdlog").setup({
       picker = "telescope",
+      keymaps = {
+        [""] = "<leader>ch",
+        favorites = "<leader>cf",
+      },
     })
 
 Available options:
 
-picker    Picker backend to use.
-          Values: "telescope" (default), "fzf"
+picker              Picker backend to use.
+                     Values: "telescope" (default), "fzf"
+
+track_commands       Record every ':' command via a single CmdlineLeave
+                     autocmd, feeding project history, usage stats and
+                     error tracking. Default: true
+
+keymaps              Map of :Cmdlog subcommand name ("" for bare
+                     :Cmdlog) to a normal-mode lhs. Registered with
+                     vim.keymap.set and, when which-key.nvim is
+                     installed, also passed to its add() so
+                     descriptions show up there. Default: {} (none)
+
+favorites_path       Path to the favorites JSON file.
+favorite_tags_path   Path to the favorite-tags JSON file.
+project_history_path Path to the per-project history JSON file.
+stats_path           Path to the usage-stats JSON file.
+errors_path          Path to the known-error-commands JSON file.
 
 ==============================================================================
 COMMANDS                                               *nvim-cmdlog-commands*
@@ -83,6 +108,18 @@ subcommand.
 :Cmdlog shell-full                                     *:Cmdlog-shell-full*
     Show full shell history, including duplicates.
 
+:Cmdlog project                                        *:Cmdlog-project*
+    Show command history recorded while working inside the current Git
+    project (deduplicated). Only commands run since track_commands was
+    enabled are recorded. Requires being inside a Git repository.
+
+:Cmdlog lua                                            *:Cmdlog-lua*
+    Show only Lua-mode command history (:lua, :lua=, :=), deduplicated.
+
+:Cmdlog stats                                          *:Cmdlog-stats*
+    Show commands sorted by usage frequency (most-used first), annotated
+    with "used Nx, last <date>".
+
 ==============================================================================
 PICKER USAGE                                           *nvim-cmdlog-usage*
 
@@ -95,6 +132,9 @@ Inside the picker, the following mappings are available:
 
 <C-r>       Refresh the picker contents.
 
+<C-t>       (favorites picker only, Telescope: <C-t>, fzf-lua: ctrl-t)
+            Prompt for a tag and attach it to the selected command.
+
 ==============================================================================
 COMMAND PREVIEWS                                       *nvim-cmdlog-previews*
 
@@ -106,10 +146,40 @@ When using Telescope.nvim, previews may be available depending on the command:
 :!{shell-command}
     Simulates shell command output for supported shells.
 
-:term, :make, :lua, :help
-    Preview support is experimental or in progress.
+:term[inal] [{cmd}]
+    Runs {cmd} and shows its output; with no argument, notes that the
+    command opens an interactive terminal buffer with no static preview.
+
+:help {topic}
+    Renders the help page via a headless Neovim instance.
+
+:lua {expr}
+    Evaluates {expr} in-process (no subprocess) and shows the result.
 
 When using fzf-lua, previews are currently not available.
+
+==============================================================================
+KNOWN-ERROR HIGHLIGHTING                          *nvim-cmdlog-error-highlight*
+
+When a command's last execution set a non-empty v:errmsg, it is recorded
+(core/errors.lua) and subsequently shown with a leading marker and an
+ErrorMsg highlight in the Telescope backend. Not available in the fzf-lua
+backend, since fzf-lua entries double as the value fed back to actions.
+
+==============================================================================
+FAVORITE TAGS                                          *nvim-cmdlog-tags*
+
+Favorites can be tagged with free-form labels, stored separately from
+favorites.json so the favorites format itself never changes. Tags are
+shown next to each favorite in the picker. See core/tags.lua.
+
+==============================================================================
+WHICH-KEY INTEGRATION                              *nvim-cmdlog-which-key*
+
+Set the `keymaps` setup option to register normal-mode keymaps for any
+:Cmdlog subcommand. When which-key.nvim is installed, the same mappings
+are also passed to its add() so their descriptions appear there.
+See lua/cmdlog/integrations/which_key.lua.
 
 ==============================================================================
 FAVORITES                                              *nvim-cmdlog-favorites*
