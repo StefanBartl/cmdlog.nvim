@@ -22,8 +22,40 @@ local default_config = {
   favorites_path = vim.fn.stdpath("data") .. "/nvim-cmdlog/favorites.json",
   picker = "telescope", -- or "fzf"
   shell_history_path = "default", -- or custom shell history file path
+
+  favorite_tags_path = vim.fn.stdpath("data") .. "/nvim-cmdlog/favorite_tags.json",
+  project_history_path = vim.fn.stdpath("data") .. "/nvim-cmdlog/project_history.json",
+  stats_path = vim.fn.stdpath("data") .. "/nvim-cmdlog/stats.json",
+  errors_path = vim.fn.stdpath("data") .. "/nvim-cmdlog/errors.json",
+
+  track_commands = true, -- record ':' commands for project history, stats, error tracking
+  keymaps = {}, -- { [""] = "<leader>ch", favorites = "<leader>cf", ... }
 }
 ```
+
+### `keymaps`
+
+Optional map of `:Cmdlog` subcommand name to a normal-mode `lhs`. Use `""`
+for bare `:Cmdlog`. Registered via `vim.keymap.set` with a `desc`; also
+passed to `which-key.nvim`'s `add()` when it is installed, so the
+descriptions show up there too. See `lua/cmdlog/integrations/which_key.lua`.
+
+```lua
+require("cmdlog").setup({
+  keymaps = {
+    [""] = "<leader>ch",
+    favorites = "<leader>cf",
+    project = "<leader>cp",
+  },
+})
+```
+
+### `track_commands`
+
+When `true` (default), every `:` command is recorded via a single
+`CmdlineLeave` autocmd (`core/tracker.lua`), feeding `project_history`,
+`stats` and `errors`. Set to `false` to disable all three and skip the
+autocmd entirely.
 
 The plugin ensures that `M.options` is initialized with a deep copy of `default_config`.
 

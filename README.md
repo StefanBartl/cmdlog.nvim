@@ -56,18 +56,29 @@ A lightweight, modern Neovim plugin to interactively view, search, and reuse com
 
 - **Command Execution**: Select an entry from the history to insert it into the command-line (without auto-execution), giving you control over your workflow.
 
-- **Command Previews**: Preview the output of various commands directly within the picker. Currently supported preview types include:
+- **Command Previews**: Preview the output of various commands directly within the picker (Telescope only). Currently supported preview types include:
   - **`:edit <file>`**: Shows the file preview if the file is readable.
   - **`:!<shell>`**: Simulates shell command output for supported shell commands.
-  - **`:term`, `:make`, `:lua`, and `:help`**: These command previews are in progress, with plans to cover more commands in the future.
+  - **`:term[inal] [cmd]`**: Runs `cmd` and shows its output, or notes that no static preview exists for a bare `:term`.
+  - **`:help <topic>`**: Renders the help page via a headless Neovim instance.
+  - **`:lua <expr>`**: Evaluates the expression in-process and shows the result.
+
+- **Project-Based History**: `:Cmdlog project` shows command history recorded while working inside the current Git project (`.git` root). Recording starts once the plugin is set up — pre-existing history isn't retroactively attributed to a project.
+
+- **Lua-Mode History**: `:Cmdlog lua` shows only `:lua`/`:lua=`/`:=` command history.
+
+- **Usage Stats**: `:Cmdlog stats` shows commands sorted by usage frequency, annotated with how many times and when they were last used.
+
+- **Known-Error Highlighting**: Commands whose last run set a Vim error message are flagged with a marker and highlight in the picker (Telescope only).
+
+- **Favorite Tags**: Tag favorites with free-form labels (`<C-t>` in the picker) to organize them beyond a flat list.
+
+- **which-key Integration**: Pass a `keymaps` table to `setup()` to register normal-mode keymaps for any `:Cmdlog` subcommand; descriptions show up in [which-key.nvim](https://github.com/folke/which-key.nvim) automatically when it's installed.
 
 - **Custom Pickers**: Developers and users can easily create their own custom pickers. A utility file, `picker_utils.lua`, abstracts much of the configuration, making it simple to extend the functionality. Comprehensive documentation on how to create and add custom pickers is available in the `/docs/` directory.
 
 ### Planned Features:
 - **Delete Single History Entries**: Easily remove individual entries from your history.
-- **Project-Based History**: Maintain separate command histories per Git project (`.git` root).
-- **Integration with `which-key`**: Add quick key bindings and descriptions for commands within your workflow.
-- **Error-Prone Command Highlighting**: Highlight commands that are prone to errors, helping you avoid mistakes.
 
 ![Favorites Picker](./docs/assets/Cmdlog-Favorites-Picker.png)
 
@@ -214,6 +225,7 @@ require("cmdlog").setup({
 | Fuzzy Search                      | ✅ Built-in            | ✅ Built-in            |
 | Command Previews (`:edit`)        | ✅ Available           | ❌ Not available yet   |
 | Favorite toggling (`<C-f>`)       | ✅ Available           | ✅ Available           |
+| Known-error highlighting          | ✅ Available           | ❌ Not available       |
 | Performance (Speed)               | ⚡ Good                | ⚡⚡ Very fast          |
 | UI Customization (Prompt, Border) | ✅ Highly customizable | ✅ Highly customizable |
 | External Dependencies             | Telescope + Plenary   | Only Plenary          |
@@ -245,6 +257,9 @@ keeps its original meaning.
 | `:Cmdlog nvim-full`     | Shows full Neovim (`:`) history, including duplicates                        |
 | `:Cmdlog shell`         | Shows unique shell history (latest occurrence kept)                          |
 | `:Cmdlog shell-full`    | Shows full shell history, including duplicates                               |
+| `:Cmdlog project`       | Shows history recorded while inside the current Git project                  |
+| `:Cmdlog lua`           | Shows only Lua-mode command history (`:lua`, `:lua=`, `:=`)                   |
+| `:Cmdlog stats`         | Shows commands sorted by usage frequency                                     |
 
 ---
 
@@ -253,6 +268,7 @@ keeps its original meaning.
 - `<CR>`: Insert command into `:` (does not execute)
 - `<Tab>`: Toggle favorite
 - `<C-r>`: Refresh picker
+- `<C-t>` (Telescope) / `ctrl-t` (fzf-lua): Tag the selected favorite (favorites picker only)
 
 ---
 
