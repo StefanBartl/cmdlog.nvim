@@ -17,6 +17,7 @@
 ---    only warnings where parsing fails.
 local M = {}
 local notify = require("lib.nvim.notify.safe").create_safe("[cmdlog.nvim]")
+local kit = require("lib.nvim.ui.kit")
 
 --AUDIT: Modularisieren, Annotationen klären
 
@@ -314,22 +315,24 @@ end
 
 --- Deletes every occurrence of `cmd` from the detected shell's history file.
 --- This rewrites the file on disk, so a confirmation prompt is shown unless
---- `opts.skip_confirm` is set.
+--- `opts.skip_confirm` is set. Async: `on_done(ok, err)` fires once the
+--- (possible) confirmation dialog resolves, since kit.confirm is callback-based.
 ---@param cmd string
 ---@param opts? { skip_confirm?: boolean }
----@return boolean ok
----@return string|nil err
-function M.delete_entry(cmd, opts)
+---@param on_done fun(ok: boolean, err: string|nil)
+function M.delete_entry(cmd, opts, on_done)
   opts = opts or {}
 
   local path = M.get_shell_history_path()
   if path == "" then
-    return false, "no shell history file detected"
+    on_done(false, "no shell history file detected")
+    return
   end
 
   local ok, lines = pcall(vim.fn.readfile, path)
   if not ok or not lines then
-    return false, "could not read " .. path
+    on_done(false, "could not read " .. path)
+    return
   end
 
   local shell = M.get_shell_name()
@@ -344,26 +347,35 @@ function M.delete_entry(cmd, opts)
   end
 
   if removed_count == 0 then
-    return false, "not found in " .. path
+    on_done(false, "not found in " .. path)
+    return
   end
 
-  if not opts.skip_confirm then
-    local choice = vim.fn.confirm(
-      ("Delete %d occurrence(s) of '%s' from shell history file?\n%s"):format(removed_count, cmd, path),
-      "&Yes\n&No",
-      2
-    )
-    if choice ~= 1 then
-      return false, "cancelled"
+  local function do_write()
+    local ok_write, err_write = pcall(vim.fn.writefile, kept, path)
+    if not ok_write then
+      on_done(false, tostring(err_write))
+      return
     end
+    on_done(true)
   end
 
-  local ok_write, err_write = pcall(vim.fn.writefile, kept, path)
-  if not ok_write then
-    return false, tostring(err_write)
+  if opts.skip_confirm then
+    do_write()
+    return
   end
 
-  return true
+  kit.confirm({
+    question = ("Delete %d occurrence(s) of '%s' from shell history file?\n%s"):format(
+      removed_count, cmd, path),
+    on_answer = function(yes)
+      if not yes then
+        on_done(false, "cancelled")
+        return
+      end
+      do_write()
+    end,
+  })
 end
 
 return M

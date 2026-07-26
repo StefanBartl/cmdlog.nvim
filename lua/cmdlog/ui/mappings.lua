@@ -2,10 +2,11 @@
 --- Keys are read from `config.options.mappings` (select/toggle_favorite/refresh/delete),
 --- so users can remap or disable (set to `false`) any of them.
 --- @param refresh_fn function Function to refresh the picker
---- @param delete_fn? fun(cmd: string): boolean, string|nil Deletes `cmd` from its underlying
----        history source; returns `ok` and an optional error message. Pickers that have no
----        sensible delete target (e.g. the favorites picker, where <Tab> already removes) can
----        omit this — the delete mapping is then simply not bound.
+--- @param delete_fn? fun(cmd: string, on_done: fun(ok: boolean, err: string|nil)) Deletes `cmd`
+---        from its underlying history source (async: may show a confirmation dialog first);
+---        `on_done` receives `ok` and an optional error message. Pickers that have no sensible
+---        delete target (e.g. the favorites picker, where <Tab> already removes) can omit this
+---        — the delete mapping is then simply not bound.
 --- @return function
 local notify = require("lib.nvim.notify.safe").create_safe("[cmdlog.nvim.mappings]")
 
@@ -56,13 +57,14 @@ return function(refresh_fn, delete_fn)
           return
         end
 
-        local ok, err = delete_fn(selected.value)
-        if ok then
-          actions.close(prompt_bufnr)
-          vim.schedule(refresh_fn)
-        elseif err and err ~= "cancelled" then
-          notify.warn("Could not delete entry: " .. tostring(err))
-        end
+        delete_fn(selected.value, function(ok, err)
+          if ok then
+            actions.close(prompt_bufnr)
+            vim.schedule(refresh_fn)
+          elseif err and err ~= "cancelled" then
+            notify.warn("Could not delete entry: " .. tostring(err))
+          end
+        end)
       end)
     end
 
