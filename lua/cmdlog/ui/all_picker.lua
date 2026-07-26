@@ -10,15 +10,16 @@ local M = {}
 --- entry might originate from Neovim's `:` history, the shell history file, or
 --- both. Neither call prompts/errors when `cmd` isn't found in that source.
 ---@param cmd string
----@return boolean ok
----@return string|nil err
-local function delete_from_any_history(cmd)
+---@param on_done fun(ok: boolean, err: string|nil)
+local function delete_from_any_history(cmd, on_done)
   local nvim_ok = history_mod.delete_entry(cmd)
-  local shell_ok, shell_err = shell_mod.delete_entry(cmd)
-  if nvim_ok or shell_ok then
-    return true
-  end
-  return false, shell_err
+  shell_mod.delete_entry(cmd, nil, function(shell_ok, shell_err)
+    if nvim_ok or shell_ok then
+      on_done(true)
+    else
+      on_done(false, shell_err)
+    end
+  end)
 end
 
 --- Loads and shows a picker combining all history entries and favorites.
