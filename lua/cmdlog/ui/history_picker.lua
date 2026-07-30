@@ -15,7 +15,7 @@ function M.show_history_picker()
   picker_utils.open_picker(combined, favs, {
     prompt_title = ":history (all)",
     fzf_prompt = ":history (all)> ",
-    attach_mappings = require("cmdlog.ui.mappings")(M.show_history_picker),
+    attach_mappings = require("cmdlog.ui.mappings")(M.show_history_picker, history.delete_entry),
   })
 end
 

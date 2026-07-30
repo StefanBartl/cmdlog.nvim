@@ -1,4 +1,5 @@
 local config = require("cmdlog.config")
+local notify = require("lib.nvim.notify.safe").create_safe("[cmdlog.nvim]")
 
 local M = {}
 
@@ -8,21 +9,29 @@ function M.setup(opts)
   -- Merge user options with defaults
   config.setup(opts)
 
-  -- Register command
-  local ok, picker = pcall(require, "cmdlog.ui.picker")
-  if ok and picker.register_command then
-    picker.register_command()
-  else
-    vim.notify("[nvim-cmdlog] Failed to load picker module", vim.log.levels.ERROR)
+  -- Register user commands and optional entry-point keymaps
+  local ok, err = pcall(function()
+    require("cmdlog.bindings").register()
+  end)
+  if not ok then
+    notify.error("Failed to register bindings: " .. tostring(err))
   end
 
-  -- Start recording ':' commands for project history, stats and error tracking
-  require("cmdlog.core.tracker").setup()
+  -- Start recording ':' commands for project history, stats and error
+  -- tracking. Opt-out via `track_commands = false`.
+  if config.options.track_commands ~= false then
+    require("cmdlog.core.tracker").setup()
+  end
 
-  -- Optional which-key integration for :Cmdlog subcommands
-  if config.options.keymaps and next(config.options.keymaps) then
+  -- Optional which-key integration for the :Cmdlog subcommand keymaps.
+  -- bindings.keymaps already sets a `desc` on each mapping, which which-key
+  -- v3+ reads on its own; this registers the group label on top.
+  if type(config.options.keymaps) == "table" and next(config.options.keymaps) then
     require("cmdlog.integrations.which_key").register(config.options.keymaps)
   end
+
+  -- Highlight group used for risky/destructive commands (see cmdlog.core.risky)
+  vim.api.nvim_set_hl(0, "CmdlogRiskyCommand", { link = "DiagnosticError", default = true })
 end
 
 return M
