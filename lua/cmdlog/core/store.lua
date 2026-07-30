@@ -1,70 +1,34 @@
 ---@module 'cmdlog.core.store'
 --- Small shared JSON persistence helper for cmdlog's tracking modules
---- (project history, stats, error log). Mirrors the defensive
---- directory-creation strategy used by core/favorites.lua so every
---- on-disk store behaves the same way, especially on Windows.
-local Path = require("plenary.path")
-local uv = vim.loop
+--- (project history, stats, error log).
+---
+--- All filesystem I/O goes through lib.nvim (fs.is_readable_file, fs.read,
+--- fs.write.to_file) instead of plenary.path, so this module carries no
+--- plenary.nvim dependency — the same treatment core/favorites.lua got.
+--- lib.nvim.fs.write.to_file also creates missing parent directories and
+--- already covers the Windows/Unix mkdir edge cases this module used to
+--- reimplement with a plenary fallback.
+
+local is_readable_file = require("lib.nvim.fs.is_readable_file")
+local read_file = require("lib.nvim.fs.read")
+local write_to_file = require("lib.nvim.fs.write.to_file")
+local notify = require("lib.nvim.notify.safe").create_safe("[cmdlog.nvim.store]")
 
 local M = {}
-
----@param p string
----@return boolean
-local function is_dir(p)
-  if not p or p == "" then
-    return false
-  end
-  local ok, res = pcall(vim.fn.isdirectory, p)
-  if ok then
-    return res == 1
-  end
-  ---@diagnostic disable-next-line lib.uv
-  local stat = uv.fs_stat(p)
-  return stat and stat.type == "directory"
-end
-
----@param file_path string
----@return boolean, string|nil
-local function ensure_parent_exists(file_path)
-  if not file_path or file_path == "" then
-    return false, "empty file_path"
-  end
-
-  local expanded = vim.fn.expand(file_path)
-  local parent = vim.fn.fnamemodify(expanded, ":h")
-  if parent == "" or parent == "." or is_dir(parent) then
-    return true, nil
-  end
-
-  local ok, res = pcall(vim.fn.mkdir, parent, "p")
-  if ok and res == 1 then
-    return true, nil
-  end
-
-  local ok2, res2 = pcall(function()
-    Path:new(expanded):parent():mkdir({ parents = true })
-  end)
-  if ok2 then
-    return true, nil
-  end
-
-  return false, tostring(res) .. " | " .. tostring(res2)
-end
 
 --- Load a JSON file from disk.
 ---@param path string
 ---@param default any Value returned when the file is missing/empty/invalid
 ---@return any
 function M.load_json(path, default)
-  local p = Path:new(path)
-  if not p:exists() then
+  local target = vim.fn.expand(path)
+
+  if not is_readable_file(target) then
     return default
   end
 
-  local ok, content = pcall(function()
-    return p:read()
-  end)
-  if not ok or not content or content == "" then
+  local content = read_file(target)
+  if not content or content == "" then
     return default
   end
 
@@ -81,42 +45,12 @@ end
 ---@param data any
 ---@return boolean success
 function M.save_json(path, data)
-  local ok_ensure, err = ensure_parent_exists(path)
-  if not ok_ensure then
-    vim.notify(
-      ("[cmdlog.store] Failed to ensure parent directory for '%s': %s"):format(tostring(path), tostring(err)),
-      vim.log.levels.ERROR
-    )
-  end
-
   local encoded = vim.fn.json_encode(data)
-  local expanded = vim.fn.expand(path)
+  local target = vim.fn.expand(path)
 
-  local ok_write, write_err = pcall(function()
-    Path:new(expanded):write(encoded, "w")
-  end)
-  if ok_write then
-    return true
-  end
-
-  local f_ok, f_err = pcall(function()
-    local fh, ferr = io.open(expanded, "wb")
-    if not fh then
-      error(tostring(ferr))
-    end
-    fh:write(encoded)
-    fh:close()
-  end)
-
-  if not f_ok then
-    vim.notify(
-      ("[cmdlog.store] Failed to write '%s': %s (fallback: %s)"):format(
-        tostring(path),
-        tostring(write_err),
-        tostring(f_err)
-      ),
-      vim.log.levels.ERROR
-    )
+  local ok, err = write_to_file(target, encoded)
+  if not ok then
+    notify.error(("Failed to write '%s': %s"):format(tostring(path), tostring(err)))
     return false
   end
 
