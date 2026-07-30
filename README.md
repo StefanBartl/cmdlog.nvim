@@ -90,7 +90,7 @@ A lightweight, modern Neovim plugin to interactively view, search, and reuse com
 
 - **Configurable & which-key aware keymaps**: Picker keymaps (`<CR>`, `<Tab>`, `<C-r>`) can be remapped or disabled, and optional normal-mode entry-point keymaps for every `:Cmdlog*` command can be enabled — each carries a `desc`, so [which-key.nvim](https://github.com/folke/which-key.nvim) picks it up automatically. See [BINDINGS.md](./docs/BINDINGS.md).
 
-- **`:checkhealth cmdlog`**: Verifies dependencies (plenary, telescope/fzf-lua), shell-history detection, and notes directory.
+- **`:checkhealth cmdlog`**: Verifies dependencies (telescope/fzf-lua), shell-history detection, and notes directory.
 
 - **Delete single history entries**: Press `<C-x>` (configurable) inside a picker to delete the selected command from its underlying history — Neovim `:` history via `histdel()`, or the shell history file (with a confirmation prompt, since that rewrites a file on disk).
 
@@ -119,7 +119,6 @@ This ensures `:Cmdlog` and all its subcommands (`:Cmdlog favorites`, etc.) are a
   lazy = false,
   dependencies = {
     "StefanBartl/lib.nvim",          -- Required: the :Cmdlog command layer is built on it
-    "nvim-lua/plenary.nvim",
     "nvim-telescope/telescope.nvim", -- Required if you use picker = "telescope"
     "ibhagwan/fzf-lua",              -- Required if you use picker = "fzf"
   },
@@ -144,7 +143,6 @@ You can also lazy-load the plugin if you prefer:
   cmd = { "Cmdlog" },
   dependencies = {
     "StefanBartl/lib.nvim",
-    "nvim-lua/plenary.nvim",
     "nvim-telescope/telescope.nvim",
     "ibhagwan/fzf-lua",
   },
@@ -172,7 +170,6 @@ You can also lazy-load the plugin if you prefer:
   },
   dependencies = {
     "StefanBartl/lib.nvim",
-    "nvim-lua/plenary.nvim",
     "nvim-telescope/telescope.nvim",
     "ibhagwan/fzf-lua",
   },
@@ -195,7 +192,6 @@ You can also lazy-load the plugin if you prefer:
   event = "VeryLazy", -- or e.g. "BufReadPost"
   dependencies = {
     "StefanBartl/lib.nvim",
-    "nvim-lua/plenary.nvim",
     "nvim-telescope/telescope.nvim",
   },
   config = function()
@@ -218,7 +214,6 @@ use({
   "StefanBartl/cmdlog.nvim",
   requires = {
     "StefanBartl/lib.nvim",
-    "nvim-lua/plenary.nvim",
     "nvim-telescope/telescope.nvim", -- or "ibhagwan/fzf-lua"
   },
   config = function()
@@ -231,7 +226,6 @@ use({
 
 ```vim
 Plug 'StefanBartl/lib.nvim'
-Plug 'nvim-lua/plenary.nvim'
 Plug 'nvim-telescope/telescope.nvim' " or 'ibhagwan/fzf-lua'
 Plug 'StefanBartl/cmdlog.nvim'
 ```
@@ -246,9 +240,8 @@ require("cmdlog").setup({ picker = "telescope" })
 
 Make sure the following plugins are installed:
 
-- [lib.nvim](https://github.com/StefanBartl/lib.nvim) – required: the `:Cmdlog` command tree is built on `lib.nvim.usercmd.composer`, plus cross-platform fs/notify helpers
-- [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim)
-- [plenary.nvim](https://github.com/nvim-lua/plenary.nvim) – required for favorites functionality
+- [lib.nvim](https://github.com/StefanBartl/lib.nvim) – required: the `:Cmdlog` command tree is built on `lib.nvim.usercmd.composer`, plus cross-platform fs/notify/job helpers
+- [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim) (only if picker = "telescope")
 - [fzf-lua](https://github.com/ibhagwan/fzf-lua) (only if picker = "fzf")
 
 ---
@@ -282,7 +275,7 @@ require("cmdlog").setup({
 | Known-error highlighting          | ✅ Available           | ❌ Not available       |
 | Performance (Speed)               | ⚡ Good                | ⚡⚡ Very fast          |
 | UI Customization (Prompt, Border) | ✅ Highly customizable | ✅ Highly customizable |
-| External Dependencies             | Telescope + Plenary   | Only Plenary          |
+| External Dependencies              | telescope.nvim         | fzf-lua                |
 
 ---
 

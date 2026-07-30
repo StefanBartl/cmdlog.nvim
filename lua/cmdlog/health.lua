@@ -24,12 +24,6 @@ function M.check()
     warn("Neovim < 0.9 detected — cmdlog.nvim targets 0.9+")
   end
 
-  if has_module("plenary") then
-    ok("plenary.nvim found (required for favorites)")
-  else
-    error_("plenary.nvim not found — favorites will not work. Install nvim-lua/plenary.nvim")
-  end
-
   if has_module("lib.nvim.fs.is_dir") then
     ok("lib.nvim found (required for cross-platform fs/notify helpers)")
   else

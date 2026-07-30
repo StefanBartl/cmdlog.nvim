@@ -1,5 +1,5 @@
 local previewers = require("telescope.previewers")
-local Job = require("plenary.job")
+local job = require("lib.nvim.system.job")
 local vim = vim
 
 local M = {}
@@ -99,28 +99,21 @@ function M.command_previewer()
       local shell_cmd = cmd:match("^%s*:?%s*!%s*(.*)$")
       if shell_cmd then
         local preview_bufnr = self.state.bufnr
-        local job_opts = {
+        job.start({
           command = shell_cmd,
           on_stdout = function(_, line)
-            vim.schedule(function()
-              if not vim.api.nvim_buf_is_valid(preview_bufnr) then
-                return
-              end
-              vim.api.nvim_buf_set_lines(preview_bufnr, -1, -1, false, { line })
-            end)
-          end,
-          on_stderr = function(_, err)
-            if err and err ~= "" then
-              vim.schedule(function()
-                if not vim.api.nvim_buf_is_valid(preview_bufnr) then
-                  return
-                end
-                vim.api.nvim_buf_set_lines(preview_bufnr, -1, -1, false, { "Error: " .. err })
-              end)
+            if not vim.api.nvim_buf_is_valid(preview_bufnr) then
+              return
             end
+            vim.api.nvim_buf_set_lines(preview_bufnr, -1, -1, false, { line })
           end,
-        }
-        Job:new(job_opts):start()
+          on_stderr = function(_, line)
+            if line == "" or not vim.api.nvim_buf_is_valid(preview_bufnr) then
+              return
+            end
+            vim.api.nvim_buf_set_lines(preview_bufnr, -1, -1, false, { "Error: " .. line })
+          end,
+        })
         return
       end
 
@@ -131,29 +124,22 @@ function M.command_previewer()
                 or cmd:match("^%s*:?%s*vs%s+(%S+)$")
       if file and vim.fn.filereadable(file) == 1 then
         local preview_bufnr = self.state.bufnr
-        local job_opts = {
+        job.start({
           command = "head",
           args = { "-n", "50", file },
           on_stdout = function(_, line)
-            vim.schedule(function()
-              if not vim.api.nvim_buf_is_valid(preview_bufnr) then
-                return
-              end
-              vim.api.nvim_buf_set_lines(preview_bufnr, -1, -1, false, { line })
-            end)
-          end,
-          on_stderr = function(_, err)
-            if err and err ~= "" then
-              vim.schedule(function()
-                if not vim.api.nvim_buf_is_valid(preview_bufnr) then
-                  return
-                end
-                vim.api.nvim_buf_set_lines(preview_bufnr, -1, -1, false, { "Error: " .. err })
-              end)
+            if not vim.api.nvim_buf_is_valid(preview_bufnr) then
+              return
             end
+            vim.api.nvim_buf_set_lines(preview_bufnr, -1, -1, false, { line })
           end,
-        }
-        Job:new(job_opts):start()
+          on_stderr = function(_, line)
+            if line == "" or not vim.api.nvim_buf_is_valid(preview_bufnr) then
+              return
+            end
+            vim.api.nvim_buf_set_lines(preview_bufnr, -1, -1, false, { "Error: " .. line })
+          end,
+        })
       else
         -- No match for file-related command
         vim.api.nvim_buf_set_lines(self.state.bufnr, 0, -1, false, {

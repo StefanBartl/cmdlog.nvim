@@ -1,10 +1,11 @@
 ---@module 'cmdlog.core.favorites'
 --- Manage favorites for cmdlog: load, save, toggle, and query.
---- Directory creation and cross-platform write handling is delegated to
---- lib.nvim (lib.nvim.fs.write.to_file), which already covers the
---- Windows/Unix mkdir edge cases this module used to reimplement.
+--- All filesystem I/O goes through lib.nvim (fs.is_readable_file, fs.read,
+--- fs.write.to_file) instead of plenary.path, so this module carries no
+--- plenary.nvim dependency.
 local config = require("cmdlog.config")
-local Path = require("plenary.path")
+local is_readable_file = require("lib.nvim.fs.is_readable_file")
+local read_file = require("lib.nvim.fs.read")
 local write_to_file = require("lib.nvim.fs.write.to_file")
 local find_upward_dir = require("lib.nvim.fs.find_upward_dir")
 local notify = require("lib.nvim.notify.safe").create_safe("[cmdlog.nvim.favorites]")
@@ -56,17 +57,13 @@ function M.load()
 		return favorites_cache[target]
 	end
 
-	local path = Path:new(target)
-
-	if not path:exists() then
+	if not is_readable_file(target) then
 		favorites_cache[target] = {}
 		return favorites_cache[target]
 	end
 
-	local ok, content = pcall(function()
-		return path:read()
-	end)
-	if not ok or not content or content == "" then
+	local content = read_file(target)
+	if not content or content == "" then
 		favorites_cache[target] = {}
 		return favorites_cache[target]
 	end

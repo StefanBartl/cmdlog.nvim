@@ -34,11 +34,11 @@ REQUIREMENTS                                           *nvim-cmdlog-requirements
 
 Required plugins:
 
-- lib.nvim               (required: the :Cmdlog command layer is built on
-                           lib.nvim.usercmd.composer)
+- lib.nvim              (required: the :Cmdlog command layer is built on
+                          lib.nvim.usercmd.composer; also supplies the
+                          cross-platform fs/notify/job helpers)
 - telescope.nvim        (required when picker = "telescope")
 - fzf-lua               (required when picker = "fzf")
-- plenary.nvim          (required for favorites and utilities)
 
 ==============================================================================
 SETUP                                                  *nvim-cmdlog-setup*
@@ -221,9 +221,13 @@ logic without reimplementing common behavior.
 See the /docs directory in the repository for developer-oriented guides.
 
 ==============================================================================
-NOTES                                                  *nvim-cmdlog-notes*
+Run `:checkhealth cmdlog` to verify dependencies (telescope.nvim/fzf-lua
+depending on `picker`), shell-history detection, and the notes directory.
 
-- nvim-cmdlog relies on Neovim's persisted command-line history (shada).
+==============================================================================
+NOTES                                                  *cmdlog.nvim-notes*
+
+- cmdlog.nvim relies on Neovim's persisted command-line history (shada).
   Ensure that the 'shada' option includes ':' to enable command history
   persistence.
 - Commands are never executed automatically by this plugin.
