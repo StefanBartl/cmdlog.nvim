@@ -1,6 +1,6 @@
 # `DOCS/ADD_PICKER.md`
 
-## How to create a new picker (nvim-cmdlog)
+## How to create a new picker (cmdlog.nvim)
 
 With the unified picker system (`picker_utils.open_picker()`), creating a new picker is simple and consistent.
 

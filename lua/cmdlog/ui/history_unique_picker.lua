@@ -20,7 +20,7 @@ function M.show_history_unique_picker()
   picker_utils.open_picker(combined, favs, {
     prompt_title = ":history (unique)",
     fzf_prompt = ":history (unique)> ",
-    attach_mappings = require("cmdlog.ui.mappings")(M.show_history_unique_picker),
+    attach_mappings = require("cmdlog.ui.mappings")(M.show_history_unique_picker, history.delete_entry),
   })
 end
 

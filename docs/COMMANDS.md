@@ -12,8 +12,9 @@ most recent occurrence kept).
 
 ## `:Cmdlog favorites`
 
-Shows only your favorite commands. Use `<C-f>` inside any picker to toggle
-favorite status.
+Shows only your favorite commands. Use `<Tab>` inside any picker to toggle
+favorite status, and `<C-t>` here to tag the selected favorite. Both keys
+are configurable — see `mappings` in [OPTIONS.md](./OPTIONS.md).
 
 ## `:Cmdlog full`
 

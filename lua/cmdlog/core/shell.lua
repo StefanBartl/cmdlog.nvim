@@ -16,6 +16,8 @@
 ---  - All user-facing notifications are in German in calling code; this module logs
 ---    only warnings where parsing fails.
 local M = {}
+local notify = require("lib.nvim.notify.safe").create_safe("[cmdlog.nvim]")
+local kit = require("lib.nvim.ui.kit")
 
 --AUDIT: Modularisieren, Annotationen klären
 
@@ -53,6 +55,8 @@ local default_history_templates = {
 ---  - %VARNAME% -> environment variable (Windows style)
 ---  - $VARNAME -> env var (POSIX style)
 ---  - returns expanded string
+--- Delegates the ~/%VAR%/$VAR expansion to lib.nvim.cross.fs.expand_path
+--- (this module's own version re-implemented the same thing by hand).
 ---@param tpl string
 ---@return string
 local function expand_path_template(tpl)
@@ -60,22 +64,7 @@ local function expand_path_template(tpl)
     return ""
   end
 
-  -- Expand ~
-  local expanded = tpl
-  if expanded:sub(1, 2) == "~/" or expanded == "~" then
-    local home = vim.env.HOME or vim.env.USERPROFILE or ""
-    expanded = home .. expanded:sub(2)
-  end
-
-  -- Expand POSIX $VAR patterns using vim.env
-  expanded = expanded:gsub("%$([%w_]+)", function(k)
-    return vim.env[k] or ""
-  end)
-
-  -- Expand Windows style %VAR% occurrences
-  expanded = expanded:gsub("%%([%w_]+)%%", function(k)
-    return vim.env[k] or ""
-  end)
+  local expanded = require("lib.nvim.cross.fs.expand_path")(tpl)
 
   -- normalize forward slashes (vim.readfile and fs checks accept / on Windows)
   expanded = expanded:gsub("\\", "/")
@@ -83,14 +72,14 @@ local function expand_path_template(tpl)
   return expanded
 end
 
---- Utility: check whether a file exists (string path). Uses vim.loop.fs_stat for robust cross-platform check.
+--- Utility: check whether a file exists (string path). Uses vim.uv.fs_stat for robust cross-platform check.
 ---@param path string
 ---@return boolean
 local function file_exists(path)
   if not path or path == "" then
     return false
   end
-  local stat = vim.loop.fs_stat(path)
+  local stat = vim.uv.fs_stat(path)
   return stat ~= nil and stat.type == "file"
 end
 
@@ -115,7 +104,7 @@ function M.get_shell_name()
   -- 2) If SHELL missing or not supported, try to detect by probing history file locations.
   --    This helps on Windows where SHELL is commonly unset.
   -- Build candidate list in preferred order (PowerShell first on Windows).
-  local is_windows = package.config:sub(1, 1) == "\\"
+  local is_windows = require("lib.nvim.cross.platform.is_windows")()
 
   local candidates = {}
   if is_windows then
@@ -180,18 +169,18 @@ function M.get_shell_history_path()
       return expanded
     else
       -- Configured path missing -> warn and fall through to detection
-      vim.notify("[nvim-cmdlog]: Konfigurierter Shell-History-Pfad nicht gefunden: '" .. tostring(expanded) .. "'.", vim.log.levels.WARN)
+      notify.warn("Konfigurierter Shell-History-Pfad nicht gefunden: '" .. tostring(expanded) .. "'.")
       -- continue to detection below
     end
   end
 
   local shell = M.get_shell_name()
   if shell == "" then
-    vim.notify("[nvim-cmdlog]: Konnte Shell nicht erkennen. Unterstützte Shells: " .. table.concat(vim.tbl_keys(supported_shells), ", "), vim.log.levels.WARN)
+    notify.warn("Konnte Shell nicht erkennen. Unterstützte Shells: " .. table.concat(vim.tbl_keys(supported_shells), ", "))
     return ""
   end
 
-  local is_windows = package.config:sub(1, 1) == "\\"
+  local is_windows = require("lib.nvim.cross.platform.is_windows")()
   local tpl
   if shell == "powershell" then
     if is_windows then
@@ -204,13 +193,13 @@ function M.get_shell_history_path()
   end
 
   if not tpl then
-    vim.notify("[nvim-cmdlog]: Keine Standard-History-Vorlage für Shell '" .. shell .. "' definiert.", vim.log.levels.WARN)
+    notify.warn("Keine Standard-History-Vorlage für Shell '" .. shell .. "' definiert.")
     return ""
   end
 
   local expanded = expand_path_template(tpl)
   if not file_exists(expanded) then
-    vim.notify("[nvim-cmdlog]: Standard-Shell-History nicht gefunden unter '" .. tostring(expanded) .. "'.", vim.log.levels.WARN)
+    notify.warn("Standard-Shell-History nicht gefunden unter '" .. tostring(expanded) .. "'.")
     return ""
   end
 
@@ -299,6 +288,94 @@ function M.get_shell_history()
   end
 
   return history
+end
+
+--- Returns true if the raw history-file `line` parses to `cmd` for the given shell.
+--- Mirrors the per-shell parsing in `M.get_shell_history()`.
+---@param shell string
+---@param line string
+---@param cmd string
+---@return boolean
+local function line_matches_command(shell, line, cmd)
+  if shell == "zsh" then
+    return line:match(";%s*(.*)") == cmd
+  elseif shell == "fish" then
+    local raw = line:match("^%s*%- cmd:%s*(.*)")
+    if not raw then
+      return false
+    end
+    local okdec, dec = pcall(vim.fn.json_decode, '"' .. raw .. '"')
+    return (okdec and dec or raw) == cmd
+  else
+    -- bash, ksh, csh, nu, powershell, and the unknown-shell fallback all
+    -- store one command per line with no extra syntax.
+    return line == cmd
+  end
+end
+
+--- Deletes every occurrence of `cmd` from the detected shell's history file.
+--- This rewrites the file on disk, so a confirmation prompt is shown unless
+--- `opts.skip_confirm` is set. Async: `on_done(ok, err)` fires once the
+--- (possible) confirmation dialog resolves, since kit.confirm is callback-based.
+---@param cmd string
+---@param opts? { skip_confirm?: boolean }
+---@param on_done fun(ok: boolean, err: string|nil)
+function M.delete_entry(cmd, opts, on_done)
+  opts = opts or {}
+
+  local path = M.get_shell_history_path()
+  if path == "" then
+    on_done(false, "no shell history file detected")
+    return
+  end
+
+  local ok, lines = pcall(vim.fn.readfile, path)
+  if not ok or not lines then
+    on_done(false, "could not read " .. path)
+    return
+  end
+
+  local shell = M.get_shell_name()
+  local kept = {}
+  local removed_count = 0
+  for _, line in ipairs(lines) do
+    if line_matches_command(shell, line, cmd) then
+      removed_count = removed_count + 1
+    else
+      table.insert(kept, line)
+    end
+  end
+
+  if removed_count == 0 then
+    on_done(false, "not found in " .. path)
+    return
+  end
+
+  local function do_write()
+    local ok_write, err_write = pcall(vim.fn.writefile, kept, path)
+    if not ok_write then
+      on_done(false, tostring(err_write))
+      return
+    end
+    on_done(true)
+  end
+
+  if opts.skip_confirm then
+    do_write()
+    return
+  end
+
+  kit.confirm({
+    question = ("Delete %d occurrence(s) of '%s' from shell history file?\n%s"):format(
+      removed_count, cmd, path),
+    on_answer = function(yes)
+      if not yes then
+        on_done(false, "cancelled")
+        return
+      end
+      do_write()
+    end,
+  })
 end
 
 return M

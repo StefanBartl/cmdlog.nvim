@@ -20,7 +20,7 @@ function M.show_shell_picker()
   picker_utils.open_picker(combined, favs, {
     prompt_title = ":shell & favorites (all)",
     fzf_prompt = ":shell & favorites (all)> ",
-    attach_mappings = require("cmdlog.ui.mappings")(M.show_shell_picker),
+    attach_mappings = require("cmdlog.ui.mappings")(M.show_shell_picker, shell_mod.delete_entry),
   })
 end
 

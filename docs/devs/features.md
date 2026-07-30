@@ -1,4 +1,4 @@
-# nvim-cmdlog features
+# cmdlog.nvim features
 
 ## Table of content
 
