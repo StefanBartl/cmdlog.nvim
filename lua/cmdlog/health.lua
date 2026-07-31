@@ -77,6 +77,8 @@ function M.check()
   else
     ok("Notes feature disabled")
   end
+
+  require("lib.nvim.usercmd.composer").checkhealth("Cmdlog")
 end
 
 return M
