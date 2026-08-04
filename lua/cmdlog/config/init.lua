@@ -10,7 +10,10 @@ local M = {}
 ---@type CmdlogConfig
 M.options = vim.deepcopy(DEFAULTS)
 
+--- Merges `opts` over DEFAULTS into `M.options`, normalizing the `notes` and
+--- `mappings` sub-tables when the user supplies a malformed value.
 ---@param opts table|nil
+---@return nil
 function M.setup(opts)
   opts = opts or {}
   M.options = vim.tbl_deep_extend("force", vim.deepcopy(DEFAULTS), opts)

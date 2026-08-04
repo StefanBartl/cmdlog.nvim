@@ -1,3 +1,4 @@
+---@meta
 ---@module 'cmdlog.@types.config'
 --- Type definitions for cmdlog configuration.
 

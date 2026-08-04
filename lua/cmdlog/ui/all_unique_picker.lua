@@ -1,3 +1,6 @@
+---@module 'cmdlog.ui.all_unique_picker'
+--- Picker showing every history entry (favorites, Neovim, and shell), deduplicated.
+
 local favorites = require("cmdlog.core.favorites")
 local history_mod = require("cmdlog.core.history")
 local shell_mod = require("cmdlog.core.shell")
@@ -6,6 +9,7 @@ local picker_utils = require("cmdlog.ui.picker_utils")
 
 local M = {}
 
+---@internal
 --- Best-effort delete across both underlying history sources; see all_picker.lua.
 ---@param cmd string
 ---@param on_done fun(ok: boolean, err: string|nil)

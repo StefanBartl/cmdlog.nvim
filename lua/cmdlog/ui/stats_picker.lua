@@ -1,3 +1,6 @@
+---@module 'cmdlog.ui.stats_picker'
+--- Picker showing commands sorted by usage frequency.
+
 local favorites = require("cmdlog.core.favorites")
 local stats = require("cmdlog.core.stats")
 local picker_utils = require("cmdlog.ui.picker_utils")

@@ -1,3 +1,6 @@
+---@module 'cmdlog.ui.favorites_picker'
+--- Picker showing favorited commands, with tags and a toggle-favorite mapping.
+
 local favorites = require("cmdlog.core.favorites")
 local tags = require("cmdlog.core.tags")
 local picker_utils = require("cmdlog.ui.picker_utils")

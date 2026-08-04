@@ -1,9 +1,13 @@
+---@module 'cmdlog.ui.telescope-previewer'
+--- Builds the Telescope buffer previewer for command-history entries.
+
 local previewers = require("telescope.previewers")
 local job = require("lib.nvim.system.job")
 local vim = vim
 
 local M = {}
 
+---@internal
 --- Whether `word` is a valid Vim command abbreviation of `full`
 --- (e.g. "ter" is an abbreviation of "terminal", but "te" is too short).
 ---@param word string

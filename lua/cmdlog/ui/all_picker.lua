@@ -1,3 +1,6 @@
+---@module 'cmdlog.ui.all_picker'
+--- Picker showing every history entry (favorites, Neovim, and shell), duplicates included.
+
 local favorites = require("cmdlog.core.favorites")
 local history_mod = require("cmdlog.core.history")
 local shell_mod = require("cmdlog.core.shell")
@@ -6,6 +9,7 @@ local picker_utils = require("cmdlog.ui.picker_utils")
 
 local M = {}
 
+---@internal
 --- Best-effort delete across both underlying history sources: a combined-view
 --- entry might originate from Neovim's `:` history, the shell history file, or
 --- both. Neither call prompts/errors when `cmd` isn't found in that source.

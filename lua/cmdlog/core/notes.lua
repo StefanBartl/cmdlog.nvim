@@ -9,6 +9,7 @@ local fn  = vim.fn
 
 local M = {}
 
+---@internal
 ---@param path string
 local function ensure_dir(path)
   if path == "" then return end
@@ -17,6 +18,7 @@ local function ensure_dir(path)
   end
 end
 
+---@internal
 ---@param s string
 ---@return string
 local function normalize_cmd(s)
@@ -29,6 +31,7 @@ local function normalize_cmd(s)
   return s
 end
 
+---@internal
 ---@param cmd string
 ---@return string
 local function note_key(cmd)
@@ -37,6 +40,7 @@ local function note_key(cmd)
   return n
 end
 
+---@internal
 ---@param cmd string
 ---@return string
 local function note_path(cmd)
@@ -47,6 +51,7 @@ local function note_path(cmd)
   return dir .. "/" .. note_key(cmd) .. ext
 end
 
+---@internal
 ---@param path string
 ---@return integer
 local function open_note_buffer(path)
@@ -75,6 +80,7 @@ local function open_note_buffer(path)
   return bufnr
 end
 
+---@internal
 ---@param bufnr integer
 ---@param path string
 local function attach_autosave(bufnr, path)

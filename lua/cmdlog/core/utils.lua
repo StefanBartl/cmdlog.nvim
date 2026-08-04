@@ -1,3 +1,7 @@
+---@module 'cmdlog.core.utils'
+--- Shared list helpers (reverse, dedup, and the combined processing
+--- pipeline) used by every picker to turn raw history into display order.
+
 local M = {}
 
 --- Reverses the list (newest entries first)

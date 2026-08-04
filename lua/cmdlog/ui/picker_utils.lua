@@ -22,6 +22,7 @@ local risky = require("cmdlog.core.risky")
 local M = {}
 
 --- Opens the notes side window, if notes are enabled.
+---@internal
 ---@return number|nil win
 local function open_notes_window()
   if not config.options.notes or not config.options.notes.enabled then
@@ -41,6 +42,7 @@ end
 
 --- Builds the Telescope entry_maker: favorite/known-bad marker, optional
 --- label suffix, and risky-command highlighting.
+---@internal
 ---@param favs string[]
 ---@param opts table
 ---@return fun(entry: string): table

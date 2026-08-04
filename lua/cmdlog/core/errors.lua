@@ -13,6 +13,7 @@ local M = {}
 ---@type table<string, string>|nil
 local cache = nil
 
+---@internal
 ---@return table<string, string>
 local function load()
   if cache then

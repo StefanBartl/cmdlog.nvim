@@ -82,6 +82,7 @@ M.catalog = {
 --- Resolve a catalog entry to its picker function, requiring the module only
 --- when the subcommand actually runs — registration itself pulls in no
 --- picker modules, and so costs nothing at startup.
+---@internal
 ---@param entry { module: string, fn: string }
 ---@return fun()
 local function handler(entry)

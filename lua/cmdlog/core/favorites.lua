@@ -14,6 +14,7 @@ local M = {}
 
 --- Tiny deterministic string hash (djb2-ish), used to keep per-project
 --- favorites filenames short while still unique per Git root path.
+---@internal
 ---@param s string
 ---@return string
 local function short_hash(s)
@@ -27,6 +28,7 @@ end
 --- Resolves the effective favorites.json path for the current context.
 --- Global by default; if `project_scoped.enabled` is set and a Git root is
 --- found upward from cwd, a dedicated per-project file is used instead.
+---@internal
 ---@return string
 local function get_favorites_path()
 	local opts = config.options

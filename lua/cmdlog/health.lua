@@ -3,12 +3,16 @@
 
 local M = {}
 
+---@internal
 ---@param modname string
 ---@return boolean
 local function has_module(modname)
   return (pcall(require, modname))
 end
 
+--- Runs `:checkhealth cmdlog`: verifies dependencies (lib.nvim, the
+--- configured picker backend), shell-history detection and notes-dir state.
+---@return nil
 function M.check()
   local health = vim.health or require("health")
   local start = health.start or health.report_start

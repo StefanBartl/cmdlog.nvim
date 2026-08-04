@@ -16,6 +16,7 @@ local api = vim.api
 
 local M = {}
 
+---@internal
 ---@return number|nil
 local function open_notes_window()
   if not config.options.notes.enabled then
@@ -33,6 +34,7 @@ local function open_notes_window()
   return win
 end
 
+---@internal
 ---@param prompt_bufnr integer
 ---@return string|nil
 ---@diagnostic disable-next-line: unused-local
@@ -44,6 +46,7 @@ local function get_selected_command(prompt_bufnr)
 	return entry.value or entry[1]
 end
 
+---@internal
 ---@param picker any
 ---@param prompt_bufnr integer
 ---@param history string[]
@@ -97,7 +100,10 @@ local function attach_notes(picker, prompt_bufnr, history)
 	end)
 end
 
+--- Opens a Telescope picker over `history` with a persistent notes window
+--- on the right, kept in sync with the current selection.
 ---@param history string[]
+---@return nil
 function M.open(history)
 	if not config.options.notes.enabled then
 		return

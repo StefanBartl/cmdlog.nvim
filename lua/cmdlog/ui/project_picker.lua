@@ -1,3 +1,6 @@
+---@module 'cmdlog.ui.project_picker'
+--- Picker showing command history recorded for the current Git project only.
+
 local favorites = require("cmdlog.core.favorites")
 local project_history = require("cmdlog.core.project_history")
 local process_list = require("cmdlog.core.utils").process_list

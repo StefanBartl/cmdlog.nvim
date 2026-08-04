@@ -1,3 +1,6 @@
+---@module 'cmdlog.core.history'
+--- Reads and mutates Neovim's built-in `:` command-line history.
+
 local M = {}
 
 --- Fetch raw Neovim command-line history

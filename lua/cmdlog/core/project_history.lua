@@ -22,6 +22,7 @@ function M.get_git_root()
   return (out[1]:gsub("\\", "/"))
 end
 
+---@internal
 ---@return table<string, string[]>
 local function load()
   if cache then

@@ -1,3 +1,6 @@
+---@module 'cmdlog.ui.fzf-previewer'
+--- Builds the fzf-lua previewer function for command-history entries.
+
 local M = {}
 
 --- Returns a previewer function for fzf-lua.
