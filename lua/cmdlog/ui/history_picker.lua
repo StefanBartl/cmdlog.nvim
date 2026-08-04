@@ -1,3 +1,6 @@
+---@module 'cmdlog.ui.history_picker'
+--- Picker showing Neovim command-line history and favorites, duplicates included.
+
 local favorites = require("cmdlog.core.favorites")
 local history = require("cmdlog.core.history")
 local process_list = require("cmdlog.core.utils").process_list
@@ -5,6 +8,9 @@ local picker_utils = require("cmdlog.ui.picker_utils")
 
 local M = {}
 
+--- Loads and shows a picker with favorites followed by the full (non-deduplicated)
+--- Neovim `:` command-line history.
+---@return nil
 function M.show_history_picker()
   local favs = favorites.load()
   local raw = history.get_command_history()

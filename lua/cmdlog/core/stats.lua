@@ -9,6 +9,7 @@ local M = {}
 ---@type table<string, { count: integer, last_used: integer }>|nil
 local cache = nil
 
+---@internal
 ---@return table<string, { count: integer, last_used: integer }>
 local function load()
   if cache then

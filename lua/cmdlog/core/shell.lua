@@ -1,4 +1,4 @@
----@module 'cmdlog.shell'
+---@module 'cmdlog.core.shell'
 --- Utilities to detect the user's interactive shell and read its history.
 --- Supports POSIX shells (bash, zsh, fish, ksh, csh), nushell (nu) and PowerShell
 --- (Windows PowerShell and PowerShell Core / pwsh) on Windows and Unix-like systems.
@@ -57,6 +57,7 @@ local default_history_templates = {
 ---  - returns expanded string
 --- Delegates the ~/%VAR%/$VAR expansion to lib.nvim.cross.fs.expand_path
 --- (this module's own version re-implemented the same thing by hand).
+---@internal
 ---@param tpl string
 ---@return string
 local function expand_path_template(tpl)
@@ -73,6 +74,7 @@ local function expand_path_template(tpl)
 end
 
 --- Utility: check whether a file exists (string path). Uses vim.uv.fs_stat for robust cross-platform check.
+---@internal
 ---@param path string
 ---@return boolean
 local function file_exists(path)
@@ -292,6 +294,7 @@ end
 
 --- Returns true if the raw history-file `line` parses to `cmd` for the given shell.
 --- Mirrors the per-shell parsing in `M.get_shell_history()`.
+---@internal
 ---@param shell string
 ---@param line string
 ---@param cmd string

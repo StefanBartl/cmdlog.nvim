@@ -10,6 +10,7 @@ local M = {}
 ---@type table<string, string[]>|nil
 local cache = nil
 
+---@internal
 ---@return table<string, string[]>
 local function load()
   if cache then
@@ -22,6 +23,8 @@ local function load()
   return cache
 end
 
+---@internal
+---@param data table<string, string[]>
 local function save(data)
   cache = data
   store.save_json(config.options.favorite_tags_path, data)

@@ -1,3 +1,6 @@
+---@module 'cmdlog.ui.shell_unique_picker'
+--- Picker showing deduplicated shell history and favorites.
+
 local favorites = require("cmdlog.core.favorites")
 local shell_mod = require("cmdlog.core.shell")
 local process_list = require("cmdlog.core.utils").process_list

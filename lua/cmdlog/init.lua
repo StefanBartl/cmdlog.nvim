@@ -1,3 +1,7 @@
+---@module 'cmdlog'
+--- Plugin entry point: merges user config, registers bindings, starts the
+--- command tracker and wires up optional which-key integration.
+
 local config = require("cmdlog.config")
 local notify = require("lib.nvim.notify.safe").create_safe("[cmdlog.nvim]")
 
@@ -5,6 +9,7 @@ local M = {}
 
 --- Setup function for the plugin
 --- @param opts table|nil Optional user configuration
+--- @return nil
 function M.setup(opts)
   -- Merge user options with defaults
   config.setup(opts)

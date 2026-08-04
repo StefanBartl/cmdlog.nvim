@@ -1,3 +1,6 @@
+---@module 'cmdlog.ui.lua_picker'
+--- Picker showing only Lua-mode command-line history (`:lua`, `:lua=`, `:=`).
+
 local favorites = require("cmdlog.core.favorites")
 local history = require("cmdlog.core.history")
 local process_list = require("cmdlog.core.utils").process_list

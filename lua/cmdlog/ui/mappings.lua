@@ -1,3 +1,6 @@
+---@module 'cmdlog.ui.mappings'
+--- Factory for a Telescope attach_mappings function.
+
 --- Creates a Telescope attach_mappings function.
 --- Keys are read from `config.options.mappings` (select/toggle_favorite/refresh/
 --- delete/tag), so users can remap or disable (set to `false`) any of them.
