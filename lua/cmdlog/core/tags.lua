@@ -13,13 +13,9 @@ local cache = nil
 ---@internal
 ---@return table<string, string[]>
 local function load()
-  if cache then
-    return cache
-  end
+  if cache then return cache end
   cache = store.load_json(config.options.favorite_tags_path, {})
-  if type(cache) ~= "table" then
-    cache = {}
-  end
+  if type(cache) ~= "table" then cache = {} end
   return cache
 end
 
@@ -41,9 +37,7 @@ end
 ---@param cmd string
 ---@param tag string
 function M.add_tag(cmd, tag)
-  if not cmd or cmd == "" or not tag or tag == "" then
-    return
-  end
+  if not cmd or cmd == "" or not tag or tag == "" then return end
   local data = load()
   local tags = data[cmd] or {}
   if not vim.tbl_contains(tags, tag) then
@@ -59,14 +53,10 @@ end
 function M.remove_tag(cmd, tag)
   local data = load()
   local tags = data[cmd]
-  if not tags then
-    return
-  end
+  if not tags then return end
   local new_tags = {}
   for _, t in ipairs(tags) do
-    if t ~= tag then
-      table.insert(new_tags, t)
-    end
+    if t ~= tag then table.insert(new_tags, t) end
   end
   if #new_tags == 0 then
     data[cmd] = nil
@@ -82,9 +72,7 @@ end
 function M.filter(tag)
   local result = {}
   for cmd, tags in pairs(load()) do
-    if vim.tbl_contains(tags, tag) then
-      table.insert(result, cmd)
-    end
+    if vim.tbl_contains(tags, tag) then table.insert(result, cmd) end
   end
   return result
 end

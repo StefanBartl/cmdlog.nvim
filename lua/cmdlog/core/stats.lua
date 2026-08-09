@@ -12,22 +12,16 @@ local cache = nil
 ---@internal
 ---@return table<string, { count: integer, last_used: integer }>
 local function load()
-  if cache then
-    return cache
-  end
+  if cache then return cache end
   cache = store.load_json(config.options.stats_path, {})
-  if type(cache) ~= "table" then
-    cache = {}
-  end
+  if type(cache) ~= "table" then cache = {} end
   return cache
 end
 
 --- Record one execution of `cmd`, bumping its count and last_used timestamp.
 ---@param cmd string
 function M.record(cmd)
-  if not cmd or cmd == "" then
-    return
-  end
+  if not cmd or cmd == "" then return end
 
   local data = load()
   local entry = data[cmd] or { count = 0, last_used = 0 }
@@ -52,9 +46,7 @@ function M.by_frequency()
   local data = load()
   local cmds = vim.tbl_keys(data)
   table.sort(cmds, function(a, b)
-    if data[a].count ~= data[b].count then
-      return data[a].count > data[b].count
-    end
+    if data[a].count ~= data[b].count then return data[a].count > data[b].count end
     return data[a].last_used > data[b].last_used
   end)
   return cmds
@@ -65,9 +57,7 @@ end
 ---@return string|nil
 function M.describe(cmd)
   local entry = load()[cmd]
-  if not entry then
-    return nil
-  end
+  if not entry then return nil end
   return ("used %dx, last %s"):format(entry.count, os.date("%Y-%m-%d %H:%M", entry.last_used))
 end
 

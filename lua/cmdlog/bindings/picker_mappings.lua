@@ -8,10 +8,19 @@ local M = {}
 
 ---@type table<string, {config_key: string, desc: string}>
 M.catalog = {
-  select = { config_key = "mappings.select", desc = "Insert the selected command into the cmdline (no execution)" },
-  toggle_favorite = { config_key = "mappings.toggle_favorite", desc = "Toggle favorite status for the selected command" },
+  select = {
+    config_key = "mappings.select",
+    desc = "Insert the selected command into the cmdline (no execution)",
+  },
+  toggle_favorite = {
+    config_key = "mappings.toggle_favorite",
+    desc = "Toggle favorite status for the selected command",
+  },
   refresh = { config_key = "mappings.refresh", desc = "Refresh the current picker" },
-  delete = { config_key = "mappings.delete", desc = "Delete the selected entry from its underlying history" },
+  delete = {
+    config_key = "mappings.delete",
+    desc = "Delete the selected entry from its underlying history",
+  },
 }
 
 --- Returns the catalog with each entry's currently configured key merged in.

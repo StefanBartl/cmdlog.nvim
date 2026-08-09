@@ -1,5 +1,5 @@
 ---@meta
----@module 'cmdlog.@types.config'
+---@module 'cmdlog.@types'
 --- Type definitions for cmdlog configuration.
 
 ---@class CmdlogNotesConfig
@@ -16,16 +16,13 @@
 ---@field toggle_favorite string|false
 ---@field refresh string|false
 ---@field delete string|false
+---@field tag string|false
 
----@class CmdlogKeymapsConfig
----@field enabled boolean
----@field cmdlog string|nil
----@field cmdlog_full string|nil
----@field favorites string|nil
----@field nvim_history string|nil
----@field nvim_history_full string|nil
----@field shell_history string|nil
----@field shell_history_full string|nil
+---@alias CmdlogKeymapsConfig table<string, string>
+--- Map of :Cmdlog subcommand name ("" for bare :Cmdlog) to a normal-mode
+--- lhs, e.g. `{ [""] = "<leader>ch", favorites = "<leader>cf" }`. Replaced
+--- the old fixed-field shape (enabled/cmdlog/cmdlog_full/...) when keymaps
+--- moved to a subcommand-derived map -- see cmdlog.bindings.keymaps.
 
 ---@class CmdlogProjectScopedConfig
 ---@field enabled boolean
@@ -34,6 +31,11 @@
 ---@field picker '"telescope"'|'"fzf"'|'"fzf-lua"'
 ---@field favorites_path string
 ---@field shell_history_path string|'"default"'
+---@field favorite_tags_path string
+---@field project_history_path string
+---@field stats_path string
+---@field errors_path string
+---@field track_commands boolean
 ---@field project_scoped CmdlogProjectScopedConfig
 ---@field notes CmdlogNotesConfig
 ---@field mappings CmdlogMappingsConfig

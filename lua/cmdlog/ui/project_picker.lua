@@ -5,6 +5,7 @@ local favorites = require("cmdlog.core.favorites")
 local project_history = require("cmdlog.core.project_history")
 local process_list = require("cmdlog.core.utils").process_list
 local picker_utils = require("cmdlog.ui.picker_utils")
+local notify = require("lib.nvim.notify.safe").create_safe("[cmdlog.nvim]")
 
 local M = {}
 
@@ -15,7 +16,7 @@ local M = {}
 --- @return nil
 function M.show_project_picker()
   if not project_history.get_git_root() then
-    vim.notify("[nvim-cmdlog] Not inside a Git repository", vim.log.levels.INFO)
+    notify.info("Not inside a Git repository")
     return
   end
 
@@ -24,7 +25,7 @@ function M.show_project_picker()
   local entries = process_list(raw, { unique = true })
 
   if #entries == 0 then
-    vim.notify("[nvim-cmdlog] No project-local history recorded yet", vim.log.levels.INFO)
+    notify.info("No project-local history recorded yet")
     return
   end
 

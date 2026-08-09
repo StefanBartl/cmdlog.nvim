@@ -25,9 +25,7 @@ local M = {}
 ---@internal
 ---@return number|nil win
 local function open_notes_window()
-  if not config.options.notes or not config.options.notes.enabled then
-    return nil
-  end
+  if not config.options.notes or not config.options.notes.enabled then return nil end
 
   vim.cmd("vsplit")
   local win = vim.api.nvim_get_current_win()
@@ -61,9 +59,7 @@ local function make_entry_maker(favs, opts)
         local text = marker .. e.value .. suffix
         -- A previously-failed command wins the colour: it is the more
         -- specific statement about this exact command.
-        if is_bad then
-          return text, { { { 0, #marker + #e.value }, "ErrorMsg" } }
-        end
+        if is_bad then return text, { { { 0, #marker + #e.value }, "ErrorMsg" } } end
         if risky.is_risky(e.value) then
           return text, { { { 0, #marker + #e.value }, "CmdlogRiskyCommand" } }
         end
@@ -94,9 +90,7 @@ function M.open_picker(entries, favs, opts)
       previewer = require("cmdlog.ui.fzf-previewer").command_previewer(),
       actions = opts.actions or {
         ["default"] = function(selected)
-          if selected[1] then
-            vim.cmd(selected[1])
-          end
+          if selected[1] then vim.cmd(selected[1]) end
         end,
       },
     })
@@ -123,14 +117,10 @@ function M.open_picker(entries, favs, opts)
         local notes_win = open_notes_window()
 
         local function sync_notes()
-          if not notes_win or not vim.api.nvim_win_is_valid(notes_win) then
-            return
-          end
+          if not notes_win or not vim.api.nvim_win_is_valid(notes_win) then return end
 
           local entry = action_state.get_selected_entry()
-          if not entry then
-            return
-          end
+          if not entry then return end
 
           local buf = notes.open(entry.value)
           if buf and vim.api.nvim_buf_is_valid(buf) then
@@ -161,9 +151,7 @@ function M.open_picker(entries, favs, opts)
         -- Let the caller register its own mappings (select/toggle_favorite/
         -- refresh/delete/tag via cmdlog.ui.mappings, which honours
         -- config.options.mappings).
-        if opts.attach_mappings then
-          return opts.attach_mappings(prompt_bufnr, map)
-        end
+        if opts.attach_mappings then return opts.attach_mappings(prompt_bufnr, map) end
 
         return true
       end,

@@ -19,7 +19,7 @@ Defaults are defined once in `lua/cmdlog/config/DEFAULTS.lua` like this:
 
 ```lua
 local DEFAULTS = {
-  favorites_path = vim.fn.stdpath("data") .. "/cmdlog.nvim/favorites.json",
+  favorites_path = vim.fn.stdpath("data") .. "/cmdlog/favorites.json",
   picker = "telescope", -- or "fzf"
   shell_history_path = "default", -- or custom shell history file path
 

@@ -23,9 +23,7 @@ return function(refresh_fn, delete_fn, opts)
     local favorites = require("cmdlog.core.favorites")
     local mappings = require("cmdlog.config").options.mappings
 
-    if not mappings.enabled then
-      return true
-    end
+    if not mappings.enabled then return true end
 
     if mappings.select then
       map("i", mappings.select, function()
@@ -59,9 +57,7 @@ return function(refresh_fn, delete_fn, opts)
     if mappings.tag and opts and opts.tag then
       map("i", mappings.tag, function()
         local selected = state.get_selected_entry()
-        if not selected or not selected.value then
-          return
-        end
+        if not selected or not selected.value then return end
         vim.ui.input({ prompt = "Add tag: " }, function(tag)
           if tag and tag ~= "" then
             require("cmdlog.core.tags").add_tag(selected.value, tag)
@@ -75,9 +71,7 @@ return function(refresh_fn, delete_fn, opts)
     if mappings.delete and delete_fn then
       map("i", mappings.delete, function()
         local selected = state.get_selected_entry()
-        if not selected or not selected.value then
-          return
-        end
+        if not selected or not selected.value then return end
 
         delete_fn(selected.value, function(ok, err)
           if ok then

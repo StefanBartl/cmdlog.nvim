@@ -24,24 +24,17 @@ function M.setup(opts)
     notes = { enabled = false }
   end
 
-  if notes.format ~= "markdown" then
-    notes.format = "text"
-  end
+  if notes.format ~= "markdown" then notes.format = "text" end
 
-  if notes.dir == "" then
-    notes.dir = DEFAULTS.notes.dir
-  end
+  if notes.dir == "" then notes.dir = DEFAULTS.notes.dir end
   notes.dir = require("lib.nvim.cross.fs.expand_path")(notes.dir)
 
-  if type(notes.width) ~= "number" then
-    notes.width = DEFAULTS.notes.width
-  end
+  if type(notes.width) ~= "number" then notes.width = DEFAULTS.notes.width end
 
   M.options.notes = notes
 
   ---@diagnostic disable-next-line inject-field
-  M.options.mappings = type(M.options.mappings) == "table"
-    and M.options.mappings
+  M.options.mappings = type(M.options.mappings) == "table" and M.options.mappings
     or vim.deepcopy(DEFAULTS.mappings)
 end
 

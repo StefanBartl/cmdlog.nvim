@@ -8,19 +8,13 @@ local M = {}
 --- @return boolean
 function M.is_risky(cmd)
   local config = require("cmdlog.config")
-  if not config.options.highlight_risky then
-    return false
-  end
+  if not config.options.highlight_risky then return false end
 
   local patterns = config.options.risky_patterns
-  if type(patterns) ~= "table" then
-    return false
-  end
+  if type(patterns) ~= "table" then return false end
 
   for _, pattern in ipairs(patterns) do
-    if cmd:find(pattern) then
-      return true
-    end
+    if cmd:find(pattern) then return true end
   end
 
   return false

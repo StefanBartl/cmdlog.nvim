@@ -54,7 +54,9 @@ function M.check()
       error_("picker = '" .. picker .. "' but fzf-lua is not installed")
     end
   else
-    error_("Invalid config.options.picker: '" .. tostring(picker) .. "' (expected 'telescope' or 'fzf')")
+    error_(
+      "Invalid config.options.picker: '" .. tostring(picker) .. "' (expected 'telescope' or 'fzf')"
+    )
   end
 
   local shell = require("cmdlog.core.shell")

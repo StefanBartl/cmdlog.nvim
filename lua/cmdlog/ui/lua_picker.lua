@@ -5,6 +5,7 @@ local favorites = require("cmdlog.core.favorites")
 local history = require("cmdlog.core.history")
 local process_list = require("cmdlog.core.utils").process_list
 local picker_utils = require("cmdlog.ui.picker_utils")
+local notify = require("lib.nvim.notify.safe").create_safe("[cmdlog.nvim]")
 
 local M = {}
 
@@ -17,7 +18,7 @@ function M.show_lua_picker()
   local entries = process_list(raw, { unique = true })
 
   if #entries == 0 then
-    vim.notify("[nvim-cmdlog] No Lua-mode history found", vim.log.levels.INFO)
+    notify.info("No Lua-mode history found")
     return
   end
 

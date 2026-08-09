@@ -23,7 +23,10 @@ function M.show_shell_unique_picker()
   picker_utils.open_picker(combined, favs, {
     prompt_title = ":shell & favorites (unique)",
     fzf_prompt = ":shell & favorites (unique)> ",
-    attach_mappings = require("cmdlog.ui.mappings")(M.show_shell_unique_picker, shell_mod.delete_entry),
+    attach_mappings = require("cmdlog.ui.mappings")(
+      M.show_shell_unique_picker,
+      shell_mod.delete_entry
+    ),
   })
 end
 
