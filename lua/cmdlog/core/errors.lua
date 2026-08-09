@@ -16,13 +16,9 @@ local cache = nil
 ---@internal
 ---@return table<string, string>
 local function load()
-  if cache then
-    return cache
-  end
+  if cache then return cache end
   cache = store.load_json(config.options.errors_path, {})
-  if type(cache) ~= "table" then
-    cache = {}
-  end
+  if type(cache) ~= "table" then cache = {} end
   return cache
 end
 
@@ -30,9 +26,7 @@ end
 ---@param cmd string
 ---@param errmsg string
 function M.record(cmd, errmsg)
-  if not cmd or cmd == "" then
-    return
-  end
+  if not cmd or cmd == "" then return end
 
   local data = load()
   data[cmd] = errmsg

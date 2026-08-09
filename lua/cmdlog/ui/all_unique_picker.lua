@@ -61,7 +61,10 @@ function M.show_all_unique_picker()
   picker_utils.open_picker(combined, favs, {
     prompt_title = ":history & favorites (unique)",
     fzf_prompt = ":history & favorites (unique)> ",
-    attach_mappings = require("cmdlog.ui.mappings")(M.show_all_unique_picker, delete_from_any_history),
+    attach_mappings = require("cmdlog.ui.mappings")(
+      M.show_all_unique_picker,
+      delete_from_any_history
+    ),
   })
 end
 

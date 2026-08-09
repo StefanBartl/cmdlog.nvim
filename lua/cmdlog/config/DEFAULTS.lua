@@ -44,11 +44,11 @@ local DEFAULTS = {
   -- Keymaps used inside cmdlog pickers. Set a value to false to disable it.
   mappings = {
     enabled = true,
-    select = "<CR>",         -- insert selected command into the cmdline
+    select = "<CR>", -- insert selected command into the cmdline
     toggle_favorite = "<Tab>", -- mark/unmark the selected command as favorite
-    refresh = "<C-r>",       -- refresh the current picker
-    delete = "<C-x>",        -- delete the selected entry from its underlying history
-    tag = "<C-t>",           -- add a tag to the selected favorite (favorites picker only)
+    refresh = "<C-r>", -- refresh the current picker
+    delete = "<C-x>", -- delete the selected entry from its underlying history
+    tag = "<C-t>", -- add a tag to the selected favorite (favorites picker only)
   },
 
   -- Highlight commands that are prone to causing damage or data loss.

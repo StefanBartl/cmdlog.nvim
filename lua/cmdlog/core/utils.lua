@@ -32,9 +32,7 @@ function M.process_list(entries, opts)
   opts = opts or {}
   local result = M.reverse_list(entries)
 
-  if opts.unique then
-    result = M.deduplicate_list(result)
-  end
+  if opts.unique then result = M.deduplicate_list(result) end
 
   return result
 end

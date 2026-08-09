@@ -11,9 +11,7 @@ function M.get_command_history()
 
   for line in vim.gsplit(output, "\n") do
     local cmd = line:match("^%s*%d+%s+(.*)")
-    if cmd and cmd ~= "" then
-      table.insert(entries, cmd)
-    end
+    if cmd and cmd ~= "" then table.insert(entries, cmd) end
   end
 
   return entries

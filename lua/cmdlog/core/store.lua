@@ -23,19 +23,13 @@ local M = {}
 function M.load_json(path, default)
   local target = vim.fn.expand(path)
 
-  if not is_readable_file(target) then
-    return default
-  end
+  if not is_readable_file(target) then return default end
 
   local content = read_file(target)
-  if not content or content == "" then
-    return default
-  end
+  if not content or content == "" then return default end
 
   local ok_json, decoded = pcall(vim.fn.json_decode, content)
-  if not ok_json or decoded == nil then
-    return default
-  end
+  if not ok_json or decoded == nil then return default end
 
   return decoded
 end

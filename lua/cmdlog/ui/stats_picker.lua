@@ -4,6 +4,7 @@
 local favorites = require("cmdlog.core.favorites")
 local stats = require("cmdlog.core.stats")
 local picker_utils = require("cmdlog.ui.picker_utils")
+local notify = require("lib.nvim.notify.safe").create_safe("[cmdlog.nvim]")
 
 local M = {}
 
@@ -17,7 +18,7 @@ function M.show_stats_picker()
   local entries = stats.by_frequency()
 
   if #entries == 0 then
-    vim.notify("[nvim-cmdlog] No usage stats recorded yet", vim.log.levels.INFO)
+    notify.info("No usage stats recorded yet")
     return
   end
 

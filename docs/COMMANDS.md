@@ -60,7 +60,7 @@ since tracking was enabled.
 
 ### Notes
 
-- Favorites are stored in: `~/.local/share/nvim-cmdlog/favorites.json`
+- Favorites are stored in: `~/.local/share/cmdlog/favorites.json`
 - All views support preview and insertion
 - Commands prefixed with `✗` (Telescope only) are known to have errored
   the last time they ran (see `core/errors.lua`)

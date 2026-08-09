@@ -13,10 +13,12 @@
 ---  - This module only *reads* history files; it does not interact with running shells.
 ---  - The PSReadLine history file format is plain text (one command per line).
 ---  - The module expands ~ and environment variables before checking existence.
----  - All user-facing notifications are in German in calling code; this module logs
----    only warnings where parsing fails.
+---  - Detection/lookup failures are reported via return values only (empty
+---    string / false), never via notify() -- this is low-level, reusable by
+---    both pickers and :checkhealth, and each caller decides whether and how
+---    to surface a failure to the user (see cmdlog.health, which already has
+---    its own vim.health.warn() for exactly this case).
 local M = {}
-local notify = require("lib.nvim.notify.safe").create_safe("[cmdlog.nvim]")
 local kit = require("lib.nvim.ui.kit")
 
 --AUDIT: Modularisieren, Annotationen klären
@@ -61,9 +63,7 @@ local default_history_templates = {
 ---@param tpl string
 ---@return string
 local function expand_path_template(tpl)
-  if not tpl or tpl == "" then
-    return ""
-  end
+  if not tpl or tpl == "" then return "" end
 
   local expanded = require("lib.nvim.cross.fs.expand_path")(tpl)
 
@@ -78,9 +78,7 @@ end
 ---@param path string
 ---@return boolean
 local function file_exists(path)
-  if not path or path == "" then
-    return false
-  end
+  if not path or path == "" then return false end
   local stat = vim.uv.fs_stat(path)
   return stat ~= nil and stat.type == "file"
 end
@@ -98,9 +96,7 @@ function M.get_shell_name()
     -- Get basename (e.g., /bin/zsh -> zsh)
     local basename = shell_env:match("([^/\\]+)$") or shell_env
     basename = basename:lower()
-    if supported_shells[basename] then
-      return supported_shells[basename]
-    end
+    if supported_shells[basename] then return supported_shells[basename] end
   end
 
   -- 2) If SHELL missing or not supported, try to detect by probing history file locations.
@@ -146,9 +142,7 @@ function M.get_shell_name()
     local expanded = expand_path_template(path_tpl)
     if file_exists(expanded) then
       -- normalized key
-      if cand == "pwsh" then
-        return "powershell"
-      end
+      if cand == "pwsh" then return "powershell" end
       return cand
     end
   end
@@ -167,20 +161,13 @@ function M.get_shell_history_path()
   local override = cfg and cfg.options and cfg.options.shell_history_path or "default"
   if override and type(override) == "string" and override ~= "default" and override ~= "" then
     local expanded = expand_path_template(override)
-    if file_exists(expanded) then
-      return expanded
-    else
-      -- Configured path missing -> warn and fall through to detection
-      notify.warn("Konfigurierter Shell-History-Pfad nicht gefunden: '" .. tostring(expanded) .. "'.")
-      -- continue to detection below
-    end
+    if file_exists(expanded) then return expanded end
+    -- Configured path missing -- fall through to detection below. The
+    -- caller decides whether/how to report this (see cmdlog.health).
   end
 
   local shell = M.get_shell_name()
-  if shell == "" then
-    notify.warn("Konnte Shell nicht erkennen. Unterstützte Shells: " .. table.concat(vim.tbl_keys(supported_shells), ", "))
-    return ""
-  end
+  if shell == "" then return "" end
 
   local is_windows = require("lib.nvim.cross.platform.is_windows")()
   local tpl
@@ -194,16 +181,10 @@ function M.get_shell_history_path()
     tpl = default_history_templates[shell]
   end
 
-  if not tpl then
-    notify.warn("Keine Standard-History-Vorlage für Shell '" .. shell .. "' definiert.")
-    return ""
-  end
+  if not tpl then return "" end
 
   local expanded = expand_path_template(tpl)
-  if not file_exists(expanded) then
-    notify.warn("Standard-Shell-History nicht gefunden unter '" .. tostring(expanded) .. "'.")
-    return ""
-  end
+  if not file_exists(expanded) then return "" end
 
   return expanded
 end
@@ -216,39 +197,27 @@ function M.get_shell_history()
   local history = {}
 
   local path = M.get_shell_history_path()
-  if path == "" then
-    return history
-  end
+  if path == "" then return history end
 
   -- readfile returns a table of lines
   local ok, lines = pcall(vim.fn.readfile, path)
-  if not ok or not lines or vim.tbl_isempty(lines) then
-    return history
-  end
+  if not ok or not lines or vim.tbl_isempty(lines) then return history end
 
   local shell = M.get_shell_name()
-  if shell == "" then
-    return history
-  end
+  if shell == "" then return history end
 
   -- Parse according to shell type
   if shell == "zsh" then
     -- zsh extended history format: : 1609459200:0;command
     for _, line in ipairs(lines) do
       local cmd = line:match(";%s*(.*)")
-      if cmd and cmd ~= "" then
-        table.insert(history, cmd)
-      end
+      if cmd and cmd ~= "" then table.insert(history, cmd) end
     end
-
   elseif shell == "bash" or shell == "ksh" or shell == "csh" then
     -- bash plain lines or with timestamps commented (#1609459200)
     for _, line in ipairs(lines) do
-      if line ~= "" and not line:match("^#%d+") then
-        table.insert(history, line)
-      end
+      if line ~= "" and not line:match("^#%d+") then table.insert(history, line) end
     end
-
   elseif shell == "fish" then
     -- fish YAML-ish entries: - cmd: '...'
     for _, line in ipairs(lines) do
@@ -263,29 +232,20 @@ function M.get_shell_history()
         end
       end
     end
-
   elseif shell == "nu" then
     -- nushell history is typically plain lines
     for _, line in ipairs(lines) do
-      if line ~= "" then
-        table.insert(history, line)
-      end
+      if line ~= "" then table.insert(history, line) end
     end
-
   elseif shell == "powershell" then
     -- PSReadLine history file is plain one-command-per-line
     for _, line in ipairs(lines) do
-      if line and line ~= "" then
-        table.insert(history, line)
-      end
+      if line and line ~= "" then table.insert(history, line) end
     end
-
   else
     -- Unknown shell fallback: attempt to return non-empty lines
     for _, line in ipairs(lines) do
-      if line and line ~= "" then
-        table.insert(history, line)
-      end
+      if line and line ~= "" then table.insert(history, line) end
     end
   end
 
@@ -304,9 +264,7 @@ local function line_matches_command(shell, line, cmd)
     return line:match(";%s*(.*)") == cmd
   elseif shell == "fish" then
     local raw = line:match("^%s*%- cmd:%s*(.*)")
-    if not raw then
-      return false
-    end
+    if not raw then return false end
     local okdec, dec = pcall(vim.fn.json_decode, '"' .. raw .. '"')
     return (okdec and dec or raw) == cmd
   else
@@ -370,7 +328,10 @@ function M.delete_entry(cmd, opts, on_done)
 
   kit.confirm({
     question = ("Delete %d occurrence(s) of '%s' from shell history file?\n%s"):format(
-      removed_count, cmd, path),
+      removed_count,
+      cmd,
+      path
+    ),
     on_answer = function(yes)
       if not yes then
         on_done(false, "cancelled")

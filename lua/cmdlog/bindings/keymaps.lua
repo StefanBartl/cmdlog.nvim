@@ -37,9 +37,7 @@ end
 --- @return nil
 function M.register()
   local keymaps = require("cmdlog.config").options.keymaps
-  if type(keymaps) ~= "table" or not next(keymaps) then
-    return
-  end
+  if type(keymaps) ~= "table" or not next(keymaps) then return end
 
   local catalog = M.catalog()
   local notify = require("lib.nvim.notify.safe").create_safe("[cmdlog.nvim]")

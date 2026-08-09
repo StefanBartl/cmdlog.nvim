@@ -5,7 +5,7 @@ local config = require("cmdlog.config")
 local is_dir = require("lib.nvim.fs.is_dir")
 
 local api = vim.api
-local fn  = vim.fn
+local fn = vim.fn
 
 local M = {}
 
@@ -13,9 +13,7 @@ local M = {}
 ---@param path string
 local function ensure_dir(path)
   if path == "" then return end
-  if not is_dir(path) then
-    fn.mkdir(path, "p")
-  end
+  if not is_dir(path) then fn.mkdir(path, "p") end
 end
 
 ---@internal
@@ -24,9 +22,7 @@ end
 local function normalize_cmd(s)
   s = tostring(s or "")
   s = s:match("^%s*(.-)%s*$") or s
-  if s:sub(1, 1) == ":" then
-    s = s:sub(2)
-  end
+  if s:sub(1, 1) == ":" then s = s:sub(2) end
   s = s:gsub("%s+", " ")
   return s
 end
@@ -56,9 +52,7 @@ end
 ---@return integer
 local function open_note_buffer(path)
   for _, bufnr in ipairs(api.nvim_list_bufs()) do
-    if api.nvim_buf_is_loaded(bufnr) and api.nvim_buf_get_name(bufnr) == path then
-      return bufnr
-    end
+    if api.nvim_buf_is_loaded(bufnr) and api.nvim_buf_get_name(bufnr) == path then return bufnr end
   end
 
   local bufnr = api.nvim_create_buf(true, false)
@@ -75,7 +69,11 @@ local function open_note_buffer(path)
   api.nvim_set_option_value("swapfile", false, { buf = bufnr })
   api.nvim_set_option_value("bufhidden", "hide", { buf = bufnr })
 
-  api.nvim_set_option_value("filetype", config.options.notes.format == "markdown" and "markdown" or "text", { buf = bufnr })
+  api.nvim_set_option_value(
+    "filetype",
+    config.options.notes.format == "markdown" and "markdown" or "text",
+    { buf = bufnr }
+  )
 
   return bufnr
 end
@@ -102,9 +100,7 @@ end
 ---@param cmd string
 ---@return integer|nil
 function M.open(cmd)
-  if not config.options.notes.enabled then
-    return nil
-  end
+  if not config.options.notes.enabled then return nil end
 
   local path = note_path(cmd)
   local bufnr = open_note_buffer(path)
@@ -115,6 +111,5 @@ function M.open(cmd)
 
   return bufnr
 end
-
 
 return M
