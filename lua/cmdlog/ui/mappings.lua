@@ -10,9 +10,12 @@
 ---        `on_done` receives `ok` and an optional error message. Pickers that have no sensible
 ---        delete target (e.g. the favorites picker, where <Tab> already removes) can omit this
 ---        — the delete mapping is then simply not bound.
---- @param opts? { tag?: boolean } `tag = true` binds `mappings.tag` to prompt for a tag and
----        attach it to the selected command. Only the favorites picker sets this: tags are
----        stored per favorite, so tagging a command that is not one has nothing to attach to.
+--- @param opts? { tag?: boolean, reorder?: boolean } `tag = true` binds `mappings.tag` to
+---        prompt for a tag and attach it to the selected command. Only the favorites picker
+---        sets this: tags are stored per favorite, so tagging a command that is not one has
+---        nothing to attach to. `reorder = true` binds `mappings.move_favorite_up/down` to
+---        swap the selected favorite's position in the persisted order; only meaningful in
+---        the favorites picker, where list order is manually curated.
 --- @return function
 local notify = require("lib.nvim.notify.safe").create_safe("[cmdlog.nvim.mappings]")
 
@@ -51,6 +54,37 @@ return function(refresh_fn, delete_fn, opts)
       map("i", mappings.refresh, function()
         actions.close(prompt_bufnr)
         vim.schedule(refresh_fn) -- Refresh manually
+      end)
+    end
+
+    if mappings.undo_favorite then
+      map("i", mappings.undo_favorite, function()
+        if favorites.undo_last_toggle() then
+          actions.close(prompt_bufnr)
+          vim.schedule(refresh_fn)
+        else
+          notify.info("Nothing to undo")
+        end
+      end)
+    end
+
+    if mappings.move_favorite_up and opts and opts.reorder then
+      map("i", mappings.move_favorite_up, function()
+        local selected = state.get_selected_entry()
+        if selected and selected.value and favorites.move(selected.value, -1) then
+          actions.close(prompt_bufnr)
+          vim.schedule(refresh_fn)
+        end
+      end)
+    end
+
+    if mappings.move_favorite_down and opts and opts.reorder then
+      map("i", mappings.move_favorite_down, function()
+        local selected = state.get_selected_entry()
+        if selected and selected.value and favorites.move(selected.value, 1) then
+          actions.close(prompt_bufnr)
+          vim.schedule(refresh_fn)
+        end
       end)
     end
 
