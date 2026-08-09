@@ -12,26 +12,45 @@ local M = {}
 ---@type table<string, string[]>|nil
 local cache = nil
 
+-- core.tracker calls M.record() on every ':' command (CmdlineLeave), and
+-- M.record() resolves the Git root when none is passed in -- so without
+-- caching, every single ':' command would block on a synchronous `git
+-- rev-parse` subprocess spawn. TTL-cached per cwd (see PERFORMANCE.md ->
+-- Cache-Regeln); short enough that switching projects is picked up quickly,
+-- long enough to absorb bursts of commands typed in the same session.
+local git_root_cache =
+  require("lib.nvim.cache.memory").namespace("cmdlog.project_history.git_root", {
+    ttl = 3,
+  })
+
 --- Resolve the current Git root, or nil if not inside a repository.
+--- Cached per cwd for a few seconds (see module comment above) to avoid
+--- spawning `git rev-parse` on every ':' command.
 ---@return string|nil
 function M.get_git_root()
+  local cwd = vim.fn.getcwd()
+
+  local cached = git_root_cache.get(cwd)
+  if cached ~= nil then return cached ~= "" and cached or nil end
+
   local out = vim.fn.systemlist({ "git", "rev-parse", "--show-toplevel" })
-  if vim.v.shell_error ~= 0 or not out or not out[1] or out[1] == "" then
-    return nil
+  local root = nil
+  if vim.v.shell_error == 0 and out and out[1] and out[1] ~= "" then
+    root = (out[1]:gsub("\\", "/"))
   end
-  return (out[1]:gsub("\\", "/"))
+
+  -- Cache "" for "not a Git repo" -- ns.get() can't otherwise distinguish
+  -- "no root" from "not cached yet", since both would be nil.
+  git_root_cache.set(cwd, root or "")
+  return root
 end
 
 ---@internal
 ---@return table<string, string[]>
 local function load()
-  if cache then
-    return cache
-  end
+  if cache then return cache end
   cache = store.load_json(config.options.project_history_path, {})
-  if type(cache) ~= "table" then
-    cache = {}
-  end
+  if type(cache) ~= "table" then cache = {} end
   return cache
 end
 
@@ -39,13 +58,9 @@ end
 ---@param cmd string
 ---@param root string|nil
 function M.record(cmd, root)
-  if not cmd or cmd == "" then
-    return
-  end
+  if not cmd or cmd == "" then return end
   root = root or M.get_git_root()
-  if not root then
-    return
-  end
+  if not root then return end
 
   local data = load()
   data[root] = data[root] or {}
@@ -60,9 +75,7 @@ end
 ---@return string[]
 function M.get_project_history()
   local root = M.get_git_root()
-  if not root then
-    return {}
-  end
+  if not root then return {} end
   local data = load()
   return data[root] or {}
 end
