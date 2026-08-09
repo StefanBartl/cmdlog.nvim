@@ -18,19 +18,17 @@ function M.setup(opts)
   local ok, err = pcall(function()
     require("cmdlog.bindings").register()
   end)
-  if not ok then
-    notify.error("Failed to register bindings: " .. tostring(err))
-  end
+  if not ok then notify.error("Failed to register bindings: " .. tostring(err)) end
 
   -- Start recording ':' commands for project history, stats and error
   -- tracking. Opt-out via `track_commands = false`.
-  if config.options.track_commands ~= false then
-    require("cmdlog.core.tracker").setup()
-  end
+  if config.options.track_commands ~= false then require("cmdlog.core.tracker").setup() end
 
   -- Optional which-key integration for the :Cmdlog subcommand keymaps.
-  -- bindings.keymaps already sets a `desc` on each mapping, which which-key
-  -- v3+ reads on its own; this registers the group label on top.
+  -- bindings.register() above already called bindings.keymaps.register(),
+  -- which sets a `desc` on each mapping -- which-key v3+ picks that up on
+  -- its own. This call only feeds the same specs through wk.add() so they
+  -- also show up in which-key's own registry/tree view.
   if type(config.options.keymaps) == "table" and next(config.options.keymaps) then
     require("cmdlog.integrations.which_key").register(config.options.keymaps)
   end

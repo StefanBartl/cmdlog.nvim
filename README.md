@@ -12,7 +12,6 @@
 ![Lazy.nvim compatible](https://img.shields.io/badge/lazy.nvim-supported-success)
 ![Neovim](https://img.shields.io/badge/Neovim-0.9+-success.svg)
 ![Lua](https://img.shields.io/badge/language-Lua-yellow.svg)
-![License](https://img.shields.io/badge/license-MIT-green.svg)
 ![Contributions](https://img.shields.io/badge/contributions-welcome-brightgreen.svg)
 
 > **Pairs well with [filetree.nvim](https://github.com/StefanBartl/filetree.nvim)** — cmdlog.nvim gives you fast recall of past `:` and shell commands, filetree.nvim gives you adapter-agnostic file-tree actions. Together they cover command reuse and file navigation in one consistent style.
@@ -40,7 +39,6 @@ A lightweight, modern Neovim plugin to interactively view, search, and reuse com
   - [Commands](#commands)
   - [Shortcuts (inside pickers)](#shortcuts-inside-pickers)
 - [Development](#development)
-- [License](#license)
 - [Disclaimer](#disclaimer)
 - [Feedback](#feedback)
 
@@ -63,7 +61,7 @@ A lightweight, modern Neovim plugin to interactively view, search, and reuse com
 
 - **Picker Backend Options**: Choose between [Telescope.nvim](https://github.com/nvim-telescope/telescope.nvim) or [fzf-lua](https://github.com/ibhagwan/fzf-lua) for the picker backend, depending on your preference.
 
-- **Favorites Management**: Mark and manage favorite commands with ease. Your favorites are saved in the `~/.local/share/cmdlog.nvim/favorites.json` file for easy access.
+- **Favorites Management**: Mark and manage favorite commands with ease. Your favorites are saved in the `~/.local/share/cmdlog/favorites.json` file for easy access.
 
 - **Command Execution**: Select an entry from the history to insert it into the command-line (without auto-execution), giving you control over your workflow.
 
@@ -196,8 +194,9 @@ You can also lazy-load the plugin if you prefer:
   },
   config = function()
     require("cmdlog").setup({
-      picker = "telescope",  -- or "fzf"
-  })
+      picker = "telescope", -- or "fzf"
+    })
+  end,
 }
 ```
 
@@ -260,7 +259,7 @@ require("cmdlog").setup({
 | Picker                | Notes                                                                                                        |
 | :-------------------- | :----------------------------------------------------------------------------------------------------------- |
 | `telescope` (default) | Full feature support, including command previews (e.g., file contents for `:edit somefile.txt`)              |
-| `fzf`                 | Minimal, fast UI. **Currently no preview support** for commands like `:edit`. (Planned for future versions.) |
+| `fzf`                 | Minimal, fast UI. Command previews on POSIX (Linux/macOS); no preview on Windows, where fzf-lua's shell-command-based preview mechanism isn't supported. |
 
 ### When to use which picker?
 
@@ -270,7 +269,7 @@ require("cmdlog").setup({
 | Feature                           | Telescope             | FzfLua                |
 | :-------------------------------- | :-------------------- | :-------------------- |
 | Fuzzy Search                      | ✅ Built-in            | ✅ Built-in            |
-| Command Previews (`:edit`)        | ✅ Available           | ❌ Not available yet   |
+| Command Previews (`:edit`)        | ✅ Available           | ✅ POSIX only          |
 | Favorite toggling (`<C-f>`)       | ✅ Available           | ✅ Available           |
 | Known-error highlighting          | ✅ Available           | ❌ Not available       |
 | Performance (Speed)               | ⚡ Good                | ⚡⚡ Very fast          |
@@ -333,12 +332,6 @@ git clone https://github.com/StefanBartl/cmdlog.nvim ~/.config/nvim/lua/plugins/
 3. Make changes, test with :Cmdlog, submit PRs or open issues.
 
 **Contributions are welcome** – whether it's a bugfix, feature, or idea!
-
----
-
-## License
-
-[MIT License](./LICENSE)
 
 ---
 
