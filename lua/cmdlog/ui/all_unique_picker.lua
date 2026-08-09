@@ -4,6 +4,7 @@
 local favorites = require("cmdlog.core.favorites")
 local history_mod = require("cmdlog.core.history")
 local shell_mod = require("cmdlog.core.shell")
+local extra_files = require("cmdlog.core.extra_files")
 local process_list = require("cmdlog.core.utils").process_list
 local picker_utils = require("cmdlog.ui.picker_utils")
 
@@ -35,9 +36,15 @@ function M.show_all_unique_picker()
   local raw_shell = shell_mod.get_shell_history()
   local history = process_list(raw_hist, { unique = true })
   local shell = process_list(raw_shell, { unique = true })
+  local extra = {}
+  vim.list_extend(extra, extra_files.get_history())
+  vim.list_extend(extra, extra_files.get_all())
 
   local combined = {}
   local set = {}
+  -- Tracks which non-favorite source an entry came from, for the picker's
+  -- origin label (opts.label below); first occurrence wins.
+  local source_of = {}
 
   for _, f in ipairs(favs) do
     table.insert(combined, f)
@@ -48,6 +55,7 @@ function M.show_all_unique_picker()
     if not set[h] then
       table.insert(combined, h)
       set[h] = true
+      source_of[h] = "nvim"
     end
   end
 
@@ -55,12 +63,26 @@ function M.show_all_unique_picker()
     if not set[s] then
       table.insert(combined, s)
       set[s] = true
+      source_of[s] = "shell"
+    end
+  end
+
+  for _, e in ipairs(extra) do
+    if not set[e] then
+      table.insert(combined, e)
+      set[e] = true
+      source_of[e] = "extra"
     end
   end
 
   picker_utils.open_picker(combined, favs, {
     prompt_title = ":history & favorites (unique)",
     fzf_prompt = ":history & favorites (unique)> ",
+    -- Distinguishes nvim/shell/extra-file origin for entries that aren't
+    -- favorites (favorites already carry the ★ marker).
+    label = function(cmd)
+      return source_of[cmd]
+    end,
     attach_mappings = require("cmdlog.ui.mappings")(
       M.show_all_unique_picker,
       delete_from_any_history

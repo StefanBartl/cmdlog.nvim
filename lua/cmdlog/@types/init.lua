@@ -17,6 +17,14 @@
 ---@field refresh string|false
 ---@field delete string|false
 ---@field tag string|false
+---@field cycle_source string|false
+---@field undo_favorite string|false
+---@field move_favorite_up string|false
+---@field move_favorite_down string|false
+
+---@class CmdlogExtraFilesConfig
+---@field history string[]
+---@field all string[]
 
 ---@alias CmdlogKeymapsConfig table<string, string>
 --- Map of :Cmdlog subcommand name ("" for bare :Cmdlog) to a normal-mode
@@ -36,6 +44,8 @@
 ---@field stats_path string
 ---@field errors_path string
 ---@field track_commands boolean
+---@field redact_patterns string[]|false
+---@field extra_files CmdlogExtraFilesConfig
 ---@field project_scoped CmdlogProjectScopedConfig
 ---@field notes CmdlogNotesConfig
 ---@field mappings CmdlogMappingsConfig

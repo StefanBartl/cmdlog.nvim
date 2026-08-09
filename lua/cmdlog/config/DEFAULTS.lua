@@ -23,6 +23,32 @@ local DEFAULTS = {
   -- error tracking. Set false to disable all three at the source.
   track_commands = true,
 
+  -- Commands matching any of these Lua patterns (`string.find`, same as
+  -- `risky_patterns`) are never recorded by `core/tracker.lua` -- not to
+  -- project history, not to stats, not to the error log. Security feature:
+  -- those files live in plaintext under stdpath("data"), and e.g.
+  -- `:!curl -H "Authorization: Bearer …"` would otherwise persist the
+  -- token there forever. Set to `false` (or an empty table) to disable.
+  redact_patterns = {
+    "password",
+    "secret",
+    "token",
+    "Bearer",
+    "api[-_]?key",
+  },
+
+  -- Extra plain-text command files folded in as additional read-only
+  -- history sources (one command per line, no favorites/delete support).
+  -- `history` entries are combined into the Neovim-history-based pickers
+  -- (`nvim`, `nvim-full`) and the combined `:Cmdlog`/`:Cmdlog full` pickers;
+  -- `all` entries are combined only into the latter.
+  --
+  --   extra_files = { history = { "~/my_global_history.txt" }, all = { "~/my_favs.txt" } }
+  extra_files = {
+    history = {},
+    all = {},
+  },
+
   -- Opt-in: keep a separate favorites.json per Git project instead of one
   -- global file. Disabled by default so existing setups keep their current
   -- (global) favorites untouched. When enabled, the project file lives next
@@ -49,6 +75,10 @@ local DEFAULTS = {
     refresh = "<C-r>", -- refresh the current picker
     delete = "<C-x>", -- delete the selected entry from its underlying history
     tag = "<C-t>", -- add a tag to the selected favorite (favorites picker only)
+    cycle_source = "<C-s>", -- rotate to the next picker (nvim -> shell -> favorites -> project -> …), keeping the current prompt text
+    undo_favorite = "<C-z>", -- undo the most recent favorite toggle
+    move_favorite_up = "<C-Up>", -- move the selected favorite one slot up (favorites picker only)
+    move_favorite_down = "<C-Down>", -- move the selected favorite one slot down (favorites picker only)
   },
 
   -- Highlight commands that are prone to causing damage or data loss.

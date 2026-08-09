@@ -69,6 +69,35 @@ local function make_entry_maker(favs, opts)
   end
 end
 
+--- Builds a short "<key> action" legend from the configured mappings, shown
+--- in the Telescope prompt title so the active keys are visible without
+--- opening the docs. Generated from `config.options.mappings` rather than
+--- hardcoded, since every mapping is user-configurable/disableable.
+---@internal
+---@return string
+local function build_legend()
+  local mappings = config.options.mappings
+  if not mappings.enabled then return "" end
+
+  local candidates = {
+    { mappings.select, "select" },
+    { mappings.toggle_favorite, "fav" },
+    { mappings.refresh, "refresh" },
+    { mappings.delete, "del" },
+    { mappings.tag, "tag" },
+    { mappings.cycle_source, "cycle" },
+    { mappings.undo_favorite, "undo" },
+  }
+
+  local parts = {}
+  for _, candidate in ipairs(candidates) do
+    local key, label = candidate[1], candidate[2]
+    if key then table.insert(parts, key .. " " .. label) end
+  end
+
+  return #parts > 0 and (" [" .. table.concat(parts, " | ") .. "]") or ""
+end
+
 --- Opens a picker (Telescope or fzf-lua) based on configuration.
 --- @param entries string[] List of entries (already combined if needed)
 --- @param favs string[] List of favorite commands
@@ -105,7 +134,8 @@ function M.open_picker(entries, favs, opts)
 
   pickers
     .new({}, {
-      prompt_title = opts.prompt_title or ":commands",
+      prompt_title = (opts.prompt_title or ":commands") .. build_legend(),
+      default_text = opts.default_text,
       finder = finders.new_table({
         results = entries,
         entry_maker = make_entry_maker(favs, opts),

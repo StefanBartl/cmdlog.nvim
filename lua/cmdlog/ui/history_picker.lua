@@ -3,6 +3,7 @@
 
 local favorites = require("cmdlog.core.favorites")
 local history = require("cmdlog.core.history")
+local extra_files = require("cmdlog.core.extra_files")
 local process_list = require("cmdlog.core.utils").process_list
 local picker_utils = require("cmdlog.ui.picker_utils")
 
@@ -17,6 +18,7 @@ function M.show_history_picker()
   local entries = process_list(raw, { unique = false })
 
   local combined = vim.list_extend(vim.deepcopy(favs), entries)
+  combined = vim.list_extend(combined, extra_files.get_history())
 
   picker_utils.open_picker(combined, favs, {
     prompt_title = ":history (all)",

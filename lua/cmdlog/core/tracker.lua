@@ -11,6 +11,24 @@ local M = {}
 
 local augroup = nil
 
+--- Whether `cmd` matches any of `redact_patterns` and must therefore never
+--- reach project history, stats or the error log. See DEFAULTS.lua for why
+--- this exists: those stores are plaintext JSON under stdpath("data").
+---@internal
+---@param cmd string
+---@return boolean
+local function is_redacted(cmd)
+  local patterns = config.options.redact_patterns
+  if not patterns or patterns == false then return false end
+
+  for _, pattern in ipairs(patterns) do
+    local ok, matched = pcall(string.find, cmd, pattern)
+    if ok and matched then return true end
+  end
+
+  return false
+end
+
 --- Start tracking ':' commands. Safe to call multiple times (re-creates
 --- the augroup, clearing any previous autocmd).
 ---@return nil
@@ -27,6 +45,7 @@ function M.setup()
 
       local cmd = vim.fn.getcmdline()
       if not cmd or cmd == "" then return end
+      if is_redacted(cmd) then return end
 
       local errmsg_before = vim.v.errmsg
 

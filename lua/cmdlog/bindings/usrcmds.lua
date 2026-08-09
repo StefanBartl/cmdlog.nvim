@@ -91,7 +91,11 @@ local function handler(entry)
   end
 end
 
---- Registers `:Cmdlog` and every subcommand in `M.catalog`.
+--- Registers `:Cmdlog` and every subcommand in `M.catalog`, plus two
+--- routes not in the catalog (`export`/`import`): those take an argument,
+--- unlike every catalog entry's zero-arg picker function, so they're kept
+--- out of `M.catalog` -- which `bindings.keymaps` also reads to build
+--- zero-arg entry-point keymaps -- rather than special-cased there.
 ---@return nil
 function M.register()
   local composer = require("lib.nvim.usercmd.composer")
@@ -108,6 +112,24 @@ function M.register()
       }
     end
   end
+
+  routes[#routes + 1] = {
+    path = { "export" },
+    desc = "Export favorites to a JSON file (default: favorites path + .export.json)",
+    args = { { name = "path", type = "PATH", optional = true } },
+    run = function(ctx)
+      require("cmdlog.core.favorites").export(ctx.args.path)
+    end,
+  }
+
+  routes[#routes + 1] = {
+    path = { "import" },
+    desc = "Import favorites from a JSON file, merging with the current list",
+    args = { { name = "path", type = "PATH" } },
+    run = function(ctx)
+      require("cmdlog.core.favorites").import(ctx.args.path)
+    end,
+  }
 
   composer.verb("Cmdlog", {
     desc = "Command history pickers",

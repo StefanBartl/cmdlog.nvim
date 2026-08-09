@@ -96,8 +96,17 @@ A lightweight, modern Neovim plugin to interactively view, search, and reuse com
 
 - **Project-based favorites** *(opt-in)*: Set `project_scoped.enabled = true` to keep a separate favorites file per Git project instead of one global file. Off by default — existing favorites are unaffected.
 
-### Planned Features:
-- **Delete Single History Entries**: Easily remove individual entries from your history.
+- **Privacy filter**: Commands matching a configurable list of `redact_patterns` (`password`, `secret`, `token`, `Bearer`, `api[-_]?key` by default) are never recorded to project history, stats, or the error log — those files are plaintext on disk. Set `redact_patterns = false` to disable.
+
+- **`extra_files`**: Fold your own plain-text command files into the pickers as additional read-only history sources — see [OPTIONS.md](./docs/OPTIONS.md).
+
+- **Origin labels**: The combined pickers (`:Cmdlog`, `:Cmdlog full`) label each non-favorite entry `nvim`/`shell`/`extra` by where it came from.
+
+- **Cycle between pickers**: Press `<C-s>` (configurable) inside any picker to rotate to the next one (nvim → shell → favorites → project → …), keeping the current prompt text (Telescope only).
+
+- **Favorites undo & manual reordering**: `<C-z>` undoes the last favorite toggle; `<C-Up>`/`<C-Down>` in the favorites picker reorder entries manually.
+
+- **Favorites export/import**: `:Cmdlog export [path]` / `:Cmdlog import path` back up favorites to JSON or migrate them between machines.
 
 ![Favorites Picker](./docs/assets/Cmdlog-Favorites-Picker.png)
 
@@ -306,6 +315,8 @@ keeps its original meaning.
 | `:Cmdlog project`       | Shows history recorded while inside the current Git project                  |
 | `:Cmdlog lua`           | Shows only Lua-mode command history (`:lua`, `:lua=`, `:=`)                   |
 | `:Cmdlog stats`         | Shows commands sorted by usage frequency                                     |
+| `:Cmdlog export [path]` | Exports favorites to a JSON file (default: favorites path + `.export.json`)  |
+| `:Cmdlog import path`   | Imports favorites from a JSON file, merged with the current list             |
 
 ---
 
@@ -314,7 +325,11 @@ keeps its original meaning.
 - `<CR>`: Insert command into `:` (does not execute)
 - `<Tab>`: Toggle favorite
 - `<C-r>`: Refresh picker
+- `<C-x>`: Delete the selected entry from its underlying history
 - `<C-t>` (Telescope) / `ctrl-t` (fzf-lua): Tag the selected favorite (favorites picker only)
+- `<C-s>` (Telescope only): Rotate to the next picker, keeping the current prompt text
+- `<C-z>`: Undo the most recent favorite toggle
+- `<C-Up>` / `<C-Down>`: Reorder the selected favorite (favorites picker only)
 
 ---
 

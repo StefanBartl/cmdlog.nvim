@@ -21,6 +21,17 @@ FEATURES                                               *cmdlog-features*
   - Telescope.nvim (default, with previews)
   - fzf-lua (minimal, fast; previews on POSIX only, none on Windows)
 - Favorites system with persistent storage, plus custom tags
+- Favorites: undo the last toggle, and manually reorder entries
+- Favorites export/import (:Cmdlog export/import), for backup or
+  migrating between machines
+- Privacy filter (redact_patterns): commands matching a pattern (password,
+  token, Bearer, ...) are never recorded to disk
+- extra_files: fold your own plain-text command files into the pickers
+  as additional read-only history sources
+- Origin labels (nvim/shell/extra) in the combined pickers
+- Rotate between pickers without leaving the prompt (mappings.cycle_source),
+  keeping whatever you've typed so far
+- Generated key legend in the Telescope picker title
 - Project-local history, scoped to the current Git root
 - Dedicated Lua-mode history view
 - Command usage stats (frequency, last used)
@@ -63,6 +74,21 @@ picker              Picker backend to use.
 track_commands       Record every ':' command via a single CmdlineLeave
                      autocmd, feeding project history, usage stats and
                      error tracking. Default: true
+
+redact_patterns      Lua patterns (string.find, like risky_patterns).
+                     Commands matching any of these are never recorded
+                     by track_commands -- not to project history, stats,
+                     or the error log. Security feature: those files are
+                     plaintext under stdpath("data").
+                     Default: { "password", "secret", "token", "Bearer",
+                     "api[-_]?key" }. Set to false/{} to disable.
+
+extra_files          { history = {...}, all = {...} } lists of extra
+                     plain-text command files (one command per line,
+                     read-only). `history` entries are folded into the
+                     Neovim-history-based pickers and the combined
+                     pickers; `all` entries only into the latter.
+                     Default: { history = {}, all = {} }
 
 keymaps              Map of :Cmdlog subcommand name ("" for bare
                      :Cmdlog) to a normal-mode lhs. Registered with
@@ -120,10 +146,20 @@ subcommand.
     Show commands sorted by usage frequency (most-used first), annotated
     with "used Nx, last <date>".
 
+:Cmdlog export [{path}]                                *:Cmdlog-export*
+    Export favorites to a JSON file. {path} defaults to the favorites
+    file's own path with a ".export.json" suffix.
+
+:Cmdlog import {path}                                  *:Cmdlog-import*
+    Import favorites from a JSON file, merging with the current list
+    (existing favorites kept, new ones appended, deduplicated).
+
 ==============================================================================
 PICKER USAGE                                           *cmdlog-usage*
 
-Inside the picker, the following mappings are available:
+Inside the picker, the following mappings are available (Telescope
+insert mode; a generated legend of the active ones also shows in the
+prompt title):
 
 <CR>        Insert the selected command into the command-line.
             The command is not executed automatically.
@@ -134,6 +170,18 @@ Inside the picker, the following mappings are available:
 
 <C-t>       (favorites picker only, Telescope: <C-t>, fzf-lua: ctrl-t)
             Prompt for a tag and attach it to the selected command.
+
+<C-s>       Rotate to the next picker (nvim -> shell -> favorites ->
+            project -> nvim ...), keeping whatever you've typed so far.
+            Telescope only. mappings.cycle_source.
+
+<C-z>       Undo the most recent favorite toggle. mappings.undo_favorite.
+
+<C-Up>      (favorites picker only) Move the selected favorite one slot
+            up in the persisted order. mappings.move_favorite_up.
+
+<C-Down>    (favorites picker only) Move the selected favorite one slot
+            down in the persisted order. mappings.move_favorite_down.
 
 ==============================================================================
 COMMAND PREVIEWS                                       *cmdlog-previews*
@@ -196,6 +244,14 @@ On Windows, the path resolves via stdpath("data").
 
 Favorites are shared across all Neovim sessions.
 
+Undo the most recent toggle with <C-z> (mappings.undo_favorite). In the
+favorites picker, reorder entries manually with <C-Up>/<C-Down>
+(mappings.move_favorite_up/down) -- the persisted list order is what
+determines display order there.
+
+Use :Cmdlog export [path] / :Cmdlog import path to back up favorites or
+move them between machines; see |:Cmdlog-export| and |:Cmdlog-import|.
+
 ==============================================================================
 SHELL HISTORY                                          *cmdlog-shell*
 
@@ -210,6 +266,46 @@ Shell history is read from standard history files, depending on the shell:
 - pwsh  %APPDATA%\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt
 
 The plugin only reads these files and never modifies them.
+
+==============================================================================
+EXTRA FILES                                            *cmdlog-extra-files*
+
+Set the `extra_files` option to fold your own plain-text command files
+(one command per line) into the pickers as additional read-only history
+sources -- no favorites/tags/delete support, just listed alongside
+Neovim/shell history:
+
+    lua require("cmdlog").setup({
+      extra_files = {
+        history = { "~/my_global_history.txt" },
+        all = { "~/my_favs.txt" },
+      },
+    })
+
+`history` entries are combined into the Neovim-history-based pickers
+(:Cmdlog nvim[-full]) and the combined pickers (:Cmdlog, :Cmdlog full);
+`all` entries only into the latter. In the combined pickers, entries from
+either list are labelled "extra" (see |cmdlog-origin-labels|).
+
+==============================================================================
+ORIGIN LABELS                                       *cmdlog-origin-labels*
+
+The combined pickers (:Cmdlog, :Cmdlog full) show where each non-favorite
+entry came from -- "nvim", "shell", or "extra" (from `extra_files`) --
+next to the command, using picker_utils' opts.label hook. Favorites are
+already distinguished by the ★ marker and carry no origin label.
+
+==============================================================================
+PRIVACY FILTER                                          *cmdlog-privacy*
+
+`redact_patterns` (Lua patterns, same shape as `risky_patterns`) is
+checked in core/tracker.lua before anything is written: a command
+matching any pattern is never recorded to project history, usage stats,
+or the error log. Those files are plaintext JSON under stdpath("data"),
+so this matters for e.g. `:!curl -H "Authorization: Bearer ..."`.
+
+Default patterns: "password", "secret", "token", "Bearer", "api[-_]?key".
+Set `redact_patterns = false` (or `{}`) to disable.
 
 ==============================================================================
 EXTENDING                                              *cmdlog-extending*
