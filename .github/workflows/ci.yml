@@ -1,0 +1,70 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  # Gating: stylua + luacheck must pass.
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: stylua (check)
+        uses: JohnnyMorganz/stylua-action@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          version: v2.5.2
+          args: --check lua docs/TESTS
+
+      - name: Install luacheck
+        run: sudo apt-get update && sudo apt-get install -y luarocks && sudo luarocks install luacheck
+
+      - name: luacheck
+        run: luacheck lua
+
+  # Real gate: headless smoke test. lib.nvim is checked out as a sibling so
+  # require("lib.nvim....") resolves.
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout cmdlog.nvim
+        uses: actions/checkout@v4
+        with:
+          path: cmdlog.nvim
+
+      - name: Checkout lib.nvim
+        uses: actions/checkout@v4
+        with:
+          repository: StefanBartl/lib.nvim
+          path: lib.nvim
+
+      # Optional runtime dependency (picker = "telescope", the default) --
+      # checked out so the telescope-specific modules get real require()
+      # coverage instead of being skipped. plenary.nvim is telescope's own
+      # dependency.
+      - name: Checkout telescope.nvim
+        uses: actions/checkout@v4
+        with:
+          repository: nvim-telescope/telescope.nvim
+          path: telescope.nvim
+
+      - name: Checkout plenary.nvim
+        uses: actions/checkout@v4
+        with:
+          repository: nvim-lua/plenary.nvim
+          path: plenary.nvim
+
+      - name: Install Neovim (stable)
+        uses: rhysd/action-setup-vim@v1
+        with:
+          neovim: true
+          version: stable
+
+      - name: Run smoke test
+        working-directory: cmdlog.nvim
+        env:
+          REPOS_DIR: ${{ github.workspace }}
+        run: nvim -l docs/TESTS/smoke_spec.lua
