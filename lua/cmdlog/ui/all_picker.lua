@@ -76,6 +76,16 @@ function M.show_all_picker()
     label = function(cmd)
       return source_of[cmd]
     end,
+    -- "── nvim history ──" / "── shell history ──" divider rows at each
+    -- block boundary (Telescope only, and only while the prompt is empty —
+    -- see picker_utils' module doc), on top of the per-entry origin label
+    -- above.
+    sections = picker_utils.section_dividers({
+      { label = "favorites", count = #favs },
+      { label = "nvim history", count = #history },
+      { label = "shell history", count = #shell },
+      { label = "extra files", count = #extra },
+    }),
     attach_mappings = require("cmdlog.ui.mappings")(M.show_all_picker, delete_from_any_history),
   })
 end

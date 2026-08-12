@@ -15,6 +15,7 @@ local DEFAULTS = {
   -- plugin, which had already moved. Each is created on first write, so a
   -- setup that never used these features has nothing to migrate.
   favorite_tags_path = vim.fn.stdpath("data") .. "/cmdlog/favorite_tags.json",
+  favorite_notes_path = vim.fn.stdpath("data") .. "/cmdlog/favorite_notes.json",
   project_history_path = vim.fn.stdpath("data") .. "/cmdlog/project_history.json",
   stats_path = vim.fn.stdpath("data") .. "/cmdlog/stats.json",
   errors_path = vim.fn.stdpath("data") .. "/cmdlog/errors.json",
@@ -75,6 +76,8 @@ local DEFAULTS = {
     refresh = "<C-r>", -- refresh the current picker
     delete = "<C-x>", -- delete the selected entry from its underlying history
     tag = "<C-t>", -- add a tag to the selected favorite (favorites picker only)
+    note = "<C-e>", -- add/edit a note on the selected favorite (blank input removes it, favorites picker only)
+    show_note = "<C-g>", -- peek the selected favorite's note in a floating popup (favorites picker only)
     cycle_source = "<C-s>", -- rotate to the next picker (nvim -> shell -> favorites -> project -> …), keeping the current prompt text
     undo_favorite = "<C-z>", -- undo the most recent favorite toggle
     move_favorite_up = "<C-Up>", -- move the selected favorite one slot up (favorites picker only)

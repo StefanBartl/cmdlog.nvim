@@ -100,7 +100,9 @@ A lightweight, modern Neovim plugin to interactively view, search, and reuse com
 
 - **`extra_files`**: Fold your own plain-text command files into the pickers as additional read-only history sources — see [OPTIONS.md](./docs/OPTIONS.md).
 
-- **Origin labels**: The combined pickers (`:Cmdlog`, `:Cmdlog full`) label each non-favorite entry `nvim`/`shell`/`extra` by where it came from.
+- **Origin labels**: The combined pickers (`:Cmdlog`, `:Cmdlog full`) label each non-favorite entry `nvim`/`shell`/`extra` by where it came from, and insert a `── nvim history ──`-style divider row before each origin block so the boundaries are visible at a glance (Telescope only; see [docs/FEATURES/PICKER.md](./docs/FEATURES/PICKER.md)).
+
+- **Favorite Notes**: Attach a short note to a favorite via `vim.ui.input()` (`<C-e>`), separate from the full per-command notes side window — peek it in a floating popup with `<C-g>`. See [docs/FEATURES/FAVORITES.md](./docs/FEATURES/FAVORITES.md).
 
 - **Cycle between pickers**: Press `<C-s>` (configurable) inside any picker to rotate to the next one (nvim → shell → favorites → project → …), keeping the current prompt text (Telescope only).
 
@@ -327,6 +329,8 @@ keeps its original meaning.
 - `<C-r>`: Refresh picker
 - `<C-x>`: Delete the selected entry from its underlying history
 - `<C-t>` (Telescope) / `ctrl-t` (fzf-lua): Tag the selected favorite (favorites picker only)
+- `<C-e>` (Telescope only): Add/edit a note on the selected favorite; blank input removes it (favorites picker only)
+- `<C-g>` (Telescope only): Peek the selected favorite's note in a floating popup (favorites picker only)
 - `<C-s>` (Telescope only): Rotate to the next picker, keeping the current prompt text
 - `<C-z>`: Undo the most recent favorite toggle
 - `<C-Up>` / `<C-Down>`: Reorder the selected favorite (favorites picker only)

@@ -35,6 +35,10 @@ function M.setup(opts)
 
   -- Highlight group used for risky/destructive commands (see cmdlog.core.risky)
   vim.api.nvim_set_hl(0, "CmdlogRiskyCommand", { link = "DiagnosticError", default = true })
+
+  -- Highlight group for the "── nvim history ──" divider rows in the
+  -- combined pickers (see cmdlog.ui.picker_utils' opts.sections)
+  vim.api.nvim_set_hl(0, "CmdlogSectionDivider", { link = "Comment", default = true })
 end
 
 return M
