@@ -3,7 +3,7 @@
 > **Generated** by `documentation`. Do not edit by hand — run `:DocMap`
 > (or `nvim --headless -l scripts/gen_map.lua`) to regenerate.
 
-**3 modules** · 4 namespaces · 36 helper files
+**3 modules** · 5 namespaces · 36 helper files
 
 The [interactive map](index.html) has filtering, full descriptions and
 source links; this page is the version the code host renders directly.
@@ -13,19 +13,19 @@ source links; this page is the version the code host renders directly.
 
 ```mermaid
 flowchart LR
-  nlua_cmdlog["cmdlog.nvim"]
+  nlua["cmdlog.nvim"]
+  nlua_cmdlog["cmdlogbr/smallPlugin entry point: merges user config,…/small"]
   nlua_cmdlog_bindings["bindingsbr/smallAggregator + registration entry point for…/small"]
   nlua_cmdlog_config["configbr/smallConfiguration handling for cmdlog: merges…/small"]
   nlua_cmdlog_core["core"]
   nlua_cmdlog_integrations["integrations"]
   nlua_cmdlog_ui["ui"]
-  nlua_cmdlog_ui_telescope["telescope"]
+  nlua --> nlua_cmdlog
   nlua_cmdlog --> nlua_cmdlog_bindings
   nlua_cmdlog --> nlua_cmdlog_config
   nlua_cmdlog --> nlua_cmdlog_core
   nlua_cmdlog --> nlua_cmdlog_integrations
   nlua_cmdlog --> nlua_cmdlog_ui
-  nlua_cmdlog_ui --> nlua_cmdlog_ui_telescope
 ```
 
 
@@ -37,119 +37,20 @@ in both directions, with load-time and lazy requires told apart.
 
 ```mermaid
 flowchart LR
-  nlua_cmdlog_bindings_keymaps_lua["cmdlog.bindings.keymaps"]
-  nlua_cmdlog_bindings_usrcmds_lua["cmdlog.bindings.usrcmds"]
-  nlua_cmdlog_core_errors_lua["cmdlog.core.errors"]
-  nlua_cmdlog_core_extra_files_lua["cmdlog.core.extra_files"]
-  nlua_cmdlog_core_favorites_lua["cmdlog.core.favorites"]
-  nlua_cmdlog_core_history_lua["cmdlog.core.history"]
-  nlua_cmdlog_core_notes_lua["cmdlog.core.notes"]
-  nlua_cmdlog_core_project_history_lua["cmdlog.core.project_history"]
-  nlua_cmdlog_core_risky_lua["cmdlog.core.risky"]
-  nlua_cmdlog_core_shell_lua["cmdlog.core.shell"]
-  nlua_cmdlog_core_stats_lua["cmdlog.core.stats"]
-  nlua_cmdlog_core_store_lua["cmdlog.core.store"]
-  nlua_cmdlog_core_tags_lua["cmdlog.core.tags"]
-  nlua_cmdlog_core_tracker_lua["cmdlog.core.tracker"]
-  nlua_cmdlog_core_utils_lua["cmdlog.core.utils"]
-  nlua_cmdlog_integrations_which_key_lua["cmdlog.integrations.which_key"]
-  nlua_cmdlog_ui_all_picker_lua["cmdlog.ui.all_picker"]
-  nlua_cmdlog_ui_all_unique_picker_lua["cmdlog.ui.all_unique_picker"]
-  nlua_cmdlog_ui_cycle_lua["cmdlog.ui.cycle"]
-  nlua_cmdlog_ui_favorites_picker_lua["cmdlog.ui.favorites_picker"]
-  nlua_cmdlog_ui_fzf_previewer_lua["cmdlog.ui.fzf-previewer"]
-  nlua_cmdlog_ui_history_picker_lua["cmdlog.ui.history_picker"]
-  nlua_cmdlog_ui_history_unique_picker_lua["cmdlog.ui.history_unique_picker"]
-  nlua_cmdlog_ui_lua_picker_lua["cmdlog.ui.lua_picker"]
-  nlua_cmdlog_ui_mappings_lua["cmdlog.ui.mappings"]
-  nlua_cmdlog_ui_picker_utils_lua["cmdlog.ui.picker_utils"]
-  nlua_cmdlog_ui_project_picker_lua["cmdlog.ui.project_picker"]
-  nlua_cmdlog_ui_shell_picker_lua["cmdlog.ui.shell_picker"]
-  nlua_cmdlog_ui_shell_unique_picker_lua["cmdlog.ui.shell_unique_picker"]
-  nlua_cmdlog_ui_stats_picker_lua["cmdlog.ui.stats_picker"]
-  nlua_cmdlog_ui_telescope["telescope"]
-  nlua_cmdlog_ui_telescope_previewer_lua["cmdlog.ui.telescope-previewer"]
-  nlua_cmdlog_bindings_keymaps_lua --> nlua_cmdlog_bindings_usrcmds_lua
-  nlua_cmdlog_bindings_usrcmds_lua --> nlua_cmdlog_core_favorites_lua
-  nlua_cmdlog_core_errors_lua --> nlua_cmdlog_core_store_lua
-  nlua_cmdlog_core_project_history_lua --> nlua_cmdlog_core_store_lua
-  nlua_cmdlog_core_stats_lua --> nlua_cmdlog_core_store_lua
-  nlua_cmdlog_core_tags_lua --> nlua_cmdlog_core_store_lua
-  nlua_cmdlog_core_tracker_lua --> nlua_cmdlog_core_errors_lua
-  nlua_cmdlog_core_tracker_lua --> nlua_cmdlog_core_project_history_lua
-  nlua_cmdlog_core_tracker_lua --> nlua_cmdlog_core_stats_lua
-  nlua_cmdlog_integrations_which_key_lua --> nlua_cmdlog_bindings_keymaps_lua
-  nlua_cmdlog_ui_all_picker_lua --> nlua_cmdlog_core_extra_files_lua
-  nlua_cmdlog_ui_all_picker_lua --> nlua_cmdlog_core_favorites_lua
-  nlua_cmdlog_ui_all_picker_lua --> nlua_cmdlog_core_history_lua
-  nlua_cmdlog_ui_all_picker_lua --> nlua_cmdlog_core_shell_lua
-  nlua_cmdlog_ui_all_picker_lua --> nlua_cmdlog_core_utils_lua
-  nlua_cmdlog_ui_all_picker_lua --> nlua_cmdlog_ui_mappings_lua
-  nlua_cmdlog_ui_all_picker_lua --> nlua_cmdlog_ui_picker_utils_lua
-  nlua_cmdlog_ui_all_unique_picker_lua --> nlua_cmdlog_core_extra_files_lua
-  nlua_cmdlog_ui_all_unique_picker_lua --> nlua_cmdlog_core_favorites_lua
-  nlua_cmdlog_ui_all_unique_picker_lua --> nlua_cmdlog_core_history_lua
-  nlua_cmdlog_ui_all_unique_picker_lua --> nlua_cmdlog_core_shell_lua
-  nlua_cmdlog_ui_all_unique_picker_lua --> nlua_cmdlog_core_utils_lua
-  nlua_cmdlog_ui_all_unique_picker_lua --> nlua_cmdlog_ui_mappings_lua
-  nlua_cmdlog_ui_all_unique_picker_lua --> nlua_cmdlog_ui_picker_utils_lua
-  nlua_cmdlog_ui_cycle_lua --> nlua_cmdlog_ui_favorites_picker_lua
-  nlua_cmdlog_ui_cycle_lua --> nlua_cmdlog_ui_history_unique_picker_lua
-  nlua_cmdlog_ui_cycle_lua --> nlua_cmdlog_ui_project_picker_lua
-  nlua_cmdlog_ui_cycle_lua --> nlua_cmdlog_ui_shell_unique_picker_lua
-  nlua_cmdlog_ui_favorites_picker_lua --> nlua_cmdlog_core_favorites_lua
-  nlua_cmdlog_ui_favorites_picker_lua --> nlua_cmdlog_core_tags_lua
-  nlua_cmdlog_ui_favorites_picker_lua --> nlua_cmdlog_ui_cycle_lua
-  nlua_cmdlog_ui_favorites_picker_lua --> nlua_cmdlog_ui_mappings_lua
-  nlua_cmdlog_ui_favorites_picker_lua --> nlua_cmdlog_ui_picker_utils_lua
-  nlua_cmdlog_ui_history_picker_lua --> nlua_cmdlog_core_extra_files_lua
-  nlua_cmdlog_ui_history_picker_lua --> nlua_cmdlog_core_favorites_lua
-  nlua_cmdlog_ui_history_picker_lua --> nlua_cmdlog_core_history_lua
-  nlua_cmdlog_ui_history_picker_lua --> nlua_cmdlog_core_utils_lua
-  nlua_cmdlog_ui_history_picker_lua --> nlua_cmdlog_ui_mappings_lua
-  nlua_cmdlog_ui_history_picker_lua --> nlua_cmdlog_ui_picker_utils_lua
-  nlua_cmdlog_ui_history_unique_picker_lua --> nlua_cmdlog_core_extra_files_lua
-  nlua_cmdlog_ui_history_unique_picker_lua --> nlua_cmdlog_core_favorites_lua
-  nlua_cmdlog_ui_history_unique_picker_lua --> nlua_cmdlog_core_history_lua
-  nlua_cmdlog_ui_history_unique_picker_lua --> nlua_cmdlog_core_utils_lua
-  nlua_cmdlog_ui_history_unique_picker_lua --> nlua_cmdlog_ui_cycle_lua
-  nlua_cmdlog_ui_history_unique_picker_lua --> nlua_cmdlog_ui_mappings_lua
-  nlua_cmdlog_ui_history_unique_picker_lua --> nlua_cmdlog_ui_picker_utils_lua
-  nlua_cmdlog_ui_lua_picker_lua --> nlua_cmdlog_core_favorites_lua
-  nlua_cmdlog_ui_lua_picker_lua --> nlua_cmdlog_core_history_lua
-  nlua_cmdlog_ui_lua_picker_lua --> nlua_cmdlog_core_utils_lua
-  nlua_cmdlog_ui_lua_picker_lua --> nlua_cmdlog_ui_mappings_lua
-  nlua_cmdlog_ui_lua_picker_lua --> nlua_cmdlog_ui_picker_utils_lua
-  nlua_cmdlog_ui_mappings_lua --> nlua_cmdlog_core_favorites_lua
-  nlua_cmdlog_ui_mappings_lua --> nlua_cmdlog_core_tags_lua
-  nlua_cmdlog_ui_picker_utils_lua --> nlua_cmdlog_core_errors_lua
-  nlua_cmdlog_ui_picker_utils_lua --> nlua_cmdlog_core_notes_lua
-  nlua_cmdlog_ui_picker_utils_lua --> nlua_cmdlog_core_risky_lua
-  nlua_cmdlog_ui_picker_utils_lua --> nlua_cmdlog_ui_fzf_previewer_lua
-  nlua_cmdlog_ui_picker_utils_lua --> nlua_cmdlog_ui_telescope_previewer_lua
-  nlua_cmdlog_ui_project_picker_lua --> nlua_cmdlog_core_favorites_lua
-  nlua_cmdlog_ui_project_picker_lua --> nlua_cmdlog_core_project_history_lua
-  nlua_cmdlog_ui_project_picker_lua --> nlua_cmdlog_core_utils_lua
-  nlua_cmdlog_ui_project_picker_lua --> nlua_cmdlog_ui_cycle_lua
-  nlua_cmdlog_ui_project_picker_lua --> nlua_cmdlog_ui_mappings_lua
-  nlua_cmdlog_ui_project_picker_lua --> nlua_cmdlog_ui_picker_utils_lua
-  nlua_cmdlog_ui_shell_picker_lua --> nlua_cmdlog_core_favorites_lua
-  nlua_cmdlog_ui_shell_picker_lua --> nlua_cmdlog_core_shell_lua
-  nlua_cmdlog_ui_shell_picker_lua --> nlua_cmdlog_core_utils_lua
-  nlua_cmdlog_ui_shell_picker_lua --> nlua_cmdlog_ui_mappings_lua
-  nlua_cmdlog_ui_shell_picker_lua --> nlua_cmdlog_ui_picker_utils_lua
-  nlua_cmdlog_ui_shell_unique_picker_lua --> nlua_cmdlog_core_favorites_lua
-  nlua_cmdlog_ui_shell_unique_picker_lua --> nlua_cmdlog_core_shell_lua
-  nlua_cmdlog_ui_shell_unique_picker_lua --> nlua_cmdlog_core_utils_lua
-  nlua_cmdlog_ui_shell_unique_picker_lua --> nlua_cmdlog_ui_cycle_lua
-  nlua_cmdlog_ui_shell_unique_picker_lua --> nlua_cmdlog_ui_mappings_lua
-  nlua_cmdlog_ui_shell_unique_picker_lua --> nlua_cmdlog_ui_picker_utils_lua
-  nlua_cmdlog_ui_stats_picker_lua --> nlua_cmdlog_core_favorites_lua
-  nlua_cmdlog_ui_stats_picker_lua --> nlua_cmdlog_core_stats_lua
-  nlua_cmdlog_ui_stats_picker_lua --> nlua_cmdlog_ui_mappings_lua
-  nlua_cmdlog_ui_stats_picker_lua --> nlua_cmdlog_ui_picker_utils_lua
-  nlua_cmdlog_ui_telescope --> nlua_cmdlog_core_notes_lua
-  nlua_cmdlog_ui_telescope --> nlua_cmdlog_ui_picker_utils_lua
+  nlua_cmdlog_bindings["cmdlog.bindings"]
+  nlua_cmdlog_config["cmdlog.config"]
+  nlua_cmdlog_core["core"]
+  nlua_cmdlog_health_lua["cmdlog.health"]
+  nlua_cmdlog_integrations["integrations"]
+  nlua_cmdlog_ui["ui"]
+  nlua_cmdlog_bindings --> nlua_cmdlog_config
+  nlua_cmdlog_bindings --> nlua_cmdlog_core
+  nlua_cmdlog_core --> nlua_cmdlog_config
+  nlua_cmdlog_health_lua --> nlua_cmdlog_config
+  nlua_cmdlog_health_lua --> nlua_cmdlog_core
+  nlua_cmdlog_integrations --> nlua_cmdlog_bindings
+  nlua_cmdlog_ui --> nlua_cmdlog_config
+  nlua_cmdlog_ui --> nlua_cmdlog_core
 ```
 
 
@@ -157,27 +58,24 @@ flowchart LR
 
 | Module | Description | Fns | Docs |
 |---|---|---|---|
-| `cmdlog.bindings` | Aggregator + registration entry point for every command/keymap cmdlog owns. |  | [src](../../lua/cmdlog/bindings/init.lua) |
-| `cmdlog.config` | Configuration handling for cmdlog: merges user options with DEFAULTS and exposes the result as `M.options`. |  | [src](../../lua/cmdlog/config/init.lua) |
-| `core` |  |  |  |
-| `integrations` |  |  |  |
-| `ui` |  |  |  |
-| &nbsp;&nbsp;`telescope` |  |  |  |
+| `cmdlog` | Plugin entry point: merges user config, registers bindings, starts the command tracker and wires up optional which-key integration. | 1 | [src](../../lua/cmdlog/init.lua) |
+| &nbsp;&nbsp;`cmdlog.bindings` | Aggregator + registration entry point for every command/keymap cmdlog owns. | 2 | [src](../../lua/cmdlog/bindings/init.lua) |
+| &nbsp;&nbsp;`cmdlog.config` | Configuration handling for cmdlog: merges user options with DEFAULTS and exposes the result as `M.options`. | 1 | [src](../../lua/cmdlog/config/init.lua) |
+| &nbsp;&nbsp;`core` |  |  |  |
+| &nbsp;&nbsp;`integrations` |  |  |  |
+| &nbsp;&nbsp;`ui` |  |  |  |
+| &nbsp;&nbsp;&nbsp;&nbsp;`telescope` |  |  |  |
 
 ## Drift
 
-0 errors · 5 warnings · 11 info
+0 errors · 1 warnings · 28 info
 
 | Severity | Check | Message |
 |---|---|---|
-| warn | `require-cycle` | require cycle across 5 modules: cmdlog.ui.cycle → cmdlog.ui.favorites_picker → cmdlog.ui.history_unique_picker → cmdlog.ui.project_picker → cmdlog.ui.shell_unique_picker |
-| warn | `require-cycle` | require cycle across 5 modules: cmdlog.ui.cycle → cmdlog.ui.favorites_picker → cmdlog.ui.history_unique_picker → cmdlog.ui.project_picker → cmdlog.ui.shell_unique_picker |
-| warn | `require-cycle` | require cycle across 5 modules: cmdlog.ui.cycle → cmdlog.ui.favorites_picker → cmdlog.ui.history_unique_picker → cmdlog.ui.project_picker → cmdlog.ui.shell_unique_picker |
-| warn | `require-cycle` | require cycle across 5 modules: cmdlog.ui.cycle → cmdlog.ui.favorites_picker → cmdlog.ui.history_unique_picker → cmdlog.ui.project_picker → cmdlog.ui.shell_unique_picker |
-| warn | `require-cycle` | require cycle across 5 modules: cmdlog.ui.cycle → cmdlog.ui.favorites_picker → cmdlog.ui.history_unique_picker → cmdlog.ui.project_picker → cmdlog.ui.shell_unique_picker |
+| warn | `type-vs-class` | module table annotated ---@type { name: string, show: fun(initial_text: string\|nil) }[], but 1 field(s) are assigned to it — LuaLS reports missing-fields/"fields cannot be injected" for this shape; use ---@class instead (---@class cmdlog.ui.cycle : { name: string, show: fun(initial_text: string\|nil) }[], plus @see the type definition, if { name: string, show: fun(initial_text: string\|nil) }[] should still be checked against it) |
 
 <details>
-<summary>11 informational findings</summary>
+<summary>28 informational findings</summary>
 
 
 | Check | Message |
@@ -185,6 +83,23 @@ flowchart LR
 | `missing-readme` | lua/cmdlog has no README.md |
 | `missing-readme` | lua/cmdlog/bindings has no README.md |
 | `missing-readme` | lua/cmdlog/config has no README.md |
+| `undocumented-param` | M.setup has 1 parameter(s) but only 0 @param line(s) |
+| `undocumented-param` | M.toggle has 1 parameter(s) but only 0 @param line(s) |
+| `undocumented-param` | M.move has 2 parameter(s) but only 0 @param line(s) |
+| `undocumented-param` | M.export has 1 parameter(s) but only 0 @param line(s) |
+| `undocumented-param` | M.is_favorite has 1 parameter(s) but only 0 @param line(s) |
+| `undocumented-param` | M.import has 1 parameter(s) but only 0 @param line(s) |
+| `undocumented-param` | M.save has 1 parameter(s) but only 0 @param line(s) |
+| `undocumented-param` | M.is_risky has 1 parameter(s) but only 0 @param line(s) |
+| `undocumented-param` | M.process_list has 2 parameter(s) but only 0 @param line(s) |
+| `undocumented-param` | M.deduplicate_list has 1 parameter(s) but only 0 @param line(s) |
+| `undocumented-param` | M.reverse_list has 1 parameter(s) but only 0 @param line(s) |
+| `undocumented-param` | M.show_favorites_picker has 1 parameter(s) but only 0 @param line(s) |
+| `undocumented-param` | M.show_history_unique_picker has 1 parameter(s) but only 0 @param line(s) |
+| `undocumented-param` | M.open_picker has 3 parameter(s) but only 0 @param line(s) |
+| `undocumented-param` | M.show_project_picker has 1 parameter(s) but only 0 @param line(s) |
+| `undocumented-param` | M.show_shell_unique_picker has 1 parameter(s) but only 0 @param line(s) |
+| `unreferenced-module` | cmdlog is required by no other file in the tree |
 | `unreferenced-module` | cmdlog.health is required by no other file in the tree |
 | `unreferenced-module` | cmdlog.ui.all_picker is required by no other file in the tree |
 | `unreferenced-module` | cmdlog.ui.all_unique_picker is required by no other file in the tree |
