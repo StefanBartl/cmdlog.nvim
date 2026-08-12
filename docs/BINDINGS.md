@@ -11,19 +11,24 @@ prose. Inspect it at runtime (plugin must be loaded) with:
 
 ## User commands
 
-Registered in [`lua/cmdlog/bindings/usrcmds.lua`](../lua/cmdlog/bindings/usrcmds.lua).
+Registered in [`lua/cmdlog/bindings/usrcmds.lua`](../lua/cmdlog/bindings/usrcmds.lua)
+as a single `:Cmdlog [subcommand]` verb, built via
+`lib.nvim.usercmd.composer` with `<Tab>` completion on the subcommand.
 
-| Command            | Description                                                                  |
-| ------------------ | ---------------------------------------------------------------------------- |
-| `:CmdlogFavorites` | Shows commands you've marked as favorites                                    |
-| `:Cmdlog`          | Combines favorites and history, showing only unique commands (no duplicates) |
-| `:CmdlogFull`      | Combines favorites and full history, allowing duplicates                     |
-| `:CmdlogNvim`      | Shows only unique Neovim (`:`) commands (latest occurrence kept)             |
-| `:CmdlogNvimFull`  | Shows full Neovim (`:`) history, including duplicates                        |
-| `:CmdlogShell`     | Shows unique shell history (latest occurrence kept)                          |
-| `:CmdlogShellFull` | Shows full shell history, including duplicates                               |
-| `:Cmdlog export [path]` | Exports favorites to a JSON file (default: favorites path + `.export.json`) |
-| `:Cmdlog import path`   | Imports favorites from a JSON file, merged with the current list       |
+| Command                 | Description                                                                  |
+| ------------------------ | ---------------------------------------------------------------------------- |
+| `:Cmdlog`               | Combines favorites and history, showing only unique commands (no duplicates) |
+| `:Cmdlog full`          | Combines favorites and full history, allowing duplicates                     |
+| `:Cmdlog nvim`          | Shows only unique Neovim (`:`) commands (latest occurrence kept)             |
+| `:Cmdlog nvim-full`     | Shows full Neovim (`:`) history, including duplicates                        |
+| `:Cmdlog shell`         | Shows unique shell history (latest occurrence kept)                          |
+| `:Cmdlog shell-full`    | Shows full shell history, including duplicates                               |
+| `:Cmdlog favorites`     | Shows commands you've marked as favorites                                    |
+| `:Cmdlog project`       | Shows command history recorded for the current Git project, deduplicated     |
+| `:Cmdlog lua`           | Shows only Lua-mode command history, deduplicated                            |
+| `:Cmdlog stats`         | Shows commands sorted by usage frequency                                     |
+| `:Cmdlog export [path]` | Exports favorites to a JSON file (default: favorites path + `.export.json`)  |
+| `:Cmdlog import path`   | Imports favorites from a JSON file, merged with the current list             |
 
 `export`/`import` are registered directly in
 [`lua/cmdlog/bindings/usrcmds.lua`](../lua/cmdlog/bindings/usrcmds.lua)'s
@@ -56,20 +61,32 @@ also shows in the Telescope prompt title.
 ## Optional entry-point keymaps (which-key aware)
 
 Registered in [`lua/cmdlog/bindings/keymaps.lua`](../lua/cmdlog/bindings/keymaps.lua). Disabled
-by default — the plugin never claims a leader key on its own. Enable and assign
-keys via `setup({ keymaps = { enabled = true, cmdlog = "<leader>cl", ... } })`.
-Every registered keymap carries a `desc`, so [which-key.nvim](https://github.com/folke/which-key.nvim)
+by default — the plugin never claims a leader key on its own. Configured as a
+map of subcommand name to lhs, with `""` meaning bare `:Cmdlog`:
+
+```lua
+require("cmdlog").setup({
+  keymaps = { [""] = "<leader>ch", favorites = "<leader>cf" },
+})
+```
+
+The catalog is derived from [`lua/cmdlog/bindings/usrcmds.lua`](../lua/cmdlog/bindings/usrcmds.lua),
+so every subcommand there is mappable by name. Every registered keymap
+carries a `desc`, so [which-key.nvim](https://github.com/folke/which-key.nvim)
 (v3+) shows it automatically — no extra which-key registration needed.
 
-| Config key            | Command             |
-| ----------------------- | -------------------- |
-| `keymaps.cmdlog`              | `:Cmdlog`          |
-| `keymaps.cmdlog_full`         | `:CmdlogFull`      |
-| `keymaps.favorites`           | `:CmdlogFavorites` |
-| `keymaps.nvim_history`        | `:CmdlogNvim`      |
-| `keymaps.nvim_history_full`   | `:CmdlogNvimFull`  |
-| `keymaps.shell_history`       | `:CmdlogShell`     |
-| `keymaps.shell_history_full`  | `:CmdlogShellFull` |
+| Config key            | Command                |
+| ---------------------- | ----------------------- |
+| `keymaps[""]`          | `:Cmdlog`               |
+| `keymaps.full`         | `:Cmdlog full`          |
+| `keymaps.nvim`         | `:Cmdlog nvim`          |
+| `keymaps["nvim-full"]` | `:Cmdlog nvim-full`     |
+| `keymaps.shell`        | `:Cmdlog shell`         |
+| `keymaps["shell-full"]`| `:Cmdlog shell-full`    |
+| `keymaps.favorites`    | `:Cmdlog favorites`     |
+| `keymaps.project`      | `:Cmdlog project`       |
+| `keymaps.lua`          | `:Cmdlog lua`           |
+| `keymaps.stats`        | `:Cmdlog stats`         |
 
 ## Autocmds
 
