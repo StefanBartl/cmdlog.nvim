@@ -40,6 +40,28 @@ disk, one per normalized command, autosaved on `BufWritePost`/
 - **Module:** `cmdlog/core/notes.lua`, `cmdlog/ui/telescope/notes_picker.lua`
 - **Config:** `opts.notes = { enabled = true, dir = ..., format = "markdown", width = 60, autosave = true, persist = true }`
 
+## Origin section dividers (Telescope only)
+
+The combined pickers (`:Cmdlog`, `:Cmdlog full`) mix favorites, Neovim
+history, shell history, and any `extra_files` entries into one list; each
+non-favorite entry already carries a `[nvim]`/`[shell]`/`[extra]` suffix
+(see `HISTORY.md`'s origin labels), but reading every line's suffix is
+slower than seeing the blocks at a glance. A non-selectable `── nvim
+history ──`-style divider row is spliced in before each origin block's
+first entry — skipped entirely when fewer than two blocks are actually
+non-empty, since a single-origin list has nothing to divide.
+
+Only meaningful while the prompt is empty: dividers have an empty
+`ordinal`, so the fuzzy sorter drops them out of view as soon as you start
+typing — filtering has already broken the contiguous blocks by then
+anyway. `<CR>`/`<Tab>`/`<C-t>`/`<C-x>`/etc. are all no-ops on a divider row
+(it carries `value = false`, which every mapping in `ui/mappings.lua`
+already guards on).
+
+- **Module:** `cmdlog/ui/picker_utils.lua` (`M.section_dividers`, the
+  `opts.sections` handling in `M.open_picker`)
+- **Highlight:** `CmdlogSectionDivider` (linked to `Comment` by default)
+
 ## Known-error highlighting (Telescope only)
 
 A command whose last run set a Vim error message is flagged with a `✗`
@@ -64,8 +86,9 @@ contains the command gets updated.
 ## Configurable picker keymaps
 
 `<CR>` (insert without executing), `<Tab>` (toggle favorite), `<C-r>`
-(refresh), `<C-x>` (delete), `<C-t>` (tag), `<C-s>` (cycle source),
-`<C-z>` (undo favorite), `<C-Up>`/`<C-Down>` (reorder favorite) are all
+(refresh), `<C-x>` (delete), `<C-t>` (tag), `<C-e>` (add/edit a favorite's
+note), `<C-g>` (peek a favorite's note), `<C-s>` (cycle source), `<C-z>`
+(undo favorite), `<C-Up>`/`<C-Down>` (reorder favorite) are all
 remappable or individually disableable via `setup({ mappings = {...} })`;
 `mappings.enabled = false` turns all of them off at once. A legend of
 the currently active ones is generated from `config.options.mappings`

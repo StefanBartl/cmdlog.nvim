@@ -53,6 +53,9 @@ also shows in the Telescope prompt title.
 | `<Tab>`   | `mappings.toggle_favorite` | Toggle favorite status for the selected command   |
 | `<C-r>`   | `mappings.refresh`         | Refresh the current picker                        |
 | `<C-x>`   | `mappings.delete`          | Delete the selected entry from its underlying history (Neovim `:` history or the shell history file) |
+| `<C-t>`   | `mappings.tag`             | Tag the selected favorite (favorites picker only) |
+| `<C-e>`   | `mappings.note`            | Add/edit a note on the selected favorite, blank input removes it (favorites picker only) |
+| `<C-g>`   | `mappings.show_note`       | Peek the selected favorite's note in a floating popup (favorites picker only) |
 | `<C-s>`   | `mappings.cycle_source`    | Rotate to the next picker (nvim → shell → favorites → project → …), keeping the current prompt text. Telescope only ([`ui/cycle.lua`](../lua/cmdlog/ui/cycle.lua)) |
 | `<C-z>`   | `mappings.undo_favorite`   | Undo the most recent favorite toggle (single-level) |
 | `<C-Up>`  | `mappings.move_favorite_up`   | Move the selected favorite up one slot (favorites picker only) |

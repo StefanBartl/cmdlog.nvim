@@ -24,6 +24,7 @@ local DEFAULTS = {
   shell_history_path = "default", -- or custom shell history file path
 
   favorite_tags_path = vim.fn.stdpath("data") .. "/cmdlog/favorite_tags.json",
+  favorite_notes_path = vim.fn.stdpath("data") .. "/cmdlog/favorite_notes.json",
   project_history_path = vim.fn.stdpath("data") .. "/cmdlog/project_history.json",
   stats_path = vim.fn.stdpath("data") .. "/cmdlog/stats.json",
   errors_path = vim.fn.stdpath("data") .. "/cmdlog/errors.json",
@@ -40,6 +41,8 @@ local DEFAULTS = {
     refresh = "<C-r>",        -- refresh the current picker
     delete = "<C-x>",         -- delete the selected entry from its underlying history
     tag = "<C-t>",            -- tag the selected favorite (favorites picker only)
+    note = "<C-e>",           -- add/edit a note on the selected favorite (favorites picker only)
+    show_note = "<C-g>",      -- peek the selected favorite's note in a popup (favorites picker only)
     cycle_source = "<C-s>",   -- rotate to the next picker, keeping the current prompt text
     undo_favorite = "<C-z>",  -- undo the most recent favorite toggle
     move_favorite_up = "<C-Up>",   -- move the selected favorite up (favorites picker only)
@@ -56,6 +59,8 @@ Set any `mappings.*` entry to `false` to disable that keybinding, or to a differ
 
 `mappings.tag` only binds in the favorites picker: tags are stored per
 favorite, so tagging a command that is not one has nothing to attach to.
+`mappings.note`/`mappings.show_note` are the same story — see "Favorite
+notes" below.
 
 ### `keymaps`
 
@@ -139,6 +144,24 @@ section.
 — `nvim`, `shell`, or `extra` (from `extra_files`) — next to the command,
 via `picker_utils`' `opts.label` hook. Favorites are already distinguished
 by the `★` marker and carry no origin label.
+
+On top of that, both pickers also insert a `── nvim history ──`-style
+divider row before each origin block's first entry (Telescope only, and
+only visible while the prompt is empty — see
+[FEATURES/PICKER.md](./FEATURES/PICKER.md#origin-section-dividers-telescope-only)),
+so it's obvious at a glance where e.g. the shell block ends and the nvim
+block begins, without reading every label.
+
+### Favorite notes
+
+A short free-text note per favorite, separate from the per-command notes
+side window (`notes` above): `mappings.note` (default `<C-e>`, favorites
+picker only) opens `vim.ui.input()` pre-filled with the current note —
+confirming an empty input removes it. `mappings.show_note` (default
+`<C-g>`) peeks the note in a floating popup near the cursor instead of
+opening a persistent window. Stored in `favorite_notes_path`, keyed by
+command, mirroring `favorite_tags_path`. See
+[FEATURES/FAVORITES.md](./FEATURES/FAVORITES.md#favorite-notes).
 
 ### `mappings.cycle_source`
 

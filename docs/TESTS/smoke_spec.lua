@@ -61,6 +61,7 @@ local modules = {
   "cmdlog.core.errors",
   "cmdlog.core.extra_files",
   "cmdlog.core.favorites",
+  "cmdlog.core.favorite_notes",
   "cmdlog.core.history",
   "cmdlog.core.notes",
   "cmdlog.core.project_history",
@@ -82,6 +83,7 @@ local modules = {
   "cmdlog.ui.history_unique_picker",
   "cmdlog.ui.lua_picker",
   "cmdlog.ui.mappings",
+  "cmdlog.ui.note_popup",
   "cmdlog.ui.picker_utils",
   "cmdlog.ui.project_picker",
   "cmdlog.ui.shell_picker",
@@ -150,6 +152,51 @@ do
 
   local deduped = utils.deduplicate_list({ "a", "b", "a", "c", "b" })
   check("utils.deduplicate_list", #deduped == 3, vim.inspect(deduped))
+end
+
+-- ── picker_utils.section_dividers (pure function, no telescope needed) ─────
+do
+  local picker_utils = require("cmdlog.ui.picker_utils")
+
+  local single_block = picker_utils.section_dividers({
+    { label = "favorites", count = 0 },
+    { label = "nvim history", count = 3 },
+    { label = "shell history", count = 0 },
+  })
+  check("section_dividers: nil for a single non-empty block", single_block == nil)
+
+  local two_blocks = picker_utils.section_dividers({
+    { label = "nvim history", count = 2 },
+    { label = "shell history", count = 3 },
+  })
+  check(
+    "section_dividers: divider at each block start",
+    two_blocks ~= nil
+      and #two_blocks == 2
+      and two_blocks[1].at == 1
+      and two_blocks[1].label == "nvim history"
+      and two_blocks[2].at == 3
+      and two_blocks[2].label == "shell history",
+    vim.inspect(two_blocks)
+  )
+end
+
+-- ── core.favorite_notes round trip (isolated path, doesn't touch real data) ─
+do
+  local config = require("cmdlog.config")
+  config.options.favorite_notes_path = vim.fn.tempname() .. "-cmdlog-favorite-notes.json"
+  local favorite_notes = require("cmdlog.core.favorite_notes")
+
+  check("favorite_notes.get_note: nothing set yet", favorite_notes.get_note(":w") == nil)
+
+  favorite_notes.set_note(":w", "saves the buffer")
+  check(
+    "favorite_notes.set_note/get_note round trip",
+    favorite_notes.get_note(":w") == "saves the buffer"
+  )
+
+  favorite_notes.set_note(":w", "")
+  check("favorite_notes.set_note('') deletes the note", favorite_notes.get_note(":w") == nil)
 end
 
 -- ── :checkhealth cmdlog (smoke only -- asserts it runs without erroring) ────

@@ -45,6 +45,10 @@ function M.show_all_unique_picker()
   -- Tracks which non-favorite source an entry came from, for the picker's
   -- origin label (opts.label below); first occurrence wins.
   local source_of = {}
+  -- Actual per-block insertion counts (after cross-source dedup), for the
+  -- section dividers below -- can't just use #history/#shell/#extra since
+  -- dedup may drop entries already present in an earlier block.
+  local nvim_count, shell_count, extra_count = 0, 0, 0
 
   for _, f in ipairs(favs) do
     table.insert(combined, f)
@@ -56,6 +60,7 @@ function M.show_all_unique_picker()
       table.insert(combined, h)
       set[h] = true
       source_of[h] = "nvim"
+      nvim_count = nvim_count + 1
     end
   end
 
@@ -64,6 +69,7 @@ function M.show_all_unique_picker()
       table.insert(combined, s)
       set[s] = true
       source_of[s] = "shell"
+      shell_count = shell_count + 1
     end
   end
 
@@ -72,6 +78,7 @@ function M.show_all_unique_picker()
       table.insert(combined, e)
       set[e] = true
       source_of[e] = "extra"
+      extra_count = extra_count + 1
     end
   end
 
@@ -83,6 +90,16 @@ function M.show_all_unique_picker()
     label = function(cmd)
       return source_of[cmd]
     end,
+    -- "── nvim history ──" / "── shell history ──" divider rows at each
+    -- block boundary (Telescope only, and only while the prompt is empty —
+    -- see picker_utils' module doc), on top of the per-entry origin label
+    -- above.
+    sections = picker_utils.section_dividers({
+      { label = "favorites", count = #favs },
+      { label = "nvim history", count = nvim_count },
+      { label = "shell history", count = shell_count },
+      { label = "extra files", count = extra_count },
+    }),
     attach_mappings = require("cmdlog.ui.mappings")(
       M.show_all_unique_picker,
       delete_from_any_history

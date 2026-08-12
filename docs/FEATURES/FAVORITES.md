@@ -25,6 +25,27 @@ tags; `M.filter(tag)` returns every favorite carrying a given one.
 - **Config:** `opts.favorite_tags_path`
 - **Keymaps:** `mappings.tag` (default `<C-t>`), favorites picker only — tags attach to favorites, so the mapping has nothing to do outside that picker
 
+## Favorite notes
+
+A single short note per favorite, added/edited via `vim.ui.input()`
+(`mappings.note` in the favorites picker) rather than an editable buffer —
+distinct from the per-command notes side window above, which is a full
+Markdown/text file. A favorite carrying a note shows a `📝` marker next to
+its tags in the picker (not the note text itself); `mappings.show_note`
+peeks the full text in a transient floating popup anchored to the cursor,
+closing itself on the next keystroke or after 4 seconds.
+
+Editing reuses the same prompt as adding — it opens pre-filled with the
+current note — and there is no separate delete mapping: clearing the input
+and confirming removes the note (`M.set_note(cmd, "")`).
+
+- **Module:** `cmdlog/core/favorite_notes.lua` (`M.get_note`, `M.set_note`),
+  `cmdlog/ui/note_popup.lua` (the popup)
+- **Config:** `opts.favorite_notes_path`
+- **Keymaps:** `mappings.note` (default `<C-e>`), `mappings.show_note`
+  (default `<C-g>`), favorites picker only — see
+  [../BINDINGS.md#picker-keymaps](../BINDINGS.md#picker-keymaps)
+
 ## Undo and manual reordering
 
 `<C-z>` reverts the most recent `<Tab>` toggle — single-level, only the
