@@ -1,0 +1,10 @@
+- [x] Project-based history (per Git root) — `:Cmdlog project`, see `core/project_history.lua`
+- [x] Project-based favorites (per Git root, opt-in via `project_scoped.enabled`, see [OPTIONS.md](./OPTIONS.md))
+- [x] Integration with `which-key` — `keymaps` setup option (subcommand → lhs, each with a `desc`), see `integrations/which_key.lua` and [BINDINGS.md](./BINDINGS.md)
+- [x] Highlight commands with known error results — commands that previously failed are marked `✗` (`core/errors.lua`), and destructive commands matching `risky_patterns` are highlighted separately (`core/risky.lua`, `highlight_risky` in [OPTIONS.md](./OPTIONS.md)). Telescope-only.
+- [x] Delete single history entries (`mappings.delete`, default `<C-x>`)
+- [x] Preview pane for commands like `:edit`, `:term` — `:help` and `:lua` also covered now
+- [x] Notes per command — an optional side window follows the selection and stores a note per command (`notes` in [OPTIONS.md](./OPTIONS.md), `core/notes.lua`)
+- [x] Lua mode and shell mode history integration — `:Cmdlog lua` (shell was already covered by `:Cmdlog shell`)
+- [x] Custom categories/tags for favorites — `<C-t>`/`ctrl-t` in the favorites picker, see `core/tags.lua`
+- [x] Command usage stats (frequency, last used) — `:Cmdlog stats`, see `core/stats.lua`
