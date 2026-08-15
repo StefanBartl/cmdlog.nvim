@@ -3,7 +3,7 @@
 > **Generated** by `documentation`. Do not edit by hand — run `:DocMap`
 > (or `nvim --headless -l scripts/gen_map.lua`) to regenerate.
 
-**3 modules** · 5 namespaces · 36 helper files
+**3 modules** · 5 namespaces · 38 helper files
 
 The [interactive map](index.html) has filtering, full descriptions and
 source links; this page is the version the code host renders directly.
@@ -68,14 +68,14 @@ flowchart LR
 
 ## Drift
 
-0 errors · 1 warnings · 28 info
+0 errors · 1 warnings · 30 info
 
 | Severity | Check | Message |
 |---|---|---|
 | warn | `type-vs-class` | module table annotated ---@type { name: string, show: fun(initial_text: string\|nil) }[], but 1 field(s) are assigned to it — LuaLS reports missing-fields/"fields cannot be injected" for this shape; use ---@class instead (---@class cmdlog.ui.cycle : { name: string, show: fun(initial_text: string\|nil) }[], plus @see the type definition, if { name: string, show: fun(initial_text: string\|nil) }[] should still be checked against it) |
 
 <details>
-<summary>28 informational findings</summary>
+<summary>30 informational findings</summary>
 
 
 | Check | Message |
@@ -84,18 +84,20 @@ flowchart LR
 | `missing-readme` | lua/cmdlog/bindings has no README.md |
 | `missing-readme` | lua/cmdlog/config has no README.md |
 | `undocumented-param` | M.setup has 1 parameter(s) but only 0 @param line(s) |
-| `undocumented-param` | M.toggle has 1 parameter(s) but only 0 @param line(s) |
+| `undocumented-param` | M.save has 1 parameter(s) but only 0 @param line(s) |
 | `undocumented-param` | M.move has 2 parameter(s) but only 0 @param line(s) |
 | `undocumented-param` | M.export has 1 parameter(s) but only 0 @param line(s) |
 | `undocumented-param` | M.is_favorite has 1 parameter(s) but only 0 @param line(s) |
 | `undocumented-param` | M.import has 1 parameter(s) but only 0 @param line(s) |
-| `undocumented-param` | M.save has 1 parameter(s) but only 0 @param line(s) |
+| `undocumented-param` | M.toggle has 1 parameter(s) but only 0 @param line(s) |
 | `undocumented-param` | M.is_risky has 1 parameter(s) but only 0 @param line(s) |
 | `undocumented-param` | M.process_list has 2 parameter(s) but only 0 @param line(s) |
 | `undocumented-param` | M.deduplicate_list has 1 parameter(s) but only 0 @param line(s) |
 | `undocumented-param` | M.reverse_list has 1 parameter(s) but only 0 @param line(s) |
 | `undocumented-param` | M.show_favorites_picker has 1 parameter(s) but only 0 @param line(s) |
 | `undocumented-param` | M.show_history_unique_picker has 1 parameter(s) but only 0 @param line(s) |
+| `undocumented-param` | max_width has 1 parameter(s) but only 0 @param line(s) |
+| `undocumented-param` | M.show has 2 parameter(s) but only 0 @param line(s) |
 | `undocumented-param` | M.open_picker has 3 parameter(s) but only 0 @param line(s) |
 | `undocumented-param` | M.show_project_picker has 1 parameter(s) but only 0 @param line(s) |
 | `undocumented-param` | M.show_shell_unique_picker has 1 parameter(s) but only 0 @param line(s) |
