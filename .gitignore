@@ -147,3 +147,13 @@ Sessionx.vim
 tags
 # Persistent undo
 [._]*.un~
+
+# Generated module map (documentation.nvim). Derived output, not source:
+# `:DocMap` rebuilds it from the current tree in seconds — open any file in
+# this repo and run it (`:DocMap full` for LuaLS-enriched detail).
+# Deliberately not committed. A committed copy is stale the moment anything
+# it describes changes, and nothing here gates that (only documentation.nvim
+# itself has a CI drift check); measured across these plugins it also came to
+# ~40 MB of downloaded artifacts nobody asked for — in several cases larger
+# than the plugin's own code.
+docs/map/
