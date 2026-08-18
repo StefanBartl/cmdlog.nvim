@@ -93,9 +93,7 @@ carries a `desc`, so [which-key.nvim](https://github.com/folke/which-key.nvim)
 
 ## Autocmds
 
-Registered per-buffer in [`lua/cmdlog/core/notes.lua`](../lua/cmdlog/core/notes.lua)
-when a note buffer is opened and `notes.autosave` is enabled.
-
-| Event(s)                                  | Scope             | Description                                  |
-| ------------------------------------------ | ----------------- | --------------------------------------------- |
-| `BufWritePost`, `TextChanged`, `TextChangedI` | Note buffer (buffer-local) | Writes the note buffer's content to disk |
+None. cmdlog registers no autocmds; the catalog in
+[`lua/cmdlog/bindings/autocmds.lua`](../lua/cmdlog/bindings/autocmds.lua)
+is empty (the note-buffer autosave autocmds went away with the notes side
+window).

@@ -11,7 +11,7 @@ local function has_module(modname)
 end
 
 --- Runs `:checkhealth cmdlog`: verifies dependencies (lib.nvim, the
---- configured picker backend), shell-history detection and notes-dir state.
+--- configured picker backend) and shell-history detection.
 ---@return nil
 function M.check()
   local health = vim.health or require("health")
@@ -71,17 +71,6 @@ function M.check()
     end
   else
     warn("Could not detect a supported shell (SHELL unset and no known history file found)")
-  end
-
-  if config.options.notes.enabled then
-    local notes_dir = config.options.notes.dir
-    if vim.fn.isdirectory(notes_dir) == 1 then
-      ok("Notes directory exists: " .. notes_dir)
-    else
-      warn("Notes directory does not exist yet (created on first note): " .. notes_dir)
-    end
-  else
-    ok("Notes feature disabled")
   end
 
   require("lib.nvim.usercmd.composer").checkhealth("Cmdlog")

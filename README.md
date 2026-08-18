@@ -88,7 +88,7 @@ A lightweight, modern Neovim plugin to interactively view, search, and reuse com
 
 - **Configurable & which-key aware keymaps**: Picker keymaps (`<CR>`, `<Tab>`, `<C-r>`) can be remapped or disabled, and optional normal-mode entry-point keymaps for every `:Cmdlog*` command can be enabled — each carries a `desc`, so [which-key.nvim](https://github.com/folke/which-key.nvim) picks it up automatically. See [BINDINGS.md](./docs/BINDINGS.md).
 
-- **`:checkhealth cmdlog`**: Verifies dependencies (telescope/fzf-lua), shell-history detection, and notes directory.
+- **`:checkhealth cmdlog`**: Verifies dependencies (telescope/fzf-lua) and shell-history detection.
 
 - **Delete single history entries**: Press `<C-x>` (configurable) inside a picker to delete the selected command from its underlying history — Neovim `:` history via `histdel()`, or the shell history file (with a confirmation prompt, since that rewrites a file on disk).
 
@@ -102,7 +102,7 @@ A lightweight, modern Neovim plugin to interactively view, search, and reuse com
 
 - **Origin labels**: The combined pickers (`:Cmdlog`, `:Cmdlog full`) label each non-favorite entry `nvim`/`shell`/`extra` by where it came from, and insert a `── nvim history ──`-style divider row before each origin block so the boundaries are visible at a glance (Telescope only; see [docs/FEATURES/PICKER.md](./docs/FEATURES/PICKER.md)).
 
-- **Favorite Notes**: Attach a short note to a favorite via `vim.ui.input()` (`<C-e>`), separate from the full per-command notes side window — peek it in a floating popup with `<C-g>`. See [docs/FEATURES/FAVORITES.md](./docs/FEATURES/FAVORITES.md).
+- **Favorite Notes**: Attach a short note to a favorite via `vim.ui.input()` (`<C-e>`) — peek it in a floating popup with `<C-g>`. See [docs/FEATURES/FAVORITES.md](./docs/FEATURES/FAVORITES.md).
 
 - **Cycle between pickers**: Press `<C-s>` (configurable) inside any picker to rotate to the next one (nvim → shell → favorites → project → …), keeping the current prompt text (Telescope only).
 

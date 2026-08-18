@@ -5,7 +5,7 @@ were added. `COMPOSER.md` covers the `:Cmdlog <subcommand>` command surface
 itself; `HISTORY.md` covers the different sources a picker can show;
 `FAVORITES.md` covers everything about marking, tagging and moving
 commands between machines; `PICKER.md` covers the picker UI itself
-(backends, previews, the notes side window); `SAFETY.md` covers the two
+(backends, previews); `SAFETY.md` covers the two
 things that exist purely to keep you from hurting yourself or leaking a
 secret.
 

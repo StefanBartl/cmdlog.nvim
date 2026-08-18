@@ -19,13 +19,17 @@ filetree.nvim yet. Target: cross-platform, filetree-manager-agnostic
 
 ## Per-entry notes (buffer with autosave)
 
-- **Origin**: `lua/cmdlog/core/notes.lua` (whole file); window/side-panel glue
-  in `lua/cmdlog/ui/picker_utils.lua:18` (`open_notes_window`) and
-  `lua/cmdlog/ui/telescope/notes_picker.lua`
+- **Origin**: removed from cmdlog.nvim -- the side-window glue could not be
+  made to coexist with Telescope (leaving the prompt window closes the
+  picker). Read it out of git history: `lua/cmdlog/core/notes.lua`,
+  `lua/cmdlog/ui/telescope/notes_picker.lua` and `open_notes_window` in
+  `lua/cmdlog/ui/picker_utils.lua`, all as of commit 1ecd416.
 - **Fits into**: "notes per file/directory" — a side split showing/editing a
   markdown note tied to the selected tree entry, autosaved on
   `TextChanged`/`TextChangedI`/`BufWritePost`.
-- **Notes**: Key naming scheme in `notes.lua:35` (`note_key`) sanitizes an
+- **Notes**: A filetree port should open the note in a normal window it owns,
+  not as a split created while a picker has focus. Key naming scheme in
+  `notes.lua` (`note_key`) sanitizes an
   arbitrary string into a filesystem-safe filename — same technique applies
   to turning an absolute file path into a note filename.
 
