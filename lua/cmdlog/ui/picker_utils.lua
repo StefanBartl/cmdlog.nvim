@@ -32,12 +32,40 @@ local risky = require("cmdlog.core.risky")
 
 local M = {}
 
+--- The notes side window of the picker that is currently open, if any.
+--- Tracked module-wide so a re-opened picker (every <Tab>/refresh closes and
+--- re-opens one) reuses/replaces it instead of stacking a new vsplit next to
+--- the leftover one.
+---@internal
+---@type number|nil
+local active_notes_win = nil
+
+--- Closes the notes side window left over from a previous picker, if it is
+--- still around.
+---@internal
+local function close_notes_window()
+  if active_notes_win and vim.api.nvim_win_is_valid(active_notes_win) then
+    vim.api.nvim_win_close(active_notes_win, true)
+  end
+  active_notes_win = nil
+end
+
 --- Opens the notes side window, if notes are enabled.
+---
+--- Must be called *before* Telescope's `:find()`: `vsplit` leaves the current
+--- window, and Telescope closes the picker (wiping `prompt_bufnr`) as soon as
+--- its prompt buffer is left. Opening it from inside `attach_mappings` is what
+--- made the follow-up `nvim_buf_attach` fail with "Invalid buffer id".
+--- Focus is restored to the caller's window so the picker still opens where
+--- the user was.
 ---@internal
 ---@return number|nil win
 local function open_notes_window()
   if not config.options.notes or not config.options.notes.enabled then return nil end
 
+  close_notes_window()
+
+  local prev = vim.api.nvim_get_current_win()
   vim.cmd("vsplit")
   local win = vim.api.nvim_get_current_win()
 
@@ -46,6 +74,9 @@ local function open_notes_window()
   vim.api.nvim_set_option_value("relativenumber", false, { win = win })
   vim.api.nvim_set_option_value("wrap", true, { win = win })
 
+  if vim.api.nvim_win_is_valid(prev) then vim.api.nvim_set_current_win(prev) end
+
+  active_notes_win = win
   return win
 end
 
@@ -223,6 +254,9 @@ function M.open_picker(entries, favs, opts)
     end
   end
 
+  -- Opened before the picker on purpose -- see open_notes_window.
+  local notes_win = open_notes_window()
+
   pickers
     .new({}, {
       prompt_title = (opts.prompt_title or ":commands") .. build_legend(),
@@ -235,8 +269,6 @@ function M.open_picker(entries, favs, opts)
       previewer = require("cmdlog.ui.telescope-previewer").command_previewer(),
 
       attach_mappings = function(prompt_bufnr, map)
-        local notes_win = open_notes_window()
-
         local function sync_notes()
           if not notes_win or not vim.api.nvim_win_is_valid(notes_win) then return end
 
@@ -255,18 +287,37 @@ function M.open_picker(entries, favs, opts)
         sync_notes()
 
         -- Follow the selection as the prompt changes
-        vim.api.nvim_buf_attach(prompt_bufnr, false, {
-          on_lines = function()
-            vim.schedule(sync_notes)
-          end,
-          on_detach = function() end,
-        })
+        if vim.api.nvim_buf_is_valid(prompt_bufnr) then
+          vim.api.nvim_buf_attach(prompt_bufnr, false, {
+            on_lines = function()
+              vim.schedule(sync_notes)
+            end,
+            on_detach = function() end,
+          })
+        end
 
         if notes_win then
+          -- Tear the side window down whenever the prompt buffer goes away,
+          -- not just on <CR>: <Esc>, <Tab> (toggle favorite) and refresh all
+          -- close the picker without going through select_default, and would
+          -- otherwise leave an orphaned split behind.
+          vim.api.nvim_create_autocmd("BufWipeout", {
+            buffer = prompt_bufnr,
+            once = true,
+            callback = function()
+              if config.options.notes.persist then return end
+              vim.schedule(function()
+                -- Only if a re-opened picker has not already claimed a fresh
+                -- window in the meantime (<Tab> closes then re-opens).
+                if active_notes_win == notes_win then close_notes_window() end
+              end)
+            end,
+          })
+
           actions.select_default:replace(function()
             actions.close(prompt_bufnr)
-            if vim.api.nvim_win_is_valid(notes_win) and not config.options.notes.persist then
-              vim.api.nvim_win_close(notes_win, true)
+            if not config.options.notes.persist and active_notes_win == notes_win then
+              close_notes_window()
             end
           end)
         end
