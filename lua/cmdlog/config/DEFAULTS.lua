@@ -59,15 +59,6 @@ local DEFAULTS = {
     enabled = false,
   },
 
-  notes = {
-    enabled = true,
-    dir = vim.fn.stdpath("data") .. "/cmdlog.nvim/notes",
-    format = "markdown",
-    width = 60,
-    autosave = true,
-    persist = true,
-  },
-
   -- Keymaps used inside cmdlog pickers. Set a value to false to disable it.
   mappings = {
     enabled = true,

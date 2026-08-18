@@ -1,10 +1,9 @@
 ---@module 'cmdlog.ui.note_popup'
 --- Transient floating-window "hover" for a favorite's note
---- (`mappings.show_note`, favorites picker only). Deliberately not the
---- persistent per-command notes side window `cmdlog.core.notes`/
---- `picker_utils.lua` open -- this just displays `cmdlog.core.favorite_notes`'
---- short text next to the cursor and closes itself on the next keystroke or
---- after a short timeout, with no buffer/file of its own.
+--- (`mappings.show_note`, favorites picker only). Displays
+--- `cmdlog.core.favorite_notes`' short text next to the cursor and closes
+--- itself on the next keystroke or after a short timeout, with no buffer or
+--- file of its own.
 
 local M = {}
 

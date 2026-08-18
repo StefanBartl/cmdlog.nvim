@@ -1,18 +1,12 @@
 ---@module 'cmdlog.bindings.autocmds'
 --- Descriptive catalog of autocmds cmdlog registers. Registers nothing itself —
---- the actual `nvim_create_autocmd` calls stay in lua/cmdlog/core/notes.lua
---- since they are buffer-local and created dynamically per note buffer.
---- This file exists so docs/BINDINGS.md has a single place to read from.
+--- it exists so docs/BINDINGS.md (and `require("cmdlog.bindings").catalog()`)
+--- have a single place to read from. Currently empty: the only entries were the
+--- note-buffer autosave autocmds, which went away with the notes side window.
 
 local M = {}
 
 ---@type {events: string[], scope: string, desc: string}[]
-M.catalog = {
-  {
-    events = { "BufWritePost", "TextChanged", "TextChangedI" },
-    scope = "note buffer (buffer-local)",
-    desc = "Writes the note buffer's content to disk (see cmdlog.core.notes.attach_autosave)",
-  },
-}
+M.catalog = {}
 
 return M

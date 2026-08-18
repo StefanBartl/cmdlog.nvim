@@ -1,7 +1,6 @@
 ---@module 'cmdlog.core.favorite_notes'
 --- Short free-text notes attached to favorites -- one line of context added
---- via `vim.ui.input()`, not the full editable per-command notes buffer
---- `cmdlog.core.notes` opens in a side window. Stored separately from
+--- via `vim.ui.input()`, not an editable buffer. Stored separately from
 --- favorites.json (config.options.favorite_notes_path) so the flat
 --- favorites list format never has to migrate, and separately from
 --- favorite_tags_path so neither feature's storage shape constrains the

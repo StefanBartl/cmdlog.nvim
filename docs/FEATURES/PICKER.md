@@ -1,7 +1,7 @@
 # Picker UI
 
-The picker layer itself: backend choice, previews, the notes side
-window, and the keymaps/entry-points around all of it.
+The picker layer itself: backend choice, previews, and the
+keymaps/entry-points around all of it.
 
 ## Picker backend: Telescope or fzf-lua
 
@@ -27,18 +27,6 @@ reusing it:
 - `:lua <expr>` — evaluates the expression in-process and shows the result
 
 - **Module:** `cmdlog/ui/telescope-previewer.lua`
-
-## Notes side window
-
-An editable, per-command notes buffer that opens in a vertical split
-alongside the picker (Telescope) and stays in sync with the current
-selection — jot down why a gnarly one-liner works, or what it broke
-last time, right next to the command itself. Notes are plain files on
-disk, one per normalized command, autosaved on `BufWritePost`/
-`TextChanged`/`TextChangedI` by default.
-
-- **Module:** `cmdlog/core/notes.lua`, `cmdlog/ui/telescope/notes_picker.lua`
-- **Config:** `opts.notes = { enabled = true, dir = ..., format = "markdown", width = 60, autosave = true, persist = true }`
 
 ## Origin section dividers (Telescope only)
 
@@ -116,8 +104,8 @@ keymap.
 
 Verifies the Neovim version, that `lib.nvim` is installed (the command
 tree and cross-platform fs/notify helpers are built on it), that the
-configured picker backend is actually installed, shell-history
-detection, and notes-directory state.
+configured picker backend is actually installed, and shell-history
+detection.
 
 - **Module:** `cmdlog/health.lua`
 - **Usercmds:** `:checkhealth cmdlog`

@@ -2,14 +2,6 @@
 ---@module 'cmdlog.@types'
 --- Type definitions for cmdlog configuration.
 
----@class CmdlogNotesConfig
----@field enabled boolean
----@field format '"markdown"'|'"text"'
----@field dir string
----@field autosave boolean
----@field persist boolean
----@field width number
-
 ---@class CmdlogMappingsConfig
 ---@field enabled boolean
 ---@field select string|false
@@ -50,7 +42,6 @@
 ---@field redact_patterns string[]|false
 ---@field extra_files CmdlogExtraFilesConfig
 ---@field project_scoped CmdlogProjectScopedConfig
----@field notes CmdlogNotesConfig
 ---@field mappings CmdlogMappingsConfig
 ---@field keymaps CmdlogKeymapsConfig
 ---@field highlight_risky boolean

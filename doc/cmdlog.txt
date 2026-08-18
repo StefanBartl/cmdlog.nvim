@@ -320,7 +320,7 @@ See the /docs directory in the repository for developer-oriented guides.
 
 ==============================================================================
 Run `:checkhealth cmdlog` to verify dependencies (telescope.nvim/fzf-lua
-depending on `picker`), shell-history detection, and the notes directory.
+depending on `picker`) and shell-history detection.
 
 ==============================================================================
 NOTES                                                  *cmdlog.nvim-notes*

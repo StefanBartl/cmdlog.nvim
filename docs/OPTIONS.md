@@ -154,9 +154,8 @@ block begins, without reading every label.
 
 ### Favorite notes
 
-A short free-text note per favorite, separate from the per-command notes
-side window (`notes` above): `mappings.note` (default `<C-e>`, favorites
-picker only) opens `vim.ui.input()` pre-filled with the current note —
+A short free-text note per favorite: `mappings.note` (default `<C-e>`,
+favorites picker only) opens `vim.ui.input()` pre-filled with the current note —
 confirming an empty input removes it. `mappings.show_note` (default
 `<C-g>`) peeks the note in a floating popup near the cursor instead of
 opening a persistent window. Stored in `favorite_notes_path`, keyed by

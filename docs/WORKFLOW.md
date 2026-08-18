@@ -94,11 +94,9 @@ to search for.
 `<Tab>` favoriting captures *that* a command matters; it doesn't
 capture *why*. For anything non-obvious — a flag combination that took
 you fifteen minutes to get right, a one-liner that broke something
-before you fixed the args — open the picker with notes enabled
-(`opts.notes.enabled`, on by default) and write the note in the side
-window while the command is still selected. It autosaves on
-`TextChanged`/`BufWritePost`, so there's no explicit save step to
-forget.
+before you fixed the args — favorite it and attach a note with
+`mappings.note` (`<C-e>`, favorites picker); `mappings.show_note`
+(`<C-g>`) peeks it later without leaving the picker.
 
 ## Export before a risky edit, import after a machine switch
 

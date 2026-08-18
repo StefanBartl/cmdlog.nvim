@@ -63,7 +63,6 @@ local modules = {
   "cmdlog.core.favorites",
   "cmdlog.core.favorite_notes",
   "cmdlog.core.history",
-  "cmdlog.core.notes",
   "cmdlog.core.project_history",
   "cmdlog.core.risky",
   "cmdlog.core.shell",
@@ -90,7 +89,6 @@ local modules = {
   "cmdlog.ui.shell_unique_picker",
   "cmdlog.ui.stats_picker",
   "cmdlog.ui.telescope-previewer",
-  "cmdlog.ui.telescope.notes_picker",
 }
 
 -- Modules that only load when telescope.nvim is present (lazily required by
@@ -99,7 +97,6 @@ local modules = {
 -- that specific failure as a skip rather than a hard failure.
 local optional_telescope_modules = {
   ["cmdlog.ui.telescope-previewer"] = true,
-  ["cmdlog.ui.telescope.notes_picker"] = true,
 }
 
 local skipped = 0

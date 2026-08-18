@@ -28,9 +28,8 @@ tags; `M.filter(tag)` returns every favorite carrying a given one.
 ## Favorite notes
 
 A single short note per favorite, added/edited via `vim.ui.input()`
-(`mappings.note` in the favorites picker) rather than an editable buffer —
-distinct from the per-command notes side window above, which is a full
-Markdown/text file. A favorite carrying a note shows a `📝` marker next to
+(`mappings.note` in the favorites picker) rather than an editable buffer.
+A favorite carrying a note shows a `📝` marker next to
 its tags in the picker (not the note text itself); `mappings.show_note`
 peeks the full text in a transient floating popup anchored to the cursor,
 closing itself on the next keystroke or after 4 seconds.
