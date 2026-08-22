@@ -33,10 +33,16 @@ function M.get_git_root()
   local cached = git_root_cache.get(cwd)
   if cached ~= nil then return cached ~= "" and cached or nil end
 
-  local out = vim.fn.systemlist({ "git", "rev-parse", "--show-toplevel" })
+  -- Pure filesystem walk instead of spawning `git rev-parse --show-toplevel`.
+  -- The subprocess blocked the UI thread on every cache miss (on Windows a
+  -- process spawn costs 15-40ms); vim.fs.find only issues stat() calls.
+  -- `.git` is matched as both directory and file so worktrees and submodules
+  -- (where `.git` is a gitfile) resolve correctly.
+  local found = vim.fs.find(".git", { path = cwd, upward = true, limit = 1 })
   local root = nil
-  if vim.v.shell_error == 0 and out and out[1] and out[1] ~= "" then
-    root = (out[1]:gsub("\\", "/"))
+  if found and found[1] then
+    local dir = vim.fs.dirname(found[1])
+    if dir and dir ~= "" then root = (dir:gsub("\\", "/")) end
   end
 
   -- Cache "" for "not a Git repo" -- ns.get() can't otherwise distinguish
