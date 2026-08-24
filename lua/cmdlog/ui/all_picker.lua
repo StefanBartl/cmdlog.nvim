@@ -16,9 +16,11 @@ local M = {}
 --- both. Neither call prompts/errors when `cmd` isn't found in that source.
 ---@param cmd string
 ---@param on_done fun(ok: boolean, err: string|nil)
-local function delete_from_any_history(cmd, on_done)
+---@param opts? { skip_confirm?: boolean }  forwarded to the shell half, which
+---       is the only one that rewrites a file and therefore confirms
+local function delete_from_any_history(cmd, on_done, opts)
   local nvim_ok = history_mod.delete_entry(cmd)
-  shell_mod.delete_entry(cmd, nil, function(shell_ok, shell_err)
+  shell_mod.delete_entry(cmd, opts, function(shell_ok, shell_err)
     if nvim_ok or shell_ok then
       on_done(true)
     else

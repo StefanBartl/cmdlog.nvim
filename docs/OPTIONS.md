@@ -39,7 +39,8 @@ local DEFAULTS = {
     select = "<CR>",          -- insert selected command into the cmdline
     toggle_favorite = "<Tab>", -- mark/unmark the selected command as favorite
     refresh = "<C-r>",        -- refresh the current picker
-    delete = "<C-x>",         -- delete the selected entry from its underlying history
+    delete = "<C-x>",         -- delete the selected entry, or every marked one
+    toggle_selection = "<C-Space>", -- mark/unmark an entry for a batch delete
     tag = "<C-t>",            -- tag the selected favorite (favorites picker only)
     note = "<C-e>",           -- add/edit a note on the selected favorite (favorites picker only)
     show_note = "<C-g>",      -- peek the selected favorite's note in a popup (favorites picker only)
@@ -84,7 +85,18 @@ underlying history source:
 - In the combined `:Cmdlog`/`:CmdlogFull` pickers, both sources are tried;
   whichever one(s) actually contain the command are updated.
 
-Set `mappings.delete = false` to disable it.
+**Batch delete.** `mappings.toggle_selection` (default `<C-Space>`) marks
+entries; `<C-x>` then deletes every marked one instead of the entry under the
+cursor. Telescope's own multi-select key is `<Tab>`, which is already
+`toggle_favorite` here, hence a separate key.
+
+A batch asks **once** ("Delete N selected entries…") and then suppresses the
+per-command shell prompt — otherwise deleting five entries would ask five
+separate questions. With nothing marked, `<C-x>` behaves exactly as before,
+including the single-command confirmation for shell entries.
+
+Set `mappings.delete = false` to disable deleting, or
+`mappings.toggle_selection = false` to keep single-entry deletion only.
 
 ### Project-based favorites (opt-in)
 
@@ -199,6 +211,48 @@ against every entry shown in a picker. A match is highlighted with the
 override it with `vim.api.nvim_set_hl(0, "CmdlogRiskyCommand", { ... })` after
 `setup()`). Set `highlight_risky = false`, or `risky_patterns = {}`, to
 disable it. Currently Telescope-only.
+
+**Testing a pattern.** `:Cmdlog risky test <command>` reports which patterns
+match a given command line:
+
+```
+:Cmdlog risky test git reset --hard HEAD~1
+```
+```
+Command: git reset --hard HEAD~1
+Matched 1 of 10 pattern(s):
+  git%s+reset%s+%-%-hard
+```
+
+Lua patterns are just similar enough to regexes to be written wrong with
+confidence, and a picker only shows whether *some* pattern fired — never
+which, and never the difference between "my pattern is broken" and "this
+command isn't risky". Matching here ignores `highlight_risky`, since someone
+tuning patterns wants them evaluated either way; the output says so when that
+switch is off. A malformed pattern excludes itself instead of raising.
+
+### Unsupported shell-history formats
+
+`shell_history` is the escape hatch when the built-in per-shell parsers can't
+read your history file — a custom `HISTTIMEFORMAT`, a wrapper that rewrites
+the file, a shell that isn't covered:
+
+```lua
+shell_history = {
+  parse   = function(lines, shell) ... end,  -- raw lines -> commands
+  matches = function(line, cmd) ... end,     -- does this raw line hold that command
+},
+```
+
+Both halves belong together. `parse` is what the pickers show; `matches` is
+what deleting needs, since `delete_entry` has to find the *raw line* a
+command came from in order to remove it. **Setting `parse` without `matches`
+makes deletion refuse** rather than fall back to the built-in matcher —
+deleting rewrites the history file, and a matcher that doesn't know your
+format would remove the wrong lines.
+
+A `parse` that raises is contained: the shell history comes back empty with a
+warning, instead of breaking the picker.
 
 ### Optional entry-point keymaps
 

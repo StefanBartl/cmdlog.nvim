@@ -114,6 +114,18 @@ function M.register()
   end
 
   routes[#routes + 1] = {
+    path = { "risky", "test" },
+    desc = "Show which risky_patterns match a command (tune the list without guessing)",
+    -- Deliberately no `args` spec: the thing being tested is a whole command
+    -- line ("git reset --hard HEAD~1"), not a positional token. Declaring a
+    -- positional would eat "git" into ctx.args and leave the rest behind, and
+    -- quoting the command just to pass it through defeats the purpose.
+    run = function(ctx)
+      require("cmdlog.ui.risky_test").report(table.concat(ctx.rest or {}, " "))
+    end,
+  }
+
+  routes[#routes + 1] = {
     path = { "export" },
     desc = "Export favorites to a JSON file (default: favorites path + .export.json)",
     args = { { name = "path", type = "PATH", optional = true } },

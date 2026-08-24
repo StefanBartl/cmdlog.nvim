@@ -7,7 +7,7 @@ local notify = require("lib.nvim.notify.safe").create_safe("[cmdlog.nvim.mapping
 --- Keys are read from `config.options.mappings` (select/toggle_favorite/refresh/
 --- delete/tag/note/show_note), so users can remap or disable (set to `false`) any of them.
 --- @param refresh_fn function Function to refresh the picker
---- @param delete_fn? fun(cmd: string, on_done: fun(ok: boolean, err: string|nil)) Deletes `cmd`
+--- @param delete_fn? fun(cmd: string, on_done: fun(ok: boolean, err: string|nil), opts?: { skip_confirm?: boolean }) Deletes `cmd`
 ---        from its underlying history source (async: may show a confirmation dialog first);
 ---        `on_done` receives `ok` and an optional error message. Pickers that have no sensible
 ---        delete target (e.g. the favorites picker, where <Tab> already removes) can omit this
@@ -132,19 +132,92 @@ return function(refresh_fn, delete_fn, opts)
       end)
     end
 
+    -- Multi-select. Telescope's own default for this is <Tab>, which is
+    -- already toggle_favorite here, so it needs its own key. Pairing the
+    -- toggle with a move is telescope's standard idiom: marking a run of
+    -- entries otherwise means alternating between two keys.
+    if mappings.toggle_selection then
+      map("i", mappings.toggle_selection, function()
+        actions.toggle_selection(prompt_bufnr)
+        actions.move_selection_worse(prompt_bufnr)
+      end)
+    end
+
     if mappings.delete and delete_fn then
       map("i", mappings.delete, function()
-        local selected = state.get_selected_entry()
-        if not selected or not selected.value then return end
+        local targets = {}
 
-        delete_fn(selected.value, function(ok, err)
-          if ok then
-            actions.close(prompt_bufnr)
-            vim.schedule(refresh_fn)
-          elseif err and err ~= "cancelled" then
-            notify.warn("Could not delete entry: " .. tostring(err))
+        -- Multi-selection wins when there is one; otherwise the entry under
+        -- the cursor, which is what this key has always done.
+        local picker = state.get_current_picker(prompt_bufnr)
+        local multi = picker and picker:get_multi_selection() or {}
+        if #multi > 0 then
+          for _, entry in ipairs(multi) do
+            if entry.value then targets[#targets + 1] = entry.value end
           end
-        end)
+        else
+          local selected = state.get_selected_entry()
+          if selected and selected.value then targets[1] = selected.value end
+        end
+
+        if #targets == 0 then return end
+
+        ---Delete everything in `targets`, then close and refresh once.
+        ---
+        ---`skip_confirm` is passed for a batch because the batch has already
+        ---been confirmed as a whole -- without it, deleting five entries
+        ---would ask five separate questions.
+        ---@param skip_confirm boolean
+        local function run(skip_confirm)
+          local remaining = #targets
+          local deleted, failures = 0, {}
+
+          local function finish()
+            if deleted > 0 then
+              actions.close(prompt_bufnr)
+              vim.schedule(refresh_fn)
+            end
+            -- "cancelled" is the user's own answer to a confirmation, not a
+            -- failure worth reporting back at them.
+            local real = vim.tbl_filter(function(e)
+              return e ~= "cancelled"
+            end, failures)
+            if #real > 0 then
+              notify.warn(
+                ("Could not delete %d of %d entr%s: %s"):format(
+                  #real,
+                  #targets,
+                  #targets == 1 and "y" or "ies",
+                  table.concat(real, "; ")
+                )
+              )
+            end
+          end
+
+          for _, cmd in ipairs(targets) do
+            delete_fn(cmd, function(ok, err)
+              if ok then
+                deleted = deleted + 1
+              else
+                failures[#failures + 1] = tostring(err or "unknown error")
+              end
+              remaining = remaining - 1
+              if remaining == 0 then finish() end
+            end, { skip_confirm = skip_confirm })
+          end
+        end
+
+        if #targets == 1 then
+          run(false)
+          return
+        end
+
+        require("lib.nvim.ui.kit").confirm({
+          question = ("Delete %d selected entries from their underlying history?"):format(#targets),
+          on_answer = function(yes)
+            if yes then run(true) end
+          end,
+        })
       end)
     end
 

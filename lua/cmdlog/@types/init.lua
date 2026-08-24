@@ -8,6 +8,7 @@
 ---@field toggle_favorite string|false
 ---@field refresh string|false
 ---@field delete string|false
+---@field toggle_selection string|false  # mark entries for a batch delete
 ---@field tag string|false
 ---@field note string|false
 ---@field show_note string|false
@@ -15,6 +16,15 @@
 ---@field undo_favorite string|false
 ---@field move_favorite_up string|false
 ---@field move_favorite_down string|false
+
+---Escape hatch for an unsupported shell-history format. Both halves belong
+---together: `parse` turns raw file lines into commands, `matches` finds the
+---raw line a command came from so it can be deleted. Setting `parse` without
+---`matches` makes deletion refuse rather than let the built-in matcher guess
+---at a format it does not know.
+---@class CmdlogShellHistoryConfig
+---@field parse? fun(lines: string[], shell: string): string[]
+---@field matches? fun(line: string, cmd: string): boolean
 
 ---@class CmdlogExtraFilesConfig
 ---@field history string[]
@@ -44,5 +54,6 @@
 ---@field project_scoped CmdlogProjectScopedConfig
 ---@field mappings CmdlogMappingsConfig
 ---@field keymaps CmdlogKeymapsConfig
+---@field shell_history CmdlogShellHistoryConfig
 ---@field highlight_risky boolean
 ---@field risky_patterns string[]|false

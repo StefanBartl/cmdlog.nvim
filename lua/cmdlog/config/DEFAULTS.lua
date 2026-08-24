@@ -65,7 +65,8 @@ local DEFAULTS = {
     select = "<CR>", -- insert selected command into the cmdline
     toggle_favorite = "<Tab>", -- mark/unmark the selected command as favorite
     refresh = "<C-r>", -- refresh the current picker
-    delete = "<C-x>", -- delete the selected entry from its underlying history
+    delete = "<C-x>", -- delete the selected entry, or every marked one, from its underlying history
+    toggle_selection = "<C-Space>", -- mark/unmark an entry for a batch delete, then move down
     tag = "<C-t>", -- add a tag to the selected favorite (favorites picker only)
     note = "<C-e>", -- add/edit a note on the selected favorite (blank input removes it, favorites picker only)
     show_note = "<C-g>", -- peek the selected favorite's note in a floating popup (favorites picker only)
@@ -73,6 +74,22 @@ local DEFAULTS = {
     undo_favorite = "<C-z>", -- undo the most recent favorite toggle
     move_favorite_up = "<C-Up>", -- move the selected favorite one slot up (favorites picker only)
     move_favorite_down = "<C-Down>", -- move the selected favorite one slot down (favorites picker only)
+  },
+
+  -- Escape hatch for a shell-history format the built-in parsers don't know
+  -- (a custom HISTTIMEFORMAT, a wrapper that rewrites the file, a shell not
+  -- covered at all). Both halves belong together:
+  --
+  --   parse(lines, shell) -> string[]   turn raw file lines into commands
+  --   matches(line, cmd)  -> boolean    does this raw line hold that command
+  --
+  -- `matches` is what deleting needs, and setting `parse` without it makes
+  -- `:Cmdlog` refuse to delete rather than let the built-in matcher guess --
+  -- deleting rewrites the history file, and a wrong guess removes the wrong
+  -- lines. Leave the table empty to use the built-in per-shell parsers.
+  shell_history = {
+    -- parse = function(lines, shell) ... end,
+    -- matches = function(line, cmd) ... end,
   },
 
   -- Highlight commands that are prone to causing damage or data loss.

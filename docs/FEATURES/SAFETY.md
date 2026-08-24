@@ -13,7 +13,12 @@ Commands matching a configurable list of Lua patterns (`rm -rf`,
 default) wherever they appear in a picker, so a destructive one-liner
 doesn't blend in with everything else in your history. Telescope only.
 
-- **Module:** `cmdlog/core/risky.lua`
+- **Module:** `cmdlog/core/risky.lua` (`is_risky`, `matching`),
+  `cmdlog/ui/risky_test.lua`
+- **Usercmds:** `:Cmdlog risky test <command>` — reports which patterns match
+  a given command line, so the list can be tuned without guessing from
+  picker colours. Added 2026-08-24; ignores `highlight_risky` (that gates
+  display, not evaluation) and says so when it is off.
 - **Config:** `opts.highlight_risky = true`, `opts.risky_patterns = {...}` — set either to `false`/`{}` to disable. Override the highlight group with `vim.api.nvim_set_hl(0, "CmdlogRiskyCommand", {...})` after `setup()`.
 
 ## Privacy filter (`redact_patterns`)

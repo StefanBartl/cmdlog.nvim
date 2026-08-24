@@ -9,6 +9,16 @@ Reads Neovim's own `:` command-line history (the same list `:history cmd`
 shows) via a Telescope or fzf-lua picker.
 
 - **Module:** `cmdlog/core/history.lua`
+- **Deleting (2026-08-24):** `<C-x>` deletes the entry under the cursor, or —
+  with entries marked via `mappings.toggle_selection` (default `<C-Space>`) —
+  every marked one, asking once for the batch instead of once per command.
+  The mappings call `delete_fn(cmd, on_done, opts)`; the two history sources
+  do not natively have that shape (`history.delete_entry` is synchronous and
+  returns a boolean, `shell.delete_entry` takes `(cmd, opts, on_done)`), so
+  each picker wraps its source in an adapter. Passing them through raw was a
+  real bug: the first never invoked the callback, leaving the picker open on
+  a stale list, and the second raised
+  `attempt to call local 'on_done' (a nil value)`.
 - **Usercmds:** `:Cmdlog nvim` (deduplicated), `:Cmdlog nvim-full` (with duplicates) — see [COMPOSER.md](./COMPOSER.md)
 
 ## Shell history integration
@@ -27,7 +37,17 @@ history, with per-shell path detection:
 `opts.shell_history_path` overrides auto-detection with a custom path.
 
 - **Module:** `cmdlog/core/shell.lua`
-- **Config:** `opts.shell_history_path` (default `"default"`, i.e. auto-detect)
+- **Config:** `opts.shell_history_path` (default `"default"`, i.e. auto-detect),
+  `opts.shell_history = { parse, matches }` (default `{}`, i.e. the built-in
+  per-shell parsers)
+- **Escape hatch (2026-08-24):** the per-shell parsers are hardcoded, so a
+  custom `HISTTIMEFORMAT`, a wrapper that rewrites the file, or an
+  uncovered shell had no way in. `shell_history.parse(lines, shell)` replaces
+  them. Its partner `shell_history.matches(line, cmd)` is what deletion
+  needs — it has to locate the *raw line* a command came from — and setting
+  `parse` without it makes deletion refuse rather than let the built-in
+  matcher guess at a format it does not know and rewrite the wrong lines. A
+  raising `parse` is contained: empty history plus a warning.
 - **Usercmds:** `:Cmdlog shell` (deduplicated), `:Cmdlog shell-full` (with duplicates)
 
 ## Lua-mode history

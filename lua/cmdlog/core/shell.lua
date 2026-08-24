@@ -192,6 +192,42 @@ end
 --- Returns a list (array) of commands read from the shell history file.
 --- The parsing is tailored for each supported shell format.
 --- @return string[] history lines (commands)
+--- The user's `shell_history` override, if it supplies a parser.
+---
+--- The escape hatch for a history format the built-in parsers don't know: a
+--- custom `HISTTIMEFORMAT`, a wrapper that rewrites the file, a shell not
+--- listed here at all. See `M.custom_matcher` for the half people forget.
+---@internal
+---@return (fun(lines: string[], shell: string): string[])|nil
+local function custom_parser()
+  local cfg = require("cmdlog.config").options.shell_history
+  if type(cfg) == "table" and type(cfg.parse) == "function" then return cfg.parse end
+  return nil
+end
+
+--- The user's `shell_history.matches`, if any.
+---
+--- Parsing and deleting are two halves of one format: `delete_entry` has to
+--- find the *raw line* a parsed command came from in order to remove it. A
+--- custom parser without a matching `matches` is therefore incomplete, and
+--- `delete_entry` refuses rather than falling back to the built-in matcher --
+--- guessing here rewrites a history file, and the wrong guess deletes the
+--- wrong lines.
+---@internal
+---@return (fun(line: string, cmd: string): boolean)|nil
+function M.custom_matcher()
+  local cfg = require("cmdlog.config").options.shell_history
+  if type(cfg) == "table" and type(cfg.matches) == "function" then return cfg.matches end
+  return nil
+end
+
+--- True when a parser was configured, whether or not a matcher was.
+---@internal
+---@return boolean
+function M.has_custom_parser()
+  return custom_parser() ~= nil
+end
+
 function M.get_shell_history()
   ---@type string[]
   local history = {}
@@ -205,6 +241,29 @@ function M.get_shell_history()
 
   local shell = M.get_shell_name()
   if shell == "" then return history end
+
+  local parse = custom_parser()
+  if parse then
+    -- A user parser runs over data read off disk; a fault in it should leave
+    -- the picker empty, not break `:Cmdlog shell` with a stack trace.
+    local ok_parse, parsed = pcall(parse, lines, shell)
+    if not ok_parse then
+      require("lib.nvim.notify")
+        .create("[cmdlog]")
+        .warn("shell_history.parse failed: " .. tostring(parsed))
+      return history
+    end
+    if type(parsed) ~= "table" then
+      require("lib.nvim.notify")
+        .create("[cmdlog]")
+        .warn("shell_history.parse must return a list of strings")
+      return history
+    end
+    for _, cmd in ipairs(parsed) do
+      if type(cmd) == "string" and cmd ~= "" then table.insert(history, cmd) end
+    end
+    return history
+  end
 
   -- Parse according to shell type
   if shell == "zsh" then
@@ -260,6 +319,13 @@ end
 ---@param cmd string
 ---@return boolean
 local function line_matches_command(shell, line, cmd)
+  local custom = M.custom_matcher()
+  if custom then
+    local ok, matched = pcall(custom, line, cmd)
+    -- A matcher that errors must not be read as "yes, delete this line".
+    return ok and matched == true
+  end
+
   if shell == "zsh" then
     return line:match(";%s*(.*)") == cmd
   elseif shell == "fish" then
@@ -283,6 +349,16 @@ end
 ---@param on_done fun(ok: boolean, err: string|nil)
 function M.delete_entry(cmd, opts, on_done)
   opts = opts or {}
+
+  if M.has_custom_parser() and not M.custom_matcher() then
+    on_done(
+      false,
+      "shell_history.parse is set without shell_history.matches -- refusing to "
+        .. "rewrite the history file, since the built-in matcher does not know "
+        .. "your format and would delete the wrong lines"
+    )
+    return
+  end
 
   local path = M.get_shell_history_path()
   if path == "" then

@@ -52,7 +52,8 @@ also shows in the Telescope prompt title.
 | `<CR>`    | `mappings.select`          | Insert the selected command into the cmdline (no execution) |
 | `<Tab>`   | `mappings.toggle_favorite` | Toggle favorite status for the selected command   |
 | `<C-r>`   | `mappings.refresh`         | Refresh the current picker                        |
-| `<C-x>`   | `mappings.delete`          | Delete the selected entry from its underlying history (Neovim `:` history or the shell history file) |
+| `<C-x>`   | `mappings.delete`          | Delete the selected entry — or every marked one — from its underlying history (Neovim `:` history or the shell history file) |
+| `<C-Space>` | `mappings.toggle_selection` | Mark/unmark an entry for a batch delete, then move down |
 | `<C-t>`   | `mappings.tag`             | Tag the selected favorite (favorites picker only) |
 | `<C-e>`   | `mappings.note`            | Add/edit a note on the selected favorite, blank input removes it (favorites picker only) |
 | `<C-g>`   | `mappings.show_note`       | Peek the selected favorite's note in a floating popup (favorites picker only) |

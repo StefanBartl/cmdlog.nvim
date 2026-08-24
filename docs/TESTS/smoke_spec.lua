@@ -196,6 +196,134 @@ do
   check("favorite_notes.set_note('') deletes the note", favorite_notes.get_note(":w") == nil)
 end
 
+-- ── core.risky: which patterns matched, not just whether any did ───────────
+do
+  local config = require("cmdlog.config")
+  config.options.highlight_risky = true
+  config.options.risky_patterns = { "rm%s+%-rf", "mkfs", "%[unfinished" }
+  local risky = require("cmdlog.core.risky")
+
+  local hits = risky.matching("sudo rm -rf /tmp/x")
+  check(
+    "risky.matching: reports the pattern that fired",
+    #hits == 1 and hits[1] == "rm%s+%-rf",
+    vim.inspect(hits)
+  )
+  check("risky.matching: no match returns an empty list", #risky.matching("ls -la") == 0)
+  check("risky.is_risky still agrees with matching", risky.is_risky("sudo rm -rf /") == true)
+
+  -- A malformed user pattern must exclude itself rather than break the
+  -- picker that is only trying to colour a line.
+  local ok_bad = pcall(risky.matching, "some [unfinished thing")
+  check("risky.matching: a malformed pattern does not raise", ok_bad)
+
+  -- highlight_risky gates display, not evaluation -- otherwise `risky test`
+  -- would answer "no match" for someone who turned highlighting off.
+  config.options.highlight_risky = false
+  check("risky.matching ignores highlight_risky", #risky.matching("mkfs.ext4 /dev/sda") == 1)
+  check("risky.is_risky honours highlight_risky", risky.is_risky("mkfs.ext4 /dev/sda") == false)
+  config.options.highlight_risky = true
+
+  local ok_report = pcall(function()
+    require("cmdlog.ui.risky_test").report("sudo rm -rf /")
+    require("cmdlog.ui.risky_test").report("ls")
+    require("cmdlog.ui.risky_test").report("")
+  end)
+  check("risky_test.report: runs for match / no-match / empty", ok_report)
+end
+
+-- ── core.shell: the custom-parser escape hatch ─────────────────────────────
+do
+  local config = require("cmdlog.config")
+  local shell = require("cmdlog.core.shell")
+
+  local histfile = vim.fn.tempname() .. "-cmdlog-hist"
+  vim.fn.writefile({ "2026-08-24|git status", "2026-08-24|ls -la" }, histfile)
+  config.options.shell_history_path = histfile
+
+  config.options.shell_history = {
+    parse = function(lines)
+      local out = {}
+      for _, line in ipairs(lines) do
+        out[#out + 1] = line:match("|(.*)$")
+      end
+      return out
+    end,
+  }
+
+  local parsed = shell.get_shell_history()
+  check(
+    "shell_history.parse: used instead of the built-in parsers",
+    #parsed == 2 and parsed[1] == "git status",
+    vim.inspect(parsed)
+  )
+
+  -- parse without matches must refuse to delete rather than let the built-in
+  -- matcher guess at a format it does not know and remove the wrong lines.
+  local refused_err
+  shell.delete_entry("git status", nil, function(ok, err)
+    refused_err = (not ok) and err or nil
+  end)
+  check(
+    "delete_entry: refuses when parse is set without matches",
+    refused_err ~= nil and refused_err:find("matches", 1, true) ~= nil,
+    tostring(refused_err)
+  )
+
+  -- With both halves, deletion works and rewrites only the matching line.
+  config.options.shell_history.matches = function(line, cmd)
+    return line:match("|(.*)$") == cmd
+  end
+  local deleted
+  shell.delete_entry("git status", { skip_confirm = true }, function(ok)
+    deleted = ok
+  end)
+  check("delete_entry: works once matches is supplied", deleted == true)
+  check(
+    "delete_entry: removed only the matching line",
+    vim.deep_equal(vim.fn.readfile(histfile), { "2026-08-24|ls -la" }),
+    vim.inspect(vim.fn.readfile(histfile))
+  )
+
+  -- A parser that raises leaves the picker empty rather than breaking it.
+  config.options.shell_history = {
+    parse = function()
+      error("boom")
+    end,
+  }
+  local ok_raise, raised = pcall(shell.get_shell_history)
+  check("shell_history.parse: a raising parser is contained", ok_raise and #raised == 0)
+
+  config.options.shell_history = {}
+end
+
+-- ── delete_fn contract: every picker source honours (cmd, on_done, opts) ───
+--
+-- Regression: the mappings call delete_fn(cmd, on_done, opts), but
+-- history.delete_entry is (cmd) -> boolean and shell.delete_entry is
+-- (cmd, opts, on_done). Passed straight through, the first never invoked the
+-- callback (picker stayed open on a stale list) and the second raised
+-- "attempt to call local 'on_done' (a nil value)". Both go through adapters
+-- now; this pins the underlying signatures those adapters assume.
+do
+  local history = require("cmdlog.core.history")
+  check(
+    "history.delete_entry is synchronous and returns a boolean",
+    type(history.delete_entry("nothing matches this")) == "boolean"
+  )
+
+  local shell = require("cmdlog.core.shell")
+  local got
+  shell.delete_entry("nothing matches this", { skip_confirm = true }, function(ok, err)
+    got = { ok = ok, err = err }
+  end)
+  check(
+    "shell.delete_entry is (cmd, opts, on_done) and always calls back",
+    type(got) == "table" and got.ok == false,
+    vim.inspect(got)
+  )
+end
+
 -- ── :checkhealth cmdlog (smoke only -- asserts it runs without erroring) ────
 do
   local ok, err = pcall(function()
