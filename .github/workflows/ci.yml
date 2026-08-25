@@ -17,7 +17,7 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           version: v2.5.2
-          args: --check lua docs/TESTS
+          args: --check lua TESTS
 
       - name: Install luacheck
         run: sudo apt-get update && sudo apt-get install -y luarocks && sudo luarocks install luacheck
@@ -67,4 +67,4 @@ jobs:
         working-directory: cmdlog.nvim
         env:
           REPOS_DIR: ${{ github.workspace }}
-        run: nvim -l docs/TESTS/smoke_spec.lua
+        run: nvim -l TESTS/smoke_spec.lua
