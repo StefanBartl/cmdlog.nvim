@@ -1,0 +1,21 @@
+# Force LF line endings in the repo and on checkout, on every OS.
+# core.autocrlf is unreliable across machines/repos; this makes the
+# behavior explicit and repo-local instead.
+* text=auto eol=lf
+
+*.lua  text eol=lf
+*.sh   text eol=lf
+*.md   text eol=lf
+*.json text eol=lf
+*.txt  text eol=lf
+*.yml  text eol=lf
+*.yaml text eol=lf
+*.toml text eol=lf
+
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.zip binary
