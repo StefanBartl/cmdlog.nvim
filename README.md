@@ -131,11 +131,7 @@ This ensures `:Cmdlog` and all its subcommands (`:Cmdlog favorites`, etc.) are a
     "nvim-telescope/telescope.nvim", -- Required if you use picker = "telescope"
     "ibhagwan/fzf-lua",              -- Required if you use picker = "fzf"
   },
-  config = function()
-    require("cmdlog").setup({
-      picker = "telescope",  -- or "fzf"
-    })
-  end,
+  opts = {}, -- picker defaults to "telescope"; set `picker = "fzf"` to switch
 }
 ```
 
