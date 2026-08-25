@@ -231,6 +231,39 @@ command isn't risky". Matching here ignores `highlight_risky`, since someone
 tuning patterns wants them evaluated either way; the output says so when that
 switch is off. A malformed pattern excludes itself instead of raising.
 
+### `preview_execute` (previews do not run commands)
+
+Off by default. With it off, a picker's preview never executes a history
+entry: `:edit <file>` shows the file, and `:help`, `:lua`, `:terminal` and
+`:!` show the command line and a note instead of their output.
+
+That is the default because previewing is a browse action — you move the
+cursor down a list — and because the entries are not necessarily your own.
+`extra_files` folds arbitrary plain-text files in as history sources, and
+shell history is folded in too. With execution on, arrowing past
+`:!rm -rf build` runs it, past `:lua vim.fn.delete(x)` deletes `x` again,
+past `:term <cmd>` spawns it.
+
+Turn it on if you want the output previews back:
+
+```lua
+require("cmdlog").setup({ preview_execute = true })
+```
+
+Two things still refuse to run even then:
+
+- **an entry matching `risky_patterns`.** That list exists to name the
+  commands whose whole problem is running them a second time; highlighting one
+  as destructive and then executing it on hover would contradict the
+  highlight.
+- **an argument that could end the command it is interpolated into.** A
+  `:help` topic goes into a Vim `-c` string, where `|` starts a new command,
+  and on the fzf side into a single-quoted shell word as well. `:help x | !cmd`
+  was a working injection through exactly that path.
+
+Reading a file for `:edit` is unaffected by any of this: reading is not
+running.
+
 ### Unsupported shell-history formats
 
 `shell_history` is the escape hatch when the built-in per-shell parsers can't

@@ -92,6 +92,23 @@ local DEFAULTS = {
     -- matches = function(line, cmd) ... end,
   },
 
+  -- Whether a picker's preview may *run* a history entry.
+  --
+  -- Off, because previewing is a browse action and the entries are not
+  -- necessarily the user's own: `extra_files` folds arbitrary plain-text
+  -- files in as history sources, and shell history is folded in too. With
+  -- this on, moving the cursor onto `:!<cmd>` in the picker runs it, onto
+  -- `:lua <expr>` evaluates it, onto `:term <cmd>` spawns it.
+  --
+  -- Even when enabled, an entry matching `risky_patterns` is never run --
+  -- that list exists to name the commands whose whole problem is running
+  -- them again -- and an argument carrying a `|`, a quote or a shell
+  -- metacharacter is refused, because the previewers interpolate it into a
+  -- command string.
+  --
+  -- `:edit <file>` previews the file either way: reading is not running.
+  preview_execute = false,
+
   -- Highlight commands that are prone to causing damage or data loss.
   -- `risky_patterns` are plain Lua patterns matched against each command;
   -- set to `false` (or an empty table) to disable highlighting entirely.

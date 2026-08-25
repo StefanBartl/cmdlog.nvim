@@ -324,6 +324,103 @@ do
   )
 end
 
+-- ── preview policy (a preview reads, it does not run) ─────────────────
+do
+  local policy = require("cmdlog.ui.preview_policy")
+  local config = require("cmdlog.config")
+
+  -- The default. Every executing kind has to come back refused, because the
+  -- entries feeding the picker are not necessarily the user's own: extra_files
+  -- folds arbitrary plain-text files in, and shell history is folded in too.
+  config.options.preview_execute = false
+
+  for _, case in ipairs({
+    { ":!rm -rf build", "shell" },
+    { ":lua vim.fn.delete('x')", "lua" },
+    { ":term echo hi", "terminal" },
+    { ":help vim.lsp", "help" },
+  }) do
+    local plan = policy.plan(case[1])
+    check(
+      ("preview_policy: %s is classified %s and refused by default"):format(case[1], case[2]),
+      plan.kind == case[2]
+        and plan.executes == true
+        and plan.allowed == false
+        and plan.reason == "disabled",
+      vim.inspect(plan)
+    )
+  end
+
+  -- Reading a file is not running anything, so it is never gated.
+  local file_plan = policy.plan(":edit init.lua")
+  check(
+    "preview_policy: :edit previews without the gate",
+    file_plan.kind == "file" and file_plan.executes == false and file_plan.allowed == true,
+    vim.inspect(file_plan)
+  )
+
+  config.options.preview_execute = true
+
+  -- Opted in, but risky_patterns still wins: highlighting a command as
+  -- destructive and then running it on hover would contradict the highlight.
+  local risky = policy.plan(":!rm -rf build")
+  check(
+    "preview_policy: risky_patterns still refuses with preview_execute on",
+    risky.allowed == false and risky.reason == "risky",
+    vim.inspect(risky)
+  )
+
+  -- The injection this gate was added for: "|" ends the help command inside
+  -- the previewer's `-c` string and starts another one. Verified before the
+  -- fix -- it really did run the injected writefile.
+  local injected = policy.plan(':help x | call writefile(["pwned"], "/tmp/x")')
+  check(
+    "preview_policy: a help topic carrying a Vim command separator is refused",
+    injected.allowed == false and injected.reason == "unsafe-argument",
+    vim.inspect(injected)
+  )
+
+  check(
+    "preview_policy: topic_is_safe rejects what ends a Vim command",
+    not policy.topic_is_safe("x | y")
+      and not policy.topic_is_safe("x\ny")
+      and not policy.topic_is_safe(""),
+    "one of the unsafe topics was accepted"
+  )
+
+  -- Real help tags are punctuation-heavy, and so is any Lua expression worth
+  -- previewing; a filter strict enough for a shell word would reject both,
+  -- i.e. turn the feature off rather than make it safe.
+  check(
+    "preview_policy: ordinary help tags and expressions stay previewable",
+    policy.topic_is_safe("vim.lsp.buf")
+      and policy.topic_is_safe("i_CTRL-W")
+      and policy.topic_is_safe("v:count")
+      and policy.topic_is_safe("'shiftwidth'")
+      and policy.topic_is_safe("vim.fn.getcwd()"),
+    "a legitimate help tag or expression was rejected"
+  )
+
+  -- The shell check is stricter, and only the fzf previewer needs it: a
+  -- single quote ends the quoted `-c` word its contract forces.
+  check(
+    "preview_policy: shell_arg_is_safe additionally rejects a single quote",
+    policy.shell_arg_is_safe("vim.fn.getcwd()")
+      and not policy.shell_arg_is_safe("'shiftwidth'")
+      and not policy.shell_arg_is_safe("x | y"),
+    "the shell-word check disagreed"
+  )
+
+  local allowed = policy.plan(":lua vim.fn.getcwd()")
+  check(
+    "preview_policy: a safe expression is allowed once opted in",
+    allowed.kind == "lua" and allowed.allowed == true,
+    vim.inspect(allowed)
+  )
+
+  config.options.preview_execute = false
+end
+
 -- ── :checkhealth cmdlog (smoke only -- asserts it runs without erroring) ────
 do
   local ok, err = pcall(function()

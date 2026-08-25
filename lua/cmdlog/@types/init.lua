@@ -55,5 +55,6 @@
 ---@field mappings CmdlogMappingsConfig
 ---@field keymaps CmdlogKeymapsConfig
 ---@field shell_history CmdlogShellHistoryConfig
+---@field preview_execute boolean
 ---@field highlight_risky boolean
 ---@field risky_patterns string[]|false
