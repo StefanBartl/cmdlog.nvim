@@ -137,9 +137,18 @@ This ensures `:Cmdlog` and all its subcommands (`:Cmdlog favorites`, etc.) are a
 
 ### Load lazily (alternative)
 
-You can also lazy-load the plugin if you prefer:
+You can also lazy-load the plugin — but read the note under the first two
+options first: two of the three triggers below cost you the very history the
+plugin exists to show.
 
 #### Option 1: Lazy-load on demand (command)
+
+> **This costs you the history it is meant to show.** `setup()` starts the
+> `CmdlineLeave` tracker that records every `:` command — that recording *is*
+> the plugin. Loading on a command or a key means the tracker starts at the
+> moment you first ask for the history, so everything you typed before that is
+> not in it. Use the event form below, or no lazy trigger at all, unless you
+> only want commands recorded from your first `:Cmdlog` onwards.
 
 ```lua
 {
@@ -151,11 +160,9 @@ You can also lazy-load the plugin if you prefer:
     "nvim-telescope/telescope.nvim",
     "ibhagwan/fzf-lua",
   },
-  config = function()
-    require("cmdlog").setup({
-      picker = "fzf", -- or "telescope"
-    })
-  end,
+  opts = {
+    picker = "fzf", -- default is "telescope"
+  },
 }
 ```
 
@@ -164,6 +171,13 @@ You can also lazy-load the plugin if you prefer:
 > covers every one of them for lazy-loading — no need to list each variant.
 
 #### Option 2: Lazy-load via keybindings
+
+> **This costs you the history it is meant to show.** `setup()` starts the
+> `CmdlineLeave` tracker that records every `:` command — that recording *is*
+> the plugin. Loading on a command or a key means the tracker starts at the
+> moment you first ask for the history, so everything you typed before that is
+> not in it. Use the event form below, or no lazy trigger at all, unless you
+> only want commands recorded from your first `:Cmdlog` onwards.
 
 ```lua
 {
@@ -178,11 +192,7 @@ You can also lazy-load the plugin if you prefer:
     "nvim-telescope/telescope.nvim",
     "ibhagwan/fzf-lua",
   },
-  config = function()
-    require("cmdlog").setup({
-      picker = "telescope",
-    })
-  end,
+  opts = {}, -- picker already defaults to "telescope"
 }
 ```
 
@@ -199,11 +209,7 @@ You can also lazy-load the plugin if you prefer:
     "StefanBartl/lib.nvim",
     "nvim-telescope/telescope.nvim",
   },
-  config = function()
-    require("cmdlog").setup({
-      picker = "telescope", -- or "fzf"
-    })
-  end,
+  opts = {}, -- picker defaults to "telescope"; set `picker = "fzf"` to switch
 }
 ```
 
