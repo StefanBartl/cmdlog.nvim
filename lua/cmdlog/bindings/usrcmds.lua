@@ -3,7 +3,7 @@
 ---
 --- Two changes met here. The command surface moved from seven flat
 --- `:CmdlogX` commands to one `:Cmdlog <subcommand>` verb built on
---- lib.nvim.usercmd.composer; and its registration site moved out of
+--- lib.nvim.bindings.usercmd.composer; and its registration site moved out of
 --- `lua/cmdlog/ui/picker.lua` into this bindings/ module, so
 --- docs/BINDINGS.md and the code cannot drift apart.
 ---
@@ -98,7 +98,7 @@ end
 --- zero-arg entry-point keymaps -- rather than special-cased there.
 ---@return nil
 function M.register()
-  local composer = require("lib.nvim.usercmd.composer")
+  local composer = require("lib.nvim.bindings.usercmd.composer")
 
   local default_run, routes = nil, {}
   for _, entry in ipairs(M.catalog) do

@@ -3,7 +3,7 @@
 ## The `:Cmdlog <subcommand>` command tree
 
 Every picker cmdlog offers is a route under one command, `:Cmdlog`, built on
-`lib.nvim.usercmd.composer` instead of ten separate `:CmdlogXxx` commands.
+`lib.nvim.bindings.usercmd.composer` instead of ten separate `:CmdlogXxx` commands.
 `<Tab>` completes the subcommand name. This replaced an earlier surface of
 seven flat commands (`:CmdlogFavorites`, `:CmdlogNvimFull`, ...) — a repo
 still on an old `docs/BINDINGS.md` or blog post describing those flat names

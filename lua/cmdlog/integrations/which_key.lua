@@ -3,7 +3,7 @@
 --- installed. No-op otherwise.
 ---
 --- The actual `vim.keymap.set` calls happen exactly once, in
---- cmdlog.bindings.keymaps.register() (via lib.nvim.map), which already
+--- cmdlog.bindings.keymaps.register() (via lib.nvim.bindings.keymap), which already
 --- attaches a `desc` to every mapping -- which-key v3+ picks those up on
 --- its own without any registration step. This module previously called
 --- vim.keymap.set() a second time for the same lhs/rhs pairs, which was

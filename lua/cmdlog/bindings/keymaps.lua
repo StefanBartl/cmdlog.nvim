@@ -13,7 +13,7 @@
 --- `bindings.usrcmds` instead of restating it means a newly added
 --- subcommand is mappable immediately, with no second list to update.
 
-local map = require("lib.nvim.map")
+local map = require("lib.nvim.bindings.keymap")
 
 local M = {}
 

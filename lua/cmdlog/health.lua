@@ -73,7 +73,7 @@ function M.check()
     warn("Could not detect a supported shell (SHELL unset and no known history file found)")
   end
 
-  require("lib.nvim.usercmd.composer").checkhealth("Cmdlog")
+  require("lib.nvim.bindings.usercmd.composer").checkhealth("Cmdlog")
 end
 
 return M

@@ -46,7 +46,7 @@ REQUIREMENTS                                           *cmdlog-requirements*
 Required plugins:
 
 - lib.nvim              (required: the :Cmdlog command layer is built on
-                          lib.nvim.usercmd.composer; also supplies the
+                          lib.nvim.bindings.usercmd.composer; also supplies the
                           cross-platform fs/notify/job helpers)
 - telescope.nvim        (required when picker = "telescope")
 - fzf-lua               (required when picker = "fzf")
@@ -105,7 +105,7 @@ errors_path          Path to the known-error-commands JSON file.
 ==============================================================================
 COMMANDS                                               *cmdlog-commands*
 
-One command, :Cmdlog [subcommand], built via lib.nvim.usercmd.composer
+One command, :Cmdlog [subcommand], built via lib.nvim.bindings.usercmd.composer
 (https://github.com/StefanBartl/lib.nvim) with <Tab> completion on the
 subcommand.
 

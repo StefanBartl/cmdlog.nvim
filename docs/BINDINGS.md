@@ -13,7 +13,7 @@ prose. Inspect it at runtime (plugin must be loaded) with:
 
 Registered in [`lua/cmdlog/bindings/usrcmds.lua`](../lua/cmdlog/bindings/usrcmds.lua)
 as a single `:Cmdlog [subcommand]` verb, built via
-`lib.nvim.usercmd.composer` with `<Tab>` completion on the subcommand.
+`lib.nvim.bindings.usercmd.composer` with `<Tab>` completion on the subcommand.
 
 | Command                 | Description                                                                  |
 | ------------------------ | ---------------------------------------------------------------------------- |

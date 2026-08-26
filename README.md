@@ -252,7 +252,7 @@ require("cmdlog").setup({ picker = "telescope" })
 
 Make sure the following plugins are installed:
 
-- [lib.nvim](https://github.com/StefanBartl/lib.nvim) – required: the `:Cmdlog` command tree is built on `lib.nvim.usercmd.composer`, plus cross-platform fs/notify/job helpers
+- [lib.nvim](https://github.com/StefanBartl/lib.nvim) – required: the `:Cmdlog` command tree is built on `lib.nvim.bindings.usercmd.composer`, plus cross-platform fs/notify/job helpers
 - [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim) (only if picker = "telescope")
 - [fzf-lua](https://github.com/ibhagwan/fzf-lua) (only if picker = "fzf")
 
@@ -301,7 +301,7 @@ This plugin provides several Telescope-based pickers to explore and reuse comman
 
 ### Command Syntax
 
-`:Cmdlog [subcommand]` — built via [`lib.nvim.usercmd.composer`](https://github.com/StefanBartl/lib.nvim),
+`:Cmdlog [subcommand]` — built via [`lib.nvim.bindings.usercmd.composer`](https://github.com/StefanBartl/lib.nvim),
 with `<Tab>` completion on the subcommand. Bare `:Cmdlog` (no subcommand)
 keeps its original meaning.
 
