@@ -74,8 +74,7 @@ contains the command gets updated.
 ## Configurable picker keymaps
 
 `<CR>` (insert without executing), `<Tab>` (toggle favorite), `<C-r>`
-(refresh), `<C-x>` (delete), `<C-t>` (tag), `<C-e>` (add/edit a favorite's
-note), `<C-g>` (peek a favorite's note), `<C-s>` (cycle source), `<C-z>`
+(refresh), `<C-x>` (delete), `<C-t>` (tag), `<C-s>` (cycle source), `<C-z>`
 (undo favorite), `<C-Up>`/`<C-Down>` (reorder favorite) are all
 remappable or individually disableable via `setup({ mappings = {...} })`;
 `mappings.enabled = false` turns all of them off at once. A legend of

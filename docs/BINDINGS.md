@@ -55,8 +55,6 @@ also shows in the Telescope prompt title.
 | `<C-x>`   | `mappings.delete`          | Delete the selected entry — or every marked one — from its underlying history (Neovim `:` history or the shell history file) |
 | `<C-Space>` | `mappings.toggle_selection` | Mark/unmark an entry for a batch delete, then move down |
 | `<C-t>`   | `mappings.tag`             | Tag the selected favorite (favorites picker only) |
-| `<C-e>`   | `mappings.note`            | Add/edit a note on the selected favorite, blank input removes it (favorites picker only) |
-| `<C-g>`   | `mappings.show_note`       | Peek the selected favorite's note in a floating popup (favorites picker only) |
 | `<C-s>`   | `mappings.cycle_source`    | Rotate to the next picker (nvim → shell → favorites → project → …), keeping the current prompt text. Telescope only ([`ui/cycle.lua`](../lua/cmdlog/ui/cycle.lua)) |
 | `<C-z>`   | `mappings.undo_favorite`   | Undo the most recent favorite toggle (single-level) |
 | `<C-Up>`  | `mappings.move_favorite_up`   | Move the selected favorite up one slot (favorites picker only) |
@@ -96,5 +94,7 @@ carries a `desc`, so [which-key.nvim](https://github.com/folke/which-key.nvim)
 
 None. cmdlog registers no autocmds; the catalog in
 [`lua/cmdlog/bindings/autocmds.lua`](../lua/cmdlog/bindings/autocmds.lua)
-is empty (the note-buffer autosave autocmds went away with the notes side
-window).
+is empty. It has been through two rounds of emptying: the note-buffer
+autosave autocmds went with the notes side window, and the rest with the
+favorite-notes feature itself (removed 2026-08-27 — see
+[FEATURES/FAVORITES.md](FEATURES/FAVORITES.md)).

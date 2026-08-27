@@ -10,8 +10,6 @@
 ---@field delete string|false
 ---@field toggle_selection string|false  # mark entries for a batch delete
 ---@field tag string|false
----@field note string|false
----@field show_note string|false
 ---@field cycle_source string|false
 ---@field undo_favorite string|false
 ---@field move_favorite_up string|false
@@ -44,7 +42,6 @@
 ---@field favorites_path string
 ---@field shell_history_path string|'"default"'
 ---@field favorite_tags_path string
----@field favorite_notes_path string
 ---@field project_history_path string
 ---@field stats_path string
 ---@field errors_path string

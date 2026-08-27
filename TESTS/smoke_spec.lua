@@ -61,7 +61,6 @@ local modules = {
   "cmdlog.core.errors",
   "cmdlog.core.extra_files",
   "cmdlog.core.favorites",
-  "cmdlog.core.favorite_notes",
   "cmdlog.core.history",
   "cmdlog.core.project_history",
   "cmdlog.core.risky",
@@ -82,7 +81,6 @@ local modules = {
   "cmdlog.ui.history_unique_picker",
   "cmdlog.ui.lua_picker",
   "cmdlog.ui.mappings",
-  "cmdlog.ui.note_popup",
   "cmdlog.ui.picker_utils",
   "cmdlog.ui.project_picker",
   "cmdlog.ui.shell_picker",
@@ -176,24 +174,6 @@ do
       and two_blocks[2].label == "shell history",
     vim.inspect(two_blocks)
   )
-end
-
--- ── core.favorite_notes round trip (isolated path, doesn't touch real data) ─
-do
-  local config = require("cmdlog.config")
-  config.options.favorite_notes_path = vim.fn.tempname() .. "-cmdlog-favorite-notes.json"
-  local favorite_notes = require("cmdlog.core.favorite_notes")
-
-  check("favorite_notes.get_note: nothing set yet", favorite_notes.get_note(":w") == nil)
-
-  favorite_notes.set_note(":w", "saves the buffer")
-  check(
-    "favorite_notes.set_note/get_note round trip",
-    favorite_notes.get_note(":w") == "saves the buffer"
-  )
-
-  favorite_notes.set_note(":w", "")
-  check("favorite_notes.set_note('') deletes the note", favorite_notes.get_note(":w") == nil)
 end
 
 -- ── core.risky: which patterns matched, not just whether any did ───────────

@@ -111,8 +111,6 @@ local function build_legend()
     { mappings.refresh, "refresh" },
     { mappings.delete, "del" },
     { mappings.tag, "tag" },
-    { mappings.note, "note" },
-    { mappings.show_note, "peek note" },
     { mappings.cycle_source, "cycle" },
     { mappings.undo_favorite, "undo" },
   }

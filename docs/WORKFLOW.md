@@ -89,15 +89,6 @@ fine on its own. Favorite the things stats *doesn't* surface: the
 one-off you'll need again in three weeks and won't remember well enough
 to search for.
 
-## Notes for the command you'll forget the reasoning behind
-
-`<Tab>` favoriting captures *that* a command matters; it doesn't
-capture *why*. For anything non-obvious — a flag combination that took
-you fifteen minutes to get right, a one-liner that broke something
-before you fixed the args — favorite it and attach a note with
-`mappings.note` (`<C-e>`, favorites picker); `mappings.show_note`
-(`<C-g>`) peeks it later without leaving the picker.
-
 ## Export before a risky edit, import after a machine switch
 
 `:Cmdlog export` (no path) writes your current favorites to

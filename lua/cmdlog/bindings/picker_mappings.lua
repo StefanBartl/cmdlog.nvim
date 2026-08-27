@@ -21,14 +21,6 @@ M.catalog = {
     config_key = "mappings.delete",
     desc = "Delete the selected entry from its underlying history",
   },
-  note = {
-    config_key = "mappings.note",
-    desc = "Add/edit a note on the selected favorite (blank input removes it)",
-  },
-  show_note = {
-    config_key = "mappings.show_note",
-    desc = "Peek the selected favorite's note in a floating popup",
-  },
 }
 
 --- Returns the catalog with each entry's currently configured key merged in.
