@@ -382,3 +382,7 @@ For general discussion, feel free to open a [GitHub Discussion](https://github.c
 If you find this plugin helpful, consider giving it a ⭐ on GitHub — it helps others discover the project.
 
 ---
+
+## License
+
+MIT — see [LICENSE](LICENSE).
