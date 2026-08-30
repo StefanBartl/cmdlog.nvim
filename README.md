@@ -12,17 +12,16 @@
                                             .nvim
 ```
 
-![status](https://img.shields.io/badge/status-beta-orange.svg)
-![Lazy.nvim compatible](https://img.shields.io/badge/lazy.nvim-supported-success)
-![Neovim](https://img.shields.io/badge/Neovim-0.9+-success.svg)
-![Lua](https://img.shields.io/badge/language-Lua-yellow.svg)
-![Contributions](https://img.shields.io/badge/contributions-welcome-brightgreen.svg)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Neovim](https://img.shields.io/badge/Neovim-0.9%2B-57A143?logo=neovim&logoColor=white)](https://neovim.io)
+[![Lua](https://img.shields.io/badge/Lua-5.1%2FLuaJIT-2C2D72?logo=lua&logoColor=white)](https://www.lua.org)
+![Status](https://img.shields.io/badge/status-beta-orange)
 
 > **Pairs well with [filetree.nvim](https://github.com/StefanBartl/filetree.nvim)** — cmdlog.nvim gives you fast recall of past `:` and shell commands, filetree.nvim gives you adapter-agnostic file-tree actions. Together they cover command reuse and file navigation in one consistent style.
 
-🔧 Beta stage – under active development. Changes possible. Expect bugs, especially with the history feature on windows systems.
+Changes possible. Expect bugs, especially with the history feature on Windows systems.
 
-A lightweight, modern Neovim plugin to interactively view, search, and reuse command-line mode (`:`) history and shell history using Telescope (standard) ord fzf.
+A lightweight, modern Neovim plugin to interactively view, search, and reuse command-line mode (`:`) history and shell history using Telescope (standard) or fzf.
 
 ---
 
