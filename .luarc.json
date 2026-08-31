@@ -7,10 +7,5 @@
   ],
   "diagnostics.globals": ["vim"],
   "diagnostics.unusedLocalExclude": ["_*"],
-  "workspace.checkThirdParty": false,
-  "workspace.ignoreDir": [
-    ".git",
-    "doc",
-    "docs"
-  ]
+  "workspace.checkThirdParty": false
 }
