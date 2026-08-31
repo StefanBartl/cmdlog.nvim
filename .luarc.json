@@ -8,10 +8,6 @@
   "diagnostics.globals": ["vim"],
   "diagnostics.unusedLocalExclude": ["_*"],
   "workspace.checkThirdParty": false,
-  "workspace.library": [
-    "${3rd}/luv/library",
-    "$VIMRUNTIME/lua"
-  ],
   "workspace.ignoreDir": [
     ".git",
     "doc",
