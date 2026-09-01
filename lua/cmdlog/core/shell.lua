@@ -197,8 +197,13 @@ end
 --- The escape hatch for a history format the built-in parsers don't know: a
 --- custom `HISTTIMEFORMAT`, a wrapper that rewrites the file, a shell not
 --- listed here at all. See `M.custom_matcher` for the half people forget.
+---The whole function type has a name, because `(fun(...): T)|nil` is read as
+---`fun(...): T|nil` -- the parentheses do not help, and the union then applies
+---to the *return value* instead of to the function.
+---@alias Cmdlog.ShellHistoryParser fun(lines: string[], shell: string): string[]
+
 ---@internal
----@return (fun(lines: string[], shell: string): string[])|nil
+---@return Cmdlog.ShellHistoryParser|nil
 local function custom_parser()
   local cfg = require("cmdlog.config").options.shell_history
   if type(cfg) == "table" and type(cfg.parse) == "function" then return cfg.parse end

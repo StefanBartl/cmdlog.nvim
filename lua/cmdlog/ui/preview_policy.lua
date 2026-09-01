@@ -142,7 +142,7 @@ function M.plan(cmd)
   -- through `load`, which is the execution this gate already covers. The fzf
   -- previewer, whose contract is a shell string, applies `shell_arg_is_safe`
   -- itself -- the constraint is its quoting, not this policy's.
-  if kind == "help" and not M.topic_is_safe(arg) then
+  if kind == "help" and not M.topic_is_safe(arg or "") then
     plan.reason = "unsafe-argument"
     return plan
   end
