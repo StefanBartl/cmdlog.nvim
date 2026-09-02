@@ -58,6 +58,11 @@ Set any `mappings.*` entry to `false` to disable that keybinding, or to a differ
 `mappings.tag` only binds in the favorites picker: tags are stored per
 favorite, so tagging a command that is not one has nothing to attach to.
 
+`mappings` applies to the **Telescope backend only**. With `picker = "fzf"` the
+whole table is ignored: fzf-lua receives a single `default` action that runs
+the selected command, and nothing listed here is bound. See
+[BINDINGS.md](./BINDINGS.md).
+
 ### `keymaps`
 
 Optional map of `:Cmdlog` subcommand name to a normal-mode `lhs`. Use `""`

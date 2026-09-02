@@ -286,7 +286,7 @@ require("cmdlog").setup({
 | :-------------------------------- | :-------------------- | :-------------------- |
 | Fuzzy Search                      | ✅ Built-in            | ✅ Built-in            |
 | Command Previews (`:edit`)        | ✅ Available           | ✅ POSIX only          |
-| Favorite toggling (`<C-f>`)       | ✅ Available           | ✅ Available           |
+| Picker keymaps (favorite toggle, tag, delete, …) | ✅ Available | ❌ Not available — `<CR>` runs the command, nothing else is bound |
 | Known-error highlighting          | ✅ Available           | ❌ Not available       |
 | Performance (Speed)               | ⚡ Good                | ⚡⚡ Very fast          |
 | UI Customization (Prompt, Border) | ✅ Highly customizable | ✅ Highly customizable |
@@ -329,14 +329,18 @@ keeps its original meaning.
 
 ### Shortcuts (inside pickers)
 
+**Telescope only.** These live in the picker's `attach_mappings`, which the
+fzf-lua backend does not use — there, `<CR>` runs the selected command and no
+other key is bound. All of them are configurable via `setup({ mappings = … })`,
+see [OPTIONS.md](./docs/OPTIONS.md).
+
 - `<CR>`: Insert command into `:` (does not execute)
 - `<Tab>`: Toggle favorite
 - `<C-r>`: Refresh picker
 - `<C-x>`: Delete the selected entry from its underlying history
-- `<C-t>` (Telescope) / `ctrl-t` (fzf-lua): Tag the selected favorite (favorites picker only)
-- `<C-e>` (Telescope only): Add/edit a note on the selected favorite; blank input removes it (favorites picker only)
-- `<C-g>` (Telescope only): Peek the selected favorite's note in a floating popup (favorites picker only)
-- `<C-s>` (Telescope only): Rotate to the next picker, keeping the current prompt text
+- `<C-Space>`: Mark/unmark an entry for a batch delete, then move down
+- `<C-t>`: Tag the selected favorite (favorites picker only)
+- `<C-s>`: Rotate to the next picker, keeping the current prompt text
 - `<C-z>`: Undo the most recent favorite toggle
 - `<C-Up>` / `<C-Down>`: Reorder the selected favorite (favorites picker only)
 
