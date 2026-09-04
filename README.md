@@ -346,6 +346,19 @@ see [OPTIONS.md](./docs/OPTIONS.md).
 
 ---
 
+## Documentation
+
+Start at [docs/README.md](docs/README.md), which says what is where and which
+question each page answers.
+
+- [Commands](docs/COMMANDS.md) — every `:Cmdlog` subcommand and its arguments.
+- [Bindings](docs/BINDINGS.md) — every user command, in-picker keymap and autocmd.
+- [Options](docs/OPTIONS.md) — how configuration is structured, merged and read.
+- [Features](docs/FEATURES/README.md) — one page per part of the plugin, and why each has its shape.
+- [Workflow](docs/WORKFLOW.md) — how ten subcommands, favorites, tags and scoping combine into a habit.
+
+---
+
 ## Development
 
 To develop or contribute:
