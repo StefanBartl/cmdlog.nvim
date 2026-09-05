@@ -25,13 +25,13 @@ function M.check()
   if vim.fn.has("nvim-0.9") == 1 then
     ok("Neovim version >= 0.9")
   else
-    warn("Neovim < 0.9 detected — cmdlog.nvim targets 0.9+")
+    warn("Neovim < 0.9 detected — cmdlog.nvim targets 0.9+", { "Upgrade Neovim to 0.9+" })
   end
 
   if has_module("lib.nvim.fs.is_dir") then
     ok("lib.nvim found (required for cross-platform fs/notify helpers)")
   else
-    error_("lib.nvim not found — install StefanBartl/lib.nvim")
+    error_("lib.nvim not found", { 'Install "StefanBartl/lib.nvim"' })
   end
 
   local config_ok, config = pcall(require, "cmdlog.config")
@@ -45,17 +45,24 @@ function M.check()
     if has_module("telescope") then
       ok("picker = 'telescope' and telescope.nvim found")
     else
-      error_("picker = 'telescope' but telescope.nvim is not installed")
+      error_(
+        "picker = 'telescope' but telescope.nvim is not installed",
+        { "Install telescope.nvim, or switch config.options.picker" }
+      )
     end
   elseif picker == "fzf" or picker == "fzf-lua" then
     if has_module("fzf-lua") then
       ok("picker = '" .. picker .. "' and fzf-lua found")
     else
-      error_("picker = '" .. picker .. "' but fzf-lua is not installed")
+      error_(
+        "picker = '" .. picker .. "' but fzf-lua is not installed",
+        { "Install fzf-lua, or switch config.options.picker" }
+      )
     end
   else
     error_(
-      "Invalid config.options.picker: '" .. tostring(picker) .. "' (expected 'telescope' or 'fzf')"
+      "Invalid config.options.picker: '" .. tostring(picker) .. "' (expected 'telescope' or 'fzf')",
+      { "Set picker to 'telescope' or 'fzf' in setup()" }
     )
   end
 
