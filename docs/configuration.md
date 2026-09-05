@@ -1,57 +1,55 @@
-# Options Workflow for cmdlog.nvim
+# Configuration
 
-This document describes how configuration options are structured, merged, and accessed within the `cmdlog.nvim` plugin.
+Every `setup()` option, its default, and where the plugin reads it. Nothing is
+mandatory — `setup({})` is a complete configuration.
 
-## Overview
+The defaults live in one place, [`lua/cmdlog/config/DEFAULTS.lua`](../lua/cmdlog/config/DEFAULTS.lua),
+each with the comment explaining why it has the value it has. `setup()` merges
+your table over a deep copy of them with
+`vim.tbl_deep_extend("force", {}, DEFAULTS, user_config or {})` and exposes the
+result as `config.options`, which is the only way plugin code reads an option.
 
-- All default options are stored centrally in a table called `default_config`.
-- When a user calls `setup({ ... })`, their configuration is merged with the defaults.
-- The merged configuration is available globally via `M.options`.
-- No option is mandatory for the user to set; defaults are always applied automatically.
+## The defaults at a glance
 
----
+| Option | Default | What it decides |
+| --- | --- | --- |
+| `picker` | `"telescope"` | Backend: `"telescope"` or `"fzf"` |
+| `favorites_path` | `stdpath("data")/cmdlog/favorites.json` | Where favorites are stored |
+| `favorite_tags_path` | `…/cmdlog/favorite_tags.json` | Where favorite tags are stored |
+| `project_history_path` | `…/cmdlog/project_history.json` | Per-project command history |
+| `stats_path` | `…/cmdlog/stats.json` | Usage counts and last-used timestamps |
+| `errors_path` | `…/cmdlog/errors.json` | Commands whose last run errored |
+| `shell_history_path` | `"default"` | Auto-detect the shell's history file, or a path |
+| `shell_history` | `{}` | `{ parse, matches }` escape hatch for an unknown format |
+| `track_commands` | `true` | Record `:` commands at all (gates the three stores above) |
+| `redact_patterns` | `{ "password", "secret", "token", "Bearer", "api[-_]?key" }` | Never recorded |
+| `extra_files` | `{ history = {}, all = {} }` | Your own plain-text history files |
+| `project_scoped` | `{ enabled = false }` | One favorites file per Git project |
+| `mappings` | see below | In-picker keys (Telescope only) |
+| `keymaps` | `{}` | Optional normal-mode entry points |
+| `preview_execute` | `false` | Whether a preview may *run* an entry |
+| `highlight_risky` | `true` | Highlight destructive-looking commands |
+| `risky_patterns` | ten Lua patterns (`rm -rf`, `git reset --hard`, …) | What counts as risky |
 
-## How Configuration Works
+## Options in detail
 
-### Default Options
-
-Defaults are defined once in `lua/cmdlog/config/DEFAULTS.lua` like this:
+### `mappings`
 
 ```lua
-local DEFAULTS = {
-  favorites_path = vim.fn.stdpath("data") .. "/cmdlog/favorites.json",
-  picker = "telescope", -- or "fzf"
-  shell_history_path = "default", -- or custom shell history file path
-
-  favorite_tags_path = vim.fn.stdpath("data") .. "/cmdlog/favorite_tags.json",
-  project_history_path = vim.fn.stdpath("data") .. "/cmdlog/project_history.json",
-  stats_path = vim.fn.stdpath("data") .. "/cmdlog/stats.json",
-  errors_path = vim.fn.stdpath("data") .. "/cmdlog/errors.json",
-
-  track_commands = true, -- record ':' commands for project history, stats, error tracking
-  redact_patterns = { "password", "secret", "token", "Bearer", "api[-_]?key" }, -- never recorded
-  extra_files = { history = {}, all = {} }, -- extra read-only command files folded into pickers
-  keymaps = {}, -- { [""] = "<leader>ch", favorites = "<leader>cf", ... }
-
-  mappings = {
-    enabled = true,
-    select = "<CR>",          -- insert selected command into the cmdline
-    toggle_favorite = "<Tab>", -- mark/unmark the selected command as favorite
-    refresh = "<C-r>",        -- refresh the current picker
-    delete = "<C-x>",         -- delete the selected entry, or every marked one
-    toggle_selection = "<C-Space>", -- mark/unmark an entry for a batch delete
-    tag = "<C-t>",            -- tag the selected favorite (favorites picker only)
-    cycle_source = "<C-s>",   -- rotate to the next picker, keeping the current prompt text
-    undo_favorite = "<C-z>",  -- undo the most recent favorite toggle
-    move_favorite_up = "<C-Up>",   -- move the selected favorite up (favorites picker only)
-    move_favorite_down = "<C-Down>", -- move the selected favorite down (favorites picker only)
-  },
-  highlight_risky = true,
-  risky_patterns = { "rm%s+%-rf", "git%s+reset%s+%-%-hard", --[[ ... ]] },
+mappings = {
+  enabled = true,
+  select = "<CR>",                 -- insert selected command into the cmdline
+  toggle_favorite = "<Tab>",       -- mark/unmark the selected command as favorite
+  refresh = "<C-r>",               -- refresh the current picker
+  delete = "<C-x>",                -- delete the selected entry, or every marked one
+  toggle_selection = "<C-Space>",  -- mark/unmark an entry for a batch delete
+  tag = "<C-t>",                   -- tag the selected favorite (favorites picker only)
+  cycle_source = "<C-s>",          -- rotate to the next picker, keeping the prompt text
+  undo_favorite = "<C-z>",         -- undo the most recent favorite toggle
+  move_favorite_up = "<C-Up>",     -- move the selected favorite up (favorites picker only)
+  move_favorite_down = "<C-Down>", -- move the selected favorite down (favorites picker only)
 }
 ```
-
-The plugin ensures that `M.options` (in `lua/cmdlog/config/init.lua`) is initialized with a deep copy of `DEFAULTS`.
 
 Set any `mappings.*` entry to `false` to disable that keybinding, or to a different key string to remap it. Set `mappings.enabled = false` to disable all cmdlog-internal picker mappings at once.
 
@@ -303,72 +301,5 @@ When `true` (default), every `:` command is recorded via a single
 `stats` and `errors`. Set to `false` to disable all three and skip the
 autocmd entirely.
 
-The plugin ensures that `M.options` is initialized with a deep copy of `DEFAULTS`.
-
-### User Setup
-
-When the user calls:
-
-```lua
-require("cmdlog").setup({
-  picker = "fzf",
-})
-```
-
-internally the plugin merges:
-
-- `default_config`
-- and the user's `user_config`
-
-using `vim.tbl_deep_extend("force", {}, default_config, user_config or {})`.
-
-Any missing options are automatically filled with their defaults.
-
----
-
-## Best Practices for Adding New Options
-
-When introducing a new option:
-
-1. **Always add it to `default_config`** with a sensible default value.
-2. **Never modify `M.options` directly** outside of `setup()`.
-3. **Access options only through `config.options.XYZ`** within the plugin code.
-4. **Document the new option** with a brief comment in `default_config`.
-
-Example:
-
-```lua
-local default_config = {
-  preview_layout = "vertical", -- Layout of the previewer ("vertical" or "horizontal")
-}
-```
-
----
-
-## Why This Approach?
-
-- Ensures stability even if the user provides no configuration.
-- Protects against missing or invalid fields (`nil`, `v:null`).
-- Makes it easier to extend the plugin with new features.
-- Keeps the internal state predictable and easy to debug.
-
----
-
-## Notes
-
-- Always validate critical options if they affect important plugin behavior (e.g., `picker` must be `"telescope"` or `"fzf"`).
-- If necessary, fallback gracefully to defaults inside feature implementations.
-- Do not rely on the presence of optional fields unless you have defined a clear default.
-
----
-
-# Summary
-
-| Principle | Rule |
-|:----------|:-----|
-| Default configuration | Stored in `default_config` |
-| Merging user options | Handled in `setup()` |
-| Accessing options | Only via `config.options.XYZ` |
-| Adding new options | Add to `default_config` with sensible defaults |
-
----
+Adding a new option to the plugin is a contributor's question, not a user's —
+it is in [CONTRIBUTING.md](CONTRIBUTING.md#adding-a-configuration-option).

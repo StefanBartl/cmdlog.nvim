@@ -1,7 +1,7 @@
 -- cmdlog.nvim — headless smoke test (no framework, no network).
 --
--- Run:
---   nvim -l docs/TESTS/smoke_spec.lua
+-- Run, from the repository root:
+--   nvim -l TESTS/smoke_spec.lua
 --
 -- There is no dedicated unit-test framework wired up for this plugin yet, so
 -- this script covers the baseline CI gate instead: require() every module
@@ -15,7 +15,7 @@
 -- other dependents (pickers.nvim, mdview.nvim).
 local this = debug.getinfo(1, "S").source:sub(2) -- strip leading '@'
 local tests_dir = vim.fn.fnamemodify(this, ":h")
-local root = vim.fn.fnamemodify(tests_dir, ":h:h") -- docs/TESTS -> repo root
+local root = vim.fn.fnamemodify(tests_dir, ":h") -- <repo>/TESTS -> <repo>
 vim.opt.runtimepath:append(root)
 
 local siblings_root = vim.fn.fnamemodify(root, ":h")

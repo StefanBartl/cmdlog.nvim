@@ -17,332 +17,148 @@
 [![Lua](https://img.shields.io/badge/Lua-5.1%2FLuaJIT-2C2D72?logo=lua&logoColor=white)](https://www.lua.org)
 ![Status](https://img.shields.io/badge/status-alpha-red)
 
-> **Pairs well with [filetree.nvim](https://github.com/StefanBartl/filetree.nvim)** — cmdlog.nvim gives you fast recall of past `:` and shell commands, filetree.nvim gives you adapter-agnostic file-tree actions. Together they cover command reuse and file navigation in one consistent style.
+> Pairs well with [pickers.nvim](https://github.com/StefanBartl/pickers.nvim):
+> pickers.nvim is the general fuzzy-picker surface over files, buffers and
+> symbols, cmdlog.nvim is the one over what you already typed — same
+> "telescope or fzf-lua, your choice" style, different corpus.
+> And with [filetree.nvim](https://github.com/StefanBartl/filetree.nvim):
+> command reuse and file navigation are the two halves of not retyping things.
 
-Changes possible. Expect bugs, especially with the history feature on Windows systems.
+Interactively view, search, and reuse your Neovim command-line (`:`) history
+and your shell history, through Telescope or fzf-lua.
 
-A lightweight, modern Neovim plugin to interactively view, search, and reuse command-line mode (`:`) history and shell history using Telescope (standard) or fzf.
+Commands are inserted into the command-line, never executed for you — the
+plugin is for recall, not for automation. On top of plain history it keeps
+favorites, per-project history, usage stats, and flags commands that errored
+or look destructive before you run them a second time.
 
----
-
-- [Features](#features)
-- [Installation (with Lazy.nvim)](#installation-with-lazynvim)
-  - [Load immediately](#load-immediately-recommended-for-most-setups)
-  - [Load lazily (alternative)](#load-lazily-alternative)
-    - [Option 1: Lazy-load on demand (command)](#option-1-lazy-load-on-demand-command)
-    - [Option 2: Lazy-load via keybindings](#option-2-lazy-load-via-keybindings)
-    - [Option 3: Lazy-load on specific event](#option-3-lazy-load-on-specific-event)
-- [Installation (other package managers)](#installation-other-package-managers)
-- [Dependencies](#dependencies)
-- [Picker configuration (Telescope vs FzfLua)](#picker-configuration-telescope-vs-fzflua)
-  - [When to use which picker?](#when-to-use-which-picker)
-- [Usage](#usage)
-  - [Cmdlog Picker Demo](#cmdlog-picker-demo)
-  - [Command Syntax](#command-syntax)
-  - [Commands](#commands)
-  - [Shortcuts (inside pickers)](#shortcuts-inside-pickers)
-- [Development](#development)
-- [Disclaimer](#disclaimer)
-- [Feedback](#feedback)
-
----
-
-## Features
+Expect bugs, especially around shell history on Windows.
 
 ![Cmdlog Picker UI](./docs/assets/Cmdlog-Picker-UI.png)
 
-- **Interactive command history listing**: View and search through your `:` command history interactively using [Telescope.nvim](https://github.com/nvim-telescope/telescope.nvim).
+---
 
-- **Shell History Integration**: In addition to the standard Neovim command history, shell history for various supported shells is also included, such as:
-  - `zsh`: `~/.zsh_history`
-  - `bash`: `~/.bash_history`
-  - `fish`: `~/.local/share/fish/fish_history`
-  - `nu`: `~/.config/nushell/history.txt`
-  - `ksh`: `~/.ksh_history`
-  - `csh`: `~/.history`
-  - pwsh  %APPDATA%\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt
+## Table of contents
 
-- **Picker Backend Options**: Choose between [Telescope.nvim](https://github.com/nvim-telescope/telescope.nvim) or [fzf-lua](https://github.com/ibhagwan/fzf-lua) for the picker backend, depending on your preference.
-
-- **Favorites Management**: Mark and manage favorite commands with ease. Your favorites are saved in the `~/.local/share/cmdlog/favorites.json` file for easy access.
-
-- **Command Execution**: Select an entry from the history to insert it into the command-line (without auto-execution), giving you control over your workflow.
-
-- **Command Previews**: Preview the output of various commands directly within the picker (Telescope only). Currently supported preview types include:
-  - **`:edit <file>`**: Shows the file preview if the file is readable.
-  - **`:!<shell>`**: Simulates shell command output for supported shell commands.
-  - **`:term[inal] [cmd]`**: Runs `cmd` and shows its output, or notes that no static preview exists for a bare `:term`.
-  - **`:help <topic>`**: Renders the help page via a headless Neovim instance.
-  - **`:lua <expr>`**: Evaluates the expression in-process and shows the result.
-
-- **Project-Based History**: `:Cmdlog project` shows command history recorded while working inside the current Git project (`.git` root). Recording starts once the plugin is set up — pre-existing history isn't retroactively attributed to a project.
-
-- **Lua-Mode History**: `:Cmdlog lua` shows only `:lua`/`:lua=`/`:=` command history.
-
-- **Usage Stats**: `:Cmdlog stats` shows commands sorted by usage frequency, annotated with how many times and when they were last used.
-
-- **Known-Error Highlighting**: Commands whose last run set a Vim error message are flagged with a marker and highlight in the picker (Telescope only).
-
-- **Favorite Tags**: Tag favorites with free-form labels (`<C-t>` in the picker) to organize them beyond a flat list.
-
-- **which-key Integration**: Pass a `keymaps` table to `setup()` to register normal-mode keymaps for any `:Cmdlog` subcommand; descriptions show up in [which-key.nvim](https://github.com/folke/which-key.nvim) automatically when it's installed.
-
-- **Custom Pickers**: Developers and users can easily create their own custom pickers. A utility file, `picker_utils.lua`, abstracts much of the configuration, making it simple to extend the functionality. Comprehensive documentation on how to create and add custom pickers is available in the `/docs/` directory.
-
-- **Configurable & which-key aware keymaps**: Picker keymaps (`<CR>`, `<Tab>`, `<C-r>`) can be remapped or disabled, and optional normal-mode entry-point keymaps for every `:Cmdlog*` command can be enabled — each carries a `desc`, so [which-key.nvim](https://github.com/folke/which-key.nvim) picks it up automatically. See [BINDINGS.md](./docs/BINDINGS.md).
-
-- **`:checkhealth cmdlog`**: Verifies dependencies (telescope/fzf-lua) and shell-history detection.
-
-- **Delete single history entries**: Press `<C-x>` (configurable) inside a picker to delete the selected command from its underlying history — Neovim `:` history via `histdel()`, or the shell history file (with a confirmation prompt, since that rewrites a file on disk).
-
-- **Error-prone command highlighting**: Commands matching a configurable list of risky patterns (`rm -rf`, `git reset --hard`, `git push --force`, `:qa!`, ...) are highlighted with `CmdlogRiskyCommand` so you notice them before reusing them. Configurable/disableable via `risky_patterns` / `highlight_risky`.
-
-- **Project-based favorites** *(opt-in)*: Set `project_scoped.enabled = true` to keep a separate favorites file per Git project instead of one global file. Off by default — existing favorites are unaffected.
-
-- **Privacy filter**: Commands matching a configurable list of `redact_patterns` (`password`, `secret`, `token`, `Bearer`, `api[-_]?key` by default) are never recorded to project history, stats, or the error log — those files are plaintext on disk. Set `redact_patterns = false` to disable.
-
-- **`extra_files`**: Fold your own plain-text command files into the pickers as additional read-only history sources — see [OPTIONS.md](./docs/OPTIONS.md).
-
-- **Origin labels**: The combined pickers (`:Cmdlog`, `:Cmdlog full`) label each non-favorite entry `nvim`/`shell`/`extra` by where it came from, and insert a `── nvim history ──`-style divider row before each origin block so the boundaries are visible at a glance (Telescope only; see [docs/FEATURES/PICKER.md](./docs/FEATURES/PICKER.md)).
-
-- **Favorite Notes**: Attach a short note to a favorite via `vim.ui.input()` (`<C-e>`) — peek it in a floating popup with `<C-g>`. See [docs/FEATURES/FAVORITES.md](./docs/FEATURES/FAVORITES.md).
-
-- **Cycle between pickers**: Press `<C-s>` (configurable) inside any picker to rotate to the next one (nvim → shell → favorites → project → …), keeping the current prompt text (Telescope only).
-
-- **Favorites undo & manual reordering**: `<C-z>` undoes the last favorite toggle; `<C-Up>`/`<C-Down>` in the favorites picker reorder entries manually.
-
-- **Favorites export/import**: `:Cmdlog export [path]` / `:Cmdlog import path` back up favorites to JSON or migrate them between machines.
-
-![Favorites Picker](./docs/assets/Cmdlog-Favorites-Picker.png)
+- [Quickstart](#quickstart)
+- [Features](#features)
+- [Commands](#commands)
+- [Inside a picker](#inside-a-picker)
+- [Documentation](#documentation)
+- [Feedback](#feedback)
+- [License](#license)
 
 ---
 
-## Installation (with Lazy.nvim)
+## Quickstart
 
-You can install `cmdlog.nvim` like this:
-
-### Load immediately (recommended for most setups)
-
-This ensures `:Cmdlog` and all its subcommands (`:Cmdlog favorites`, etc.) are available without delay.
+Requires Neovim **0.9+**, [lib.nvim](https://github.com/StefanBartl/lib.nvim),
+and one picker backend — [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim)
+(default) or [fzf-lua](https://github.com/ibhagwan/fzf-lua).
 
 ```lua
 {
   "StefanBartl/cmdlog.nvim",
   lazy = false,
   dependencies = {
-    "StefanBartl/lib.nvim",          -- Required: the :Cmdlog command layer is built on it
-    "nvim-telescope/telescope.nvim", -- Required if you use picker = "telescope"
-    "ibhagwan/fzf-lua",              -- Required if you use picker = "fzf"
-  },
-  opts = {}, -- picker defaults to "telescope"; set `picker = "fzf"` to switch
-}
-```
-
-### Load lazily (alternative)
-
-You can also lazy-load the plugin — but read the note under the first two
-options first: two of the three triggers below cost you the very history the
-plugin exists to show.
-
-#### Option 1: Lazy-load on demand (command)
-
-> **This costs you the history it is meant to show.** `setup()` starts the
-> `CmdlineLeave` tracker that records every `:` command — that recording *is*
-> the plugin. Loading on a command or a key means the tracker starts at the
-> moment you first ask for the history, so everything you typed before that is
-> not in it. Use the event form below, or no lazy trigger at all, unless you
-> only want commands recorded from your first `:Cmdlog` onwards.
-
-```lua
-{
-  "StefanBartl/cmdlog.nvim",
-  lazy = true,
-  cmd = { "Cmdlog" },
-  dependencies = {
-    "StefanBartl/lib.nvim",
-    "nvim-telescope/telescope.nvim",
-    "ibhagwan/fzf-lua",
-  },
-  opts = {
-    picker = "fzf", -- default is "telescope"
-  },
-}
-```
-
-> **Note**: All seven pickers live under the single `:Cmdlog` command now
-> (`:Cmdlog`, `:Cmdlog favorites`, `:Cmdlog nvim`, ...), so `cmd = { "Cmdlog" }`
-> covers every one of them for lazy-loading — no need to list each variant.
-
-#### Option 2: Lazy-load via keybindings
-
-> **This costs you the history it is meant to show.** `setup()` starts the
-> `CmdlineLeave` tracker that records every `:` command — that recording *is*
-> the plugin. Loading on a command or a key means the tracker starts at the
-> moment you first ask for the history, so everything you typed before that is
-> not in it. Use the event form below, or no lazy trigger at all, unless you
-> only want commands recorded from your first `:Cmdlog` onwards.
-
-```lua
-{
-  "StefanBartl/cmdlog.nvim",
-  lazy = true,
-  keys = {
-    { "<leader>cl", "<cmd>Cmdlog<CR>", desc = "Show command history" },
-    { "<leader>cf", "<cmd>Cmdlog favorites<CR>", desc = "Show favorites" },
-  },
-  dependencies = {
-    "StefanBartl/lib.nvim",
-    "nvim-telescope/telescope.nvim",
-    "ibhagwan/fzf-lua",
-  },
-  opts = {}, -- picker already defaults to "telescope"
-}
-```
-
----
-
-#### Option 3: Lazy-load on specific event
-
-```lua
-{
-  "StefanBartl/cmdlog.nvim",
-  lazy = true,
-  event = "VeryLazy", -- or e.g. "BufReadPost"
-  dependencies = {
-    "StefanBartl/lib.nvim",
-    "nvim-telescope/telescope.nvim",
-  },
-  opts = {}, -- picker defaults to "telescope"; set `picker = "fzf"` to switch
-}
-```
-
-Note: If you lazy-load the plugin, make sure to define how it should be triggered (`cmd`, `keys`, `event`, etc.), otherwise commands like `:Cmdlog` won’t be available.
-
----
-
-## Installation (other package managers)
-
-### packer.nvim
-
-```lua
-use({
-  "StefanBartl/cmdlog.nvim",
-  requires = {
-    "StefanBartl/lib.nvim",
+    "StefanBartl/lib.nvim",          -- required
     "nvim-telescope/telescope.nvim", -- or "ibhagwan/fzf-lua"
   },
-  config = function()
-    require("cmdlog").setup({ picker = "telescope" })
-  end,
-})
+  opts = {}, -- picker defaults to "telescope"; set `picker = "fzf"` to switch
+}
 ```
 
-### vim-plug
+Then open the combined picker — favorites plus history, deduplicated:
 
-```vim
-Plug 'StefanBartl/lib.nvim'
-Plug 'nvim-telescope/telescope.nvim' " or 'ibhagwan/fzf-lua'
-Plug 'StefanBartl/cmdlog.nvim'
+```
+:Cmdlog
 ```
 
-```lua
-require("cmdlog").setup({ picker = "telescope" })
+`lazy = false` is deliberate: `setup()` starts the tracker that records your
+`:` commands, so a `cmd`/`keys` trigger costs you everything typed before the
+first `:Cmdlog`. Other package managers, the lazy-loading variants, and the
+backend comparison are in [docs/installation.md](docs/installation.md).
+
+Verify your setup any time with:
+
+```
+:checkhealth cmdlog
 ```
 
 ---
 
-## Dependencies
-
-Make sure the following plugins are installed:
-
-- [lib.nvim](https://github.com/StefanBartl/lib.nvim) – required: the `:Cmdlog` command tree is built on `lib.nvim.bindings.usercmd.composer`, plus cross-platform fs/notify/job helpers
-- [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim) (only if picker = "telescope")
-- [fzf-lua](https://github.com/ibhagwan/fzf-lua) (only if picker = "fzf")
-
----
-
-## Picker configuration (Telescope vs FzfLua)
-
-By default, `cmdlog.nvim` uses **Telescope** for all pickers and UI interactions.
-However, you can switch to [fzf-lua](https://github.com/ibhagwan/fzf-lua) by setting:
-
-```lua
-require("cmdlog").setup({
-  picker = "fzf",
-})
-```
-
-| Picker                | Notes                                                                                                        |
-| :-------------------- | :----------------------------------------------------------------------------------------------------------- |
-| `telescope` (default) | Full feature support, including command previews (e.g., file contents for `:edit somefile.txt`)              |
-| `fzf`                 | Minimal, fast UI. Command previews on POSIX (Linux/macOS); no preview on Windows, where fzf-lua's shell-command-based preview mechanism isn't supported. |
-
-### When to use which picker?
-
-- **Telescope**: Recommended if you want previews, fuzzy sorting, and a richer UI experience.
-- **FzfLua**: Recommended if you prefer speed, simplicity, and minimal dependencies.
-
-| Feature                           | Telescope             | FzfLua                |
-| :-------------------------------- | :-------------------- | :-------------------- |
-| Fuzzy Search                      | ✅ Built-in            | ✅ Built-in            |
-| Command Previews (`:edit`)        | ✅ Available           | ✅ POSIX only          |
-| Picker keymaps (favorite toggle, tag, delete, …) | ✅ Available | ❌ Not available — `<CR>` runs the command, nothing else is bound |
-| Known-error highlighting          | ✅ Available           | ❌ Not available       |
-| Performance (Speed)               | ⚡ Good                | ⚡⚡ Very fast          |
-| UI Customization (Prompt, Border) | ✅ Highly customizable | ✅ Highly customizable |
-| External Dependencies              | telescope.nvim         | fzf-lua                |
-
----
-
-## Usage
-
-This plugin provides several Telescope-based pickers to explore and reuse command-line history.
-
-### Cmdlog Picker Demo
+## Features
 
 ![Cmdlog Picker Demo](./docs/assets/Cmdlog-Picker-Demo.gif)
 
-### Command Syntax
+- **Neovim and shell history in one list** — `zsh`, `bash`, `fish`, `nu`,
+  `ksh`, `csh` and PowerShell history files are detected per shell; entries in
+  the combined pickers are labelled by origin and separated by divider rows.
+- **Favorites and tags, persisted** — `<Tab>` marks, `<C-t>` tags, `<C-z>`
+  undoes, `<C-Up>`/`<C-Down>` reorder; `:Cmdlog export`/`import` moves the
+  list between machines.
+- **Project-scoped history and favorites** — history recorded inside the
+  current Git root, and optionally a separate favorites file per project.
+- **Usage stats** — commands sorted by how often you actually ran them,
+  annotated with the last use.
+- **Risky-command highlighting** — `rm -rf`, `git reset --hard`, `:qa!` and
+  friends stand out before you reuse them; the pattern list is yours to tune,
+  and `:Cmdlog risky test <cmd>` says which pattern fired.
+- **Known-error markers** — a command whose last run set an error message is
+  flagged with `✗`.
+- **Privacy filter** — commands matching `password`, `token`, `Bearer`, … are
+  never written to cmdlog's own plaintext stores.
+- **Previews** — `:edit` shows the file; `:help`, `:lua`, `:!` and `:term`
+  show what *would* run, and only actually run it if you opt in with
+  `preview_execute = true`.
+- **Deleting entries** — `<C-x>` removes a command from its real source, be
+  that Neovim's `:` history or the shell history file.
+- **Your own history files** — `extra_files` folds arbitrary plain-text
+  command lists in as read-only sources.
+- **Configurable keys, which-key aware** — every in-picker key is remappable
+  or disableable, and optional normal-mode entry points carry a `desc`.
 
-`:Cmdlog [subcommand]` — built via [`lib.nvim.bindings.usercmd.composer`](https://github.com/StefanBartl/lib.nvim),
-with `<Tab>` completion on the subcommand. Bare `:Cmdlog` (no subcommand)
-keeps its original meaning.
+One page per feature, with the reasoning behind each, in
+[docs/FEATURES/README.md](docs/FEATURES/README.md).
 
-### Commands
-
-| Command                | Description                                                                  |
-| ----------------------- | ---------------------------------------------------------------------------- |
-| `:Cmdlog`               | Combines favorites and history, showing only unique commands (no duplicates) |
-| `:Cmdlog favorites`     | Shows commands you've marked as favorites                                    |
-| `:Cmdlog full`          | Combines favorites and full history, allowing duplicates                     |
-| `:Cmdlog nvim`          | Shows only unique Neovim (`:`) commands (latest occurrence kept)             |
-| `:Cmdlog nvim-full`     | Shows full Neovim (`:`) history, including duplicates                        |
-| `:Cmdlog shell`         | Shows unique shell history (latest occurrence kept)                          |
-| `:Cmdlog shell-full`    | Shows full shell history, including duplicates                               |
-| `:Cmdlog project`       | Shows history recorded while inside the current Git project                  |
-| `:Cmdlog lua`           | Shows only Lua-mode command history (`:lua`, `:lua=`, `:=`)                   |
-| `:Cmdlog stats`         | Shows commands sorted by usage frequency                                     |
-| `:Cmdlog export [path]` | Exports favorites to a JSON file (default: favorites path + `.export.json`)  |
-| `:Cmdlog import path`   | Imports favorites from a JSON file, merged with the current list             |
+![Favorites Picker](./docs/assets/Cmdlog-Favorites-Picker.png)
 
 ---
 
-### Shortcuts (inside pickers)
+## Commands
 
-**Telescope only.** These live in the picker's `attach_mappings`, which the
-fzf-lua backend does not use — there, `<CR>` runs the selected command and no
-other key is bound. All of them are configurable via `setup({ mappings = … })`,
-see [OPTIONS.md](./docs/OPTIONS.md).
+One verb, `:Cmdlog [subcommand]`, with `<Tab>` completion.
 
-- `<CR>`: Insert command into `:` (does not execute)
-- `<Tab>`: Toggle favorite
-- `<C-r>`: Refresh picker
-- `<C-x>`: Delete the selected entry from its underlying history
-- `<C-Space>`: Mark/unmark an entry for a batch delete, then move down
-- `<C-t>`: Tag the selected favorite (favorites picker only)
-- `<C-s>`: Rotate to the next picker, keeping the current prompt text
-- `<C-z>`: Undo the most recent favorite toggle
-- `<C-Up>` / `<C-Down>`: Reorder the selected favorite (favorites picker only)
+| Command                    | Shows                                                     |
+| -------------------------- | --------------------------------------------------------- |
+| `:Cmdlog`                  | Favorites and history combined, deduplicated               |
+| `:Cmdlog full`             | The same, with duplicates                                  |
+| `:Cmdlog nvim`             | Neovim `:` history, deduplicated                           |
+| `:Cmdlog nvim-full`        | Neovim `:` history, with duplicates                        |
+| `:Cmdlog shell`            | Shell history, deduplicated                                |
+| `:Cmdlog shell-full`       | Shell history, with duplicates                             |
+| `:Cmdlog favorites`        | Commands you marked with `<Tab>`                           |
+| `:Cmdlog project`          | History recorded inside the current Git project            |
+| `:Cmdlog lua`              | Lua-mode history only (`:lua`, `:lua=`, `:=`)              |
+| `:Cmdlog stats`            | Commands sorted by usage frequency                         |
+| `:Cmdlog risky test <cmd>` | Which `risky_patterns` match a given command line          |
+| `:Cmdlog export [path]`    | Writes favorites to JSON                                   |
+| `:Cmdlog import path`      | Merges favorites from JSON                                 |
+
+Full descriptions in [docs/commands.md](docs/commands.md).
+
+---
+
+## Inside a picker
+
+`<CR>` inserts the selected command into the command-line without running it,
+`<Tab>` toggles it as a favorite, `<C-x>` deletes it from its source, `<C-s>`
+rotates to the next picker keeping what you typed. A legend of the active keys
+sits in the Telescope prompt title, and the full set — with the config key for
+each — is in [docs/BINDINGS.md](docs/BINDINGS.md).
+
+These keys are Telescope's; under `picker = "fzf"` only `<CR>` is bound, and
+it *runs* the command rather than inserting it.
 
 ---
 
@@ -351,51 +167,23 @@ see [OPTIONS.md](./docs/OPTIONS.md).
 Start at [docs/README.md](docs/README.md), which says what is where and which
 question each page answers.
 
-- [Commands](docs/COMMANDS.md) — every `:Cmdlog` subcommand and its arguments.
+- [Installation](docs/installation.md) — every package manager, and what lazy-loading costs.
+- [Configuration](docs/configuration.md) — every option, its default, and where it is read.
+- [Commands](docs/commands.md) — each `:Cmdlog` subcommand and its arguments.
 - [Bindings](docs/BINDINGS.md) — every user command, in-picker keymap and autocmd.
-- [Options](docs/OPTIONS.md) — how configuration is structured, merged and read.
 - [Features](docs/FEATURES/README.md) — one page per part of the plugin, and why each has its shape.
-- [Workflow](docs/WORKFLOW.md) — how ten subcommands, favorites, tags and scoping combine into a habit.
-
----
-
-## Development
-
-To develop or contribute:
-
-1. Clone the repo:
-
-```bash
-git clone https://github.com/StefanBartl/cmdlog.nvim ~/.config/nvim/lua/plugins/cmdlog.nvim
-```
-
-2. Symlink or load manually via your plugin manager.
-3. Make changes, test with :Cmdlog, submit PRs or open issues.
-
-**Contributions are welcome** – whether it's a bugfix, feature, or idea!
-
----
-
-## Disclaimer
-
-ℹ️ This plugin is under active development – some features are planned or experimental.
-Expect changes in upcoming releases.
+- [Workflow](docs/WORKFLOW.md) — how the subcommands, favorites, tags and scoping combine into a habit.
 
 ---
 
 ## Feedback
 
-Your feedback is very welcome!
-
-Please use the [GitHub issue tracker](https://github.com/StefanBartl/cmdlog.nvim/issues) to:
-- Report bugs
-- Suggest new features
-- Ask questions about usage
-- Share thoughts on UI or functionality
-
-For general discussion, feel free to open a [GitHub Discussion](https://github.com/StefanBartl/cmdlog.nvim/discussions).
-
-If you find this plugin helpful, consider giving it a ⭐ on GitHub — it helps others discover the project.
+Bugs, feature ideas and usage questions are welcome in the
+[issue tracker](https://github.com/StefanBartl/cmdlog.nvim/issues); anything
+more open-ended fits a
+[discussion](https://github.com/StefanBartl/cmdlog.nvim/discussions). If you
+want to work on the plugin itself, start at
+[docs/CONTRIBUTING.md](docs/CONTRIBUTING.md).
 
 ---
 

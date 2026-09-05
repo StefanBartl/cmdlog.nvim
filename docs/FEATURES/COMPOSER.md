@@ -15,9 +15,9 @@ is describing the pre-merge plugin, not this one.
 
 `M.catalog` is the single list every route, every picker keymap
 (`keymaps.*` in `setup()`) and `docs/BINDINGS.md` itself derive from —
-adding a subcommand means adding one entry here, nowhere else. Two routes,
-`export` and `import`, are registered directly in `M.register()` instead of
-living in `M.catalog`: both take a path argument, unlike every catalog
+adding a subcommand means adding one entry here, nowhere else. Three routes,
+`risky test`, `export` and `import`, are registered directly in `M.register()`
+instead of living in `M.catalog`: each takes an argument, unlike every catalog
 entry's zero-arg picker function, so they're kept out of the list that
 `bindings.keymaps` also reads to build zero-arg entry-point keymaps.
 
@@ -33,6 +33,7 @@ entry's zero-arg picker function, so they're kept out of the list that
 - `:Cmdlog project` — command history for the current Git project
 - `:Cmdlog lua` — Lua-mode command history (`:lua`, `:lua=`, `:=`), deduplicated
 - `:Cmdlog stats` — commands sorted by usage frequency
+- `:Cmdlog risky test <command>` — *(action, not a picker)* reports which `risky_patterns` match a command line
 - `:Cmdlog export [path]` — *(action, not a picker)* writes favorites to JSON
 - `:Cmdlog import path` — *(action, not a picker)* merges favorites from JSON
 

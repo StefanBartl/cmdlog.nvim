@@ -27,14 +27,16 @@ as a single `:Cmdlog [subcommand]` verb, built via
 | `:Cmdlog project`       | Shows command history recorded for the current Git project, deduplicated     |
 | `:Cmdlog lua`           | Shows only Lua-mode command history, deduplicated                            |
 | `:Cmdlog stats`         | Shows commands sorted by usage frequency                                     |
+| `:Cmdlog risky test <command>` | Reports which `risky_patterns` match a given command line             |
 | `:Cmdlog export [path]` | Exports favorites to a JSON file (default: favorites path + `.export.json`)  |
 | `:Cmdlog import path`   | Imports favorites from a JSON file, merged with the current list             |
 
-`export`/`import` are registered directly in
+`risky test`, `export` and `import` are registered directly in
 [`lua/cmdlog/bindings/usrcmds.lua`](../lua/cmdlog/bindings/usrcmds.lua)'s
-`M.register()`, not in `M.catalog` — they take a required/optional path
-argument, unlike every catalog entry's zero-arg picker function, so they
-have no normal-mode entry-point keymap via `keymaps`.
+`M.register()`, not in `M.catalog` — each takes an argument, unlike every
+catalog entry's zero-arg picker function, so they have no normal-mode
+entry-point keymap via `keymaps`. `risky test` deliberately declares no `args`
+spec either: what it takes is a whole command line, not a positional token.
 
 ## Picker keymaps
 
@@ -42,7 +44,7 @@ Implemented in [`lua/cmdlog/ui/mappings.lua`](../lua/cmdlog/ui/mappings.lua)
 (catalog mirrored in [`lua/cmdlog/bindings/picker_mappings.lua`](../lua/cmdlog/bindings/picker_mappings.lua))
 and applied inside every picker (Telescope insert mode). All are
 user-configurable via `setup({ mappings = { ... } })` — see
-[OPTIONS.md](./OPTIONS.md). Set a value to `false` to disable it, or
+[configuration.md](./configuration.md). Set a value to `false` to disable it, or
 `mappings.enabled = false` to disable all of them at once. A legend of
 the active ones (generated from `config.options.mappings`, not hardcoded)
 also shows in the Telescope prompt title.
@@ -99,9 +101,14 @@ carries a `desc`, so [which-key.nvim](https://github.com/folke/which-key.nvim)
 
 ## Autocmds
 
-None. cmdlog registers no autocmds; the catalog in
-[`lua/cmdlog/bindings/autocmds.lua`](../lua/cmdlog/bindings/autocmds.lua)
-is empty. It has been through two rounds of emptying: the note-buffer
-autosave autocmds went with the notes side window, and the rest with the
-favorite-notes feature itself (removed 2026-08-27 — see
-[FEATURES/FAVORITES.md](FEATURES/FAVORITES.md)).
+One, and only when `track_commands` is on (it is by default):
+
+| Event | Group | Purpose |
+| ------ | ------ | -------- |
+| `CmdlineLeave` | `cmdlog_tracker` | Record every executed `:` command into project history, usage stats and the error log |
+
+Registered by [`lua/cmdlog/core/tracker.lua`](../lua/cmdlog/core/tracker.lua),
+described in [`lua/cmdlog/bindings/autocmds.lua`](../lua/cmdlog/bindings/autocmds.lua).
+It ignores aborted and empty cmdlines and anything matching `redact_patterns`,
+and defers the actual writes with `vim.schedule` so a `:` command never waits
+on a disk write. `track_commands = false` skips the autocmd entirely.
