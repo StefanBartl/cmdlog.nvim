@@ -119,7 +119,7 @@ shell_history        { parse, matches } escape hatch for a shell-history
                      `matches` makes deletion refuse rather than let the
                      built-in matcher guess. Default: {} (built-ins).
 
-preview_execute      Whether a picker's preview may *run* an entry.
+preview_execute      Whether a picker's preview may run an entry.
                      Default: false -- see |cmdlog-previews|.
 
 highlight_risky      Highlight commands matching `risky_patterns` with
@@ -203,7 +203,7 @@ insert mode; a generated legend of the active ones also shows in the
 prompt title). All are configurable via `mappings` -- see |cmdlog-setup|.
 
 These keys are Telescope's. Under picker = "fzf" exactly one action is
-bound, <CR>, and it *runs* the selected command instead of inserting it;
+bound, <CR>, and it runs the selected command instead of inserting it;
 no favorite toggle, no tag, no delete.
 
 <CR>        Insert the selected command into the command-line.
