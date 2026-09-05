@@ -16,7 +16,8 @@ automatically.
 FEATURES                                               *cmdlog-features*
 
 - Interactive listing of Neovim command-line (:) history
-- Optional integration of shell history (bash, zsh, fish, nu, ksh, csh)
+- Optional integration of shell history (bash, zsh, fish, nu, ksh, csh,
+  PowerShell)
 - Picker backend selection:
   - Telescope.nvim (default, with previews)
   - fzf-lua (minimal, fast; previews on POSIX only, none on Windows)
@@ -36,6 +37,7 @@ FEATURES                                               *cmdlog-features*
 - Dedicated Lua-mode history view
 - Command usage stats (frequency, last used)
 - Known-error highlighting (Telescope only)
+- Risky-command highlighting, with :Cmdlog risky test to tune the patterns
 - Optional which-key.nvim integration for user-defined keymaps
 - Non-destructive command reuse (insert only, no auto-exec)
 - Extensible picker infrastructure for custom pickers
@@ -96,6 +98,38 @@ keymaps              Map of :Cmdlog subcommand name ("" for bare
                      installed, also passed to its add() so
                      descriptions show up there. Default: {} (none)
 
+mappings             Keys bound inside a picker (Telescope only; the
+                     fzf-lua backend binds <CR> and nothing else).
+                     Set any entry to false to disable it, or
+                     mappings.enabled = false to disable all of them.
+                     Defaults: select <CR>, toggle_favorite <Tab>,
+                     refresh <C-r>, delete <C-x>, toggle_selection
+                     <C-Space>, tag <C-t>, cycle_source <C-s>,
+                     undo_favorite <C-z>, move_favorite_up <C-Up>,
+                     move_favorite_down <C-Down>.
+
+project_scoped       { enabled = false }. When enabled, favorites are
+                     kept in a separate file per Git project instead of
+                     one global file. Outside a Git repository the
+                     global file is used either way.
+
+shell_history        { parse, matches } escape hatch for a shell-history
+                     format the built-in parsers cannot read. Both
+                     halves belong together: setting `parse` without
+                     `matches` makes deletion refuse rather than let the
+                     built-in matcher guess. Default: {} (built-ins).
+
+preview_execute      Whether a picker's preview may *run* an entry.
+                     Default: false -- see |cmdlog-previews|.
+
+highlight_risky      Highlight commands matching `risky_patterns` with
+                     the CmdlogRiskyCommand group. Default: true.
+
+risky_patterns       Lua patterns naming destructive commands (rm -rf,
+                     git reset --hard, git push --force, qa!, ...).
+                     Set to false or {} to disable. Test a pattern with
+                     |:Cmdlog-risky-test|.
+
 favorites_path       Path to the favorites JSON file.
 favorite_tags_path   Path to the favorite-tags JSON file.
 project_history_path Path to the per-project history JSON file.
@@ -146,6 +180,13 @@ subcommand.
     Show commands sorted by usage frequency (most-used first), annotated
     with "used Nx, last <date>".
 
+:Cmdlog risky test {command}                       *:Cmdlog-risky-test*
+    Not a picker. Report which of the configured `risky_patterns` match
+    {command}, so the list can be tuned without guessing from picker
+    colours. The whole rest of the line is the command under test, not a
+    quoted argument. Matching ignores `highlight_risky` (which gates
+    display, not evaluation) and the output says so when it is off.
+
 :Cmdlog export [{path}]                                *:Cmdlog-export*
     Export favorites to a JSON file. {path} defaults to the favorites
     file's own path with a ".export.json" suffix.
@@ -159,7 +200,11 @@ PICKER USAGE                                           *cmdlog-usage*
 
 Inside the picker, the following mappings are available (Telescope
 insert mode; a generated legend of the active ones also shows in the
-prompt title):
+prompt title). All are configurable via `mappings` -- see |cmdlog-setup|.
+
+These keys are Telescope's. Under picker = "fzf" exactly one action is
+bound, <CR>, and it *runs* the selected command instead of inserting it;
+no favorite toggle, no tag, no delete.
 
 <CR>        Insert the selected command into the command-line.
             The command is not executed automatically.
@@ -168,12 +213,21 @@ prompt title):
 
 <C-r>       Refresh the picker contents.
 
-<C-t>       (favorites picker only, Telescope: <C-t>, fzf-lua: ctrl-t)
-            Prompt for a tag and attach it to the selected command.
+<C-x>       Delete the selected entry -- or every marked one -- from its
+            underlying history: Neovim's ':' history via histdel(), or
+            the shell history file, which is rewritten on disk after a
+            confirmation prompt. mappings.delete.
+
+<C-Space>   Mark/unmark an entry for a batch delete, then move down. A
+            batch asks once instead of once per command.
+            mappings.toggle_selection.
+
+<C-t>       (favorites picker only) Prompt for a tag and attach it to
+            the selected command. mappings.tag.
 
 <C-s>       Rotate to the next picker (nvim -> shell -> favorites ->
             project -> nvim ...), keeping whatever you've typed so far.
-            Telescope only. mappings.cycle_source.
+            mappings.cycle_source.
 
 <C-z>       Undo the most recent favorite toggle. mappings.undo_favorite.
 
@@ -186,10 +240,17 @@ prompt title):
 ==============================================================================
 COMMAND PREVIEWS                                       *cmdlog-previews*
 
-When using Telescope.nvim, previews may be available depending on the command:
+Previews depend on the command, and on `preview_execute`:
 
 :edit {file}
-    Shows a preview of the file if it is readable.
+    Shows a preview of the file if it is readable. Always available --
+    reading is not running.
+
+Everything below needs `preview_execute = true`, which is off by default.
+With it off, the preview shows the command line and a note saying why it
+was not run.  The default is off because previewing is a browse action --
+moving the cursor down a list -- and the entries are not necessarily your
+own: shell history and `extra_files` are folded in.
 
 :!{shell-command}
     Simulates shell command output for supported shells.
@@ -203,6 +264,10 @@ When using Telescope.nvim, previews may be available depending on the command:
 
 :lua {expr}
     Evaluates {expr} in-process (no subprocess) and shows the result.
+
+Two things are refused even with `preview_execute = true`: an entry
+matching `risky_patterns`, and an argument that could end the command it
+is interpolated into (a '|' in a :help topic was a working injection).
 
 When using fzf-lua, the same previews are available on POSIX systems
 (Linux/macOS); Windows has no fzf-lua preview, since its preview mechanism

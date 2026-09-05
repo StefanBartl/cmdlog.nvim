@@ -73,13 +73,19 @@ local function expand_path_template(tpl)
   return expanded
 end
 
---- Utility: check whether a file exists (string path). Uses vim.uv.fs_stat for robust cross-platform check.
+--- Utility: check whether a file exists (string path). Uses fs_stat for a
+--- robust cross-platform check.
+---
+--- `vim.uv` only exists from Neovim 0.10; the plugin promises 0.9 in its
+--- badge, its README and `health.lua`'s own version check, and this was the
+--- single call that broke that promise.
 ---@internal
 ---@param path string
 ---@return boolean
 local function file_exists(path)
   if not path or path == "" then return false end
-  local stat = vim.uv.fs_stat(path)
+  local uv = vim.uv or vim.loop
+  local stat = uv.fs_stat(path)
   return stat ~= nil and stat.type == "file"
 end
 

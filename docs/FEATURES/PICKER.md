@@ -15,18 +15,33 @@ except on Windows.
 - **Module:** `cmdlog/ui/picker_utils.lua`
 - **Config:** `opts.picker = "telescope"` (default) or `"fzf"`
 
-## Command previews (Telescope only)
+## Command previews
 
-Previews the effect of the highlighted entry before you commit to
-reusing it:
+Previews what the highlighted entry would do before you commit to reusing
+it. `:edit <file>` shows the file's contents if readable — reading is not
+running, so that one always works.
 
-- `:edit <file>` — shows the file's contents if readable
+Everything else needs `preview_execute = true`, which is **off by default**.
+With it off, the preview shows the command line and why it was not run:
+
 - `:!<shell>` — simulates the shell command's output for supported commands
 - `:term[inal] [cmd]` — runs `cmd` and shows its output, or notes there's no static preview for a bare `:term`
 - `:help <topic>` — renders the help page via a headless Neovim instance
 - `:lua <expr>` — evaluates the expression in-process and shows the result
 
-- **Module:** `cmdlog/ui/telescope-previewer.lua`
+The default is off because previewing is a browse action — you move the
+cursor down a list — and the entries are not necessarily your own: shell
+history and `extra_files` are folded in. Even with it on, an entry matching
+`risky_patterns` and an argument that could end the command it is
+interpolated into are still refused; see
+[`ui/preview_policy.lua`](../../lua/cmdlog/ui/preview_policy.lua) and
+[../configuration.md](../configuration.md).
+
+Telescope renders previews everywhere; fzf-lua on Linux and macOS only.
+
+- **Module:** `cmdlog/ui/telescope-previewer.lua`, `cmdlog/ui/fzf-previewer.lua`,
+  `cmdlog/ui/preview_policy.lua`
+- **Config:** `opts.preview_execute = false`
 
 ## Origin section dividers (Telescope only)
 
@@ -82,7 +97,7 @@ the currently active ones is generated from `config.options.mappings`
 (not hardcoded) and shown in the Telescope prompt title.
 
 - **Module:** `cmdlog/ui/mappings.lua`, `cmdlog/bindings/picker_mappings.lua`
-- **Config:** `opts.mappings` — see [../OPTIONS.md](../OPTIONS.md)
+- **Config:** `opts.mappings` — see [../configuration.md](../configuration.md)
 - **Keymaps:** see [../BINDINGS.md#picker-keymaps](../BINDINGS.md#picker-keymaps)
 
 ## Optional entry-point keymaps (which-key aware)

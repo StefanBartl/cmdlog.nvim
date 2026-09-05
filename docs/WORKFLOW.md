@@ -1,7 +1,7 @@
 # Workflow — getting real use out of cmdlog.nvim day to day
 
 Every feature here is documented on its own elsewhere
-(`docs/COMMANDS.md`, `docs/OPTIONS.md`, `docs/FEATURES/`). This is the
+(`docs/commands.md`, `docs/configuration.md`, `docs/FEATURES/`). This is the
 different question: once you have ten `:Cmdlog` subcommands, favorites,
 tags, project scoping and stats all sitting there, *how do they actually
 combine* into something you reach for daily, rather than a picker you

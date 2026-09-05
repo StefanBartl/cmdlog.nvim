@@ -9,7 +9,7 @@ Reads Neovim's own `:` command-line history (the same list `:history cmd`
 shows) via a Telescope or fzf-lua picker.
 
 - **Module:** `cmdlog/core/history.lua`
-- **Deleting (2026-08-24):** `<C-x>` deletes the entry under the cursor, or —
+- **Deleting:** `<C-x>` deletes the entry under the cursor, or —
   with entries marked via `mappings.toggle_selection` (default `<C-Space>`) —
   every marked one, asking once for the batch instead of once per command.
   The mappings call `delete_fn(cmd, on_done, opts)`; the two history sources
@@ -40,7 +40,7 @@ history, with per-shell path detection:
 - **Config:** `opts.shell_history_path` (default `"default"`, i.e. auto-detect),
   `opts.shell_history = { parse, matches }` (default `{}`, i.e. the built-in
   per-shell parsers)
-- **Escape hatch (2026-08-24):** the per-shell parsers are hardcoded, so a
+- **Escape hatch:** the per-shell parsers are hardcoded, so a
   custom `HISTTIMEFORMAT`, a wrapper that rewrites the file, or an
   uncovered shell had no way in. `shell_history.parse(lines, shell)` replaces
   them. Its partner `shell_history.matches(line, cmd)` is what deletion
