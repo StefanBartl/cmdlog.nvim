@@ -40,6 +40,7 @@ jobs:
         with:
           repository: StefanBartl/lib.nvim
           path: lib.nvim
+          ref: ci-verified
 
       # Optional runtime dependency (picker = "telescope", the default) --
       # checked out so the telescope-specific modules get real require()
