@@ -10,7 +10,7 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: stylua (check)
         uses: JohnnyMorganz/stylua-action@v4
@@ -20,7 +20,7 @@ jobs:
           args: --check lua TESTS
 
       - name: Install luacheck
-        run: sudo apt-get update && sudo apt-get install -y luarocks && sudo luarocks install luacheck
+        run: sudo apt-get update && sudo apt-get install -y luarocks && sudo luarocks install luacheck 1.2.0
 
       - name: luacheck
         run: luacheck lua
@@ -31,12 +31,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout cmdlog.nvim
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           path: cmdlog.nvim
 
       - name: Checkout lib.nvim
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: StefanBartl/lib.nvim
           path: lib.nvim
@@ -46,13 +46,13 @@ jobs:
       # coverage instead of being skipped. plenary.nvim is telescope's own
       # dependency.
       - name: Checkout telescope.nvim
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: nvim-telescope/telescope.nvim
           path: telescope.nvim
 
       - name: Checkout plenary.nvim
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: nvim-lua/plenary.nvim
           path: plenary.nvim
