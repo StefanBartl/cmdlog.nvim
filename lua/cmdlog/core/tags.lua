@@ -48,6 +48,8 @@ function M.add_tag(cmd, tag)
 end
 
 --- Remove a tag from a command.
+--- CDX: no callers and not a documented API -- no picker mapping removes a tag
+--- (`<C-t>` only adds). `M.filter` is documented; `add_tag`/`get_tags` are used.
 ---@param cmd string
 ---@param tag string
 function M.remove_tag(cmd, tag)

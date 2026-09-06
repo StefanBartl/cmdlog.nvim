@@ -9,17 +9,14 @@ local cycle = require("cmdlog.ui.cycle")
 
 local M = {}
 
---- `shell.delete_entry` takes `(cmd, opts, on_done)`, but the picker mappings
---- call `(cmd, on_done, opts)`. Passing it directly put the callback in the
---- `opts` slot and left `on_done` nil, so <C-x> in this picker raised
---- "attempt to call local 'on_done' (a nil value)" instead of deleting
---- anything. This adapter is the swap.
+--- Swaps argument order: `shell.delete_entry` takes `(cmd, opts, on_done)`,
+--- the picker mappings call `(cmd, on_done, opts)`.
 ---@param cmd string
 ---@param on_done fun(ok: boolean, err: string|nil)
 ---@param opts? { skip_confirm?: boolean }
 ---@return nil
 local function delete_from_shell_history(cmd, on_done, opts)
-  require("cmdlog.core.shell").delete_entry(cmd, opts, on_done)
+  shell_mod.delete_entry(cmd, opts, on_done)
 end
 
 --- Loads and shows a picker displaying unique shell history commands combined with favorites.

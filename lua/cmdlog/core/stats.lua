@@ -34,6 +34,8 @@ function M.record(cmd)
 end
 
 --- Return all recorded stats.
+--- CDX: no callers and not a documented API -- the picker uses `by_frequency`
+--- + `describe`. Vestigial accessor.
 ---@return table<string, { count: integer, last_used: integer }>
 function M.all()
   return load()

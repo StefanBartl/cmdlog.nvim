@@ -21,7 +21,7 @@
 local M = {}
 local kit = require("lib.nvim.ui.kit")
 
---AUDIT: Modularisieren, Annotationen klären
+--- CDX: split into submodules (detection / parsing / deletion) and tighten annotations
 
 --- Map of supported shells to a canonical ID. Values are not final paths but keys
 --- that are later expanded depending on platform and config.
@@ -195,17 +195,14 @@ function M.get_shell_history_path()
   return expanded
 end
 
---- Returns a list (array) of commands read from the shell history file.
---- The parsing is tailored for each supported shell format.
---- @return string[] history lines (commands)
---- The user's `shell_history` override, if it supplies a parser.
+--- The user's `shell_history.parse` override: the escape hatch for a history
+--- format the built-in parsers don't know (a custom `HISTTIMEFORMAT`, a
+--- wrapper that rewrites the file, a shell not listed here at all). See
+--- `M.custom_matcher` for the other half deletion needs.
 ---
---- The escape hatch for a history format the built-in parsers don't know: a
---- custom `HISTTIMEFORMAT`, a wrapper that rewrites the file, a shell not
---- listed here at all. See `M.custom_matcher` for the half people forget.
----The whole function type has a name, because `(fun(...): T)|nil` is read as
----`fun(...): T|nil` -- the parentheses do not help, and the union then applies
----to the *return value* instead of to the function.
+--- The whole function type is given a name because `(fun(...): T)|nil` is read
+--- as `fun(...): T|nil` -- the parentheses do not help, and the union then
+--- applies to the *return value* instead of to the function.
 ---@alias Cmdlog.ShellHistoryParser fun(lines: string[], shell: string): string[]
 
 ---@internal
@@ -239,6 +236,9 @@ function M.has_custom_parser()
   return custom_parser() ~= nil
 end
 
+--- Every command read from the detected shell's history file, parsed per that
+--- shell's format (or via `shell_history.parse`, if configured).
+---@return string[] history lines (commands)
 function M.get_shell_history()
   ---@type string[]
   local history = {}

@@ -30,9 +30,8 @@
 
 ---@alias CmdlogKeymapsConfig table<string, string>
 --- Map of :Cmdlog subcommand name ("" for bare :Cmdlog) to a normal-mode
---- lhs, e.g. `{ [""] = "<leader>ch", favorites = "<leader>cf" }`. Replaced
---- the old fixed-field shape (enabled/cmdlog/cmdlog_full/...) when keymaps
---- moved to a subcommand-derived map -- see cmdlog.bindings.keymaps.
+--- lhs, e.g. `{ [""] = "<leader>ch", favorites = "<leader>cf" }`.
+--- See cmdlog.bindings.keymaps.
 
 ---@class CmdlogProjectScopedConfig
 ---@field enabled boolean

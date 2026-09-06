@@ -61,8 +61,10 @@ function M.check()
     end
   else
     error_(
-      "Invalid config.options.picker: '" .. tostring(picker) .. "' (expected 'telescope' or 'fzf')",
-      { "Set picker to 'telescope' or 'fzf' in setup()" }
+      "Invalid config.options.picker: '"
+        .. tostring(picker)
+        .. "' (expected 'telescope', 'fzf' or 'fzf-lua')",
+      { "Set picker to 'telescope', 'fzf' or 'fzf-lua' in setup()" }
     )
   end
 

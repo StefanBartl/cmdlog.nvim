@@ -3,15 +3,12 @@
 --- installed. No-op otherwise.
 ---
 --- The actual `vim.keymap.set` calls happen exactly once, in
---- cmdlog.bindings.keymaps.register() (via lib.nvim.bindings.keymap), which already
---- attaches a `desc` to every mapping -- which-key v3+ picks those up on
---- its own without any registration step. This module previously called
---- vim.keymap.set() a second time for the same lhs/rhs pairs, which was
---- redundant (bindings.keymaps.register() already ran first from
---- cmdlog.bindings.register()) and duplicated the description table that
---- cmdlog.bindings.keymaps.catalog() already derives from the usercommand
---- catalog. It now only builds which-key specs from that catalog and calls
---- wk.add() -- see cmdlog/init.lua for the call order.
+--- cmdlog.bindings.keymaps.register() (via lib.nvim.bindings.keymap), which
+--- already attaches a `desc` to every mapping -- which-key v3+ picks those up
+--- on its own. This module does no key-setting: it only feeds the same specs
+--- (built from cmdlog.bindings.keymaps.catalog()) through wk.add() so they also
+--- appear in which-key's own registry/tree view. See cmdlog/init.lua for the
+--- call order.
 local M = {}
 
 --- Register which-key specs for `:Cmdlog <subcommand>` keymaps. No-op when

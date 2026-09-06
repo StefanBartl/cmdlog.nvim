@@ -17,6 +17,9 @@ end
 function M.catalog()
   return {
     usrcmds = require("cmdlog.bindings.usrcmds").catalog,
+    --- CDX: `keymaps.catalog` is a function (every other entry here is data);
+    --- this yields the function object, not the resolved keymap table. Likely
+    --- meant `.catalog()` -- which_key.lua calls it with parens.
     keymaps = require("cmdlog.bindings.keymaps").catalog,
     picker_mappings = require("cmdlog.bindings.picker_mappings").resolved(),
     autocmds = require("cmdlog.bindings.autocmds").catalog,

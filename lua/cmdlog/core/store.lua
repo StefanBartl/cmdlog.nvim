@@ -3,11 +3,9 @@
 --- (project history, stats, error log).
 ---
 --- All filesystem I/O goes through lib.nvim (fs.is_readable_file, fs.read,
---- fs.write.to_file) instead of plenary.path, so this module carries no
---- plenary.nvim dependency — the same treatment core/favorites.lua got.
---- lib.nvim.fs.write.to_file also creates missing parent directories and
---- already covers the Windows/Unix mkdir edge cases this module used to
---- reimplement with a plenary fallback.
+--- fs.write.to_file), so this module carries no plenary.nvim dependency.
+--- `fs.write.to_file` also creates missing parent directories, covering the
+--- Windows/Unix mkdir edge cases itself.
 
 local is_readable_file = require("lib.nvim.fs.is_readable_file")
 local read_file = require("lib.nvim.fs.read")

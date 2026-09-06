@@ -9,11 +9,8 @@ local DEFAULTS = {
   shell_history_path = "default",
 
   -- State files for the tag / project-history / stats / error-tracking
-  -- features. All live under the same `cmdlog/` data directory as
-  -- `favorites_path` — these were introduced on `main` under the older
-  -- `nvim-cmdlog/` name and are renamed here to match the rest of the
-  -- plugin, which had already moved. Each is created on first write, so a
-  -- setup that never used these features has nothing to migrate.
+  -- features, all under the same `cmdlog/` data directory as
+  -- `favorites_path`. Each is created on first write.
   favorite_tags_path = vim.fn.stdpath("data") .. "/cmdlog/favorite_tags.json",
   project_history_path = vim.fn.stdpath("data") .. "/cmdlog/project_history.json",
   stats_path = vim.fn.stdpath("data") .. "/cmdlog/stats.json",
@@ -131,10 +128,8 @@ local DEFAULTS = {
   --
   --   keymaps = { [""] = "<leader>hc", favorites = "<leader>hf" }
   --
-  -- This replaced a fixed table keyed by the old flat command names
-  -- (cmdlog_full, nvim_history, …) when those were migrated to
-  -- `:Cmdlog <subcommand>`; a subcommand map stays correct as routes are
-  -- added, which the fixed table did not.
+  -- Keyed by `:Cmdlog` subcommand name, so the map stays correct as routes
+  -- are added.
   keymaps = {},
 }
 

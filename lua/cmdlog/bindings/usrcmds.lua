@@ -91,11 +91,11 @@ local function handler(entry)
   end
 end
 
---- Registers `:Cmdlog` and every subcommand in `M.catalog`, plus two
---- routes not in the catalog (`export`/`import`): those take an argument,
---- unlike every catalog entry's zero-arg picker function, so they're kept
---- out of `M.catalog` -- which `bindings.keymaps` also reads to build
---- zero-arg entry-point keymaps -- rather than special-cased there.
+--- Registers `:Cmdlog` and every subcommand in `M.catalog`, plus three
+--- routes kept out of the catalog (`risky test`, `export`, `import`): each
+--- consumes an argument, unlike every catalog entry's zero-arg picker
+--- function, and `M.catalog` is also what `bindings.keymaps` reads to build
+--- zero-arg entry-point keymaps.
 ---@return nil
 function M.register()
   local composer = require("lib.nvim.bindings.usercmd.composer")

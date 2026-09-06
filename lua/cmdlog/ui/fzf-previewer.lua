@@ -2,11 +2,10 @@
 --- Builds the fzf-lua previewer for command-history entries.
 ---
 --- fzf-lua's previewer contract is a shell command string it runs itself, so
---- everything here is a shell string and everything interpolated into one has
---- to be escaped. It previously was not: `:help <topic>` and `:lua <expr>`
---- were pasted in raw, which made a history entry an injection into the
---- previewer's own shell. `cmdlog.ui.preview_policy` rejects an argument that
---- could end the command, and `shellescape` covers the rest.
+--- everything here is a shell string and every value interpolated into one has
+--- to be escaped -- otherwise a history entry like `:help x | rm -rf .` is an
+--- injection into the previewer's own shell. `cmdlog.ui.preview_policy` rejects
+--- an argument that could end the command, and `shellescape` covers the rest.
 ---
 --- What may be previewed how is that module's decision, not this one's: a
 --- preview reads, it does not run. See it for why.
@@ -23,8 +22,8 @@ local M = {}
 
 ---@internal
 ---A shell one-liner that renders `vim_cmd` in a throwaway Neovim and prints
----the result. The redirect target is a temp file rather than `output.txt` in
----the cwd, which is where this used to leave one behind on every preview.
+---the result. The redirect goes to a `tempname()` file (removed at the end),
+---not a fixed name in the cwd.
 ---@param label string   shown above the output
 ---@param vim_cmd string already validated by preview_policy
 ---@return string

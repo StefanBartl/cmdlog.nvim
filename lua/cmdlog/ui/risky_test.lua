@@ -2,11 +2,10 @@
 --- Output for `:Cmdlog risky test <cmd>`.
 ---
 --- `risky_patterns` is a plain Lua-pattern list, and Lua patterns are just
---- similar enough to regexes to be written wrong with confidence. Before this
---- the only feedback was whether a line came out highlighted in a picker,
---- which cannot distinguish "the pattern is wrong" from "this command simply
---- isn't risky" -- and says nothing at all about *which* of a dozen patterns
---- fired.
+--- similar enough to regexes to be written wrong with confidence. This reports
+--- which of the configured patterns fired for a given command line -- a
+--- highlighted picker row cannot tell "the pattern is wrong" from "this
+--- command simply isn't risky", nor say which pattern matched.
 
 local notify = require("lib.nvim.notify").create("[cmdlog]")
 

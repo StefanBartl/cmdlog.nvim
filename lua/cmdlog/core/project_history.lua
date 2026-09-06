@@ -14,18 +14,18 @@ local cache = nil
 
 -- core.tracker calls M.record() on every ':' command (CmdlineLeave), and
 -- M.record() resolves the Git root when none is passed in -- so without
--- caching, every single ':' command would block on a synchronous `git
--- rev-parse` subprocess spawn. TTL-cached per cwd (see PERFORMANCE.md ->
--- Cache-Regeln); short enough that switching projects is picked up quickly,
--- long enough to absorb bursts of commands typed in the same session.
+-- caching, every single ':' command would block on a filesystem walk (and, in
+-- the subprocess days, a `git rev-parse` spawn). TTL-cached per cwd: short
+-- enough that switching projects is picked up quickly, long enough to absorb
+-- bursts of commands typed in the same session.
 local git_root_cache =
   require("lib.nvim.cache.memory").namespace("cmdlog.project_history.git_root", {
     ttl = 3,
   })
 
 --- Resolve the current Git root, or nil if not inside a repository.
---- Cached per cwd for a few seconds (see module comment above) to avoid
---- spawning `git rev-parse` on every ':' command.
+--- Cached per cwd for a few seconds (see module comment above) to keep the
+--- upward `.git` walk off every ':' command.
 ---@return string|nil
 function M.get_git_root()
   local cwd = vim.fn.getcwd()

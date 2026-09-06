@@ -1,11 +1,9 @@
 ---@module 'cmdlog.bindings.autocmds'
 --- Descriptive catalog of autocmds cmdlog registers. Registers nothing itself —
 --- it exists so docs/BINDINGS.md (and `require("cmdlog.bindings").catalog()`)
---- have a single place to read from. It went empty twice, when the note-buffer
---- autosave autocmds left with the notes side window and the rest with the
---- favorite-notes feature itself (2026-08-27), which is why the tracker's own
---- autocmd was missing from it: the tracker registers in `core/tracker.lua`
---- rather than here, so emptying this list looked correct.
+--- have a single place to read from. The one live autocmd is created in
+--- `core/tracker.lua` (only when `track_commands` is on), not here, so keep
+--- this list in sync with that module by hand.
 
 local M = {}
 

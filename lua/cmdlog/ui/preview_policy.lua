@@ -72,6 +72,9 @@ end
 ---@param cmd string
 ---@return string kind, string|nil arg
 local function classify(cmd)
+  --- CDX: `e%d?dit` is odd -- the `%d?` matches nothing useful, and this only
+  --- accepts the full word `edit`, so `:e file` / `:ed file` never classify as
+  --- "file". `:split` / `:sp` are unhandled too (only `:vsp` / `:vs` are).
   local file = cmd:match("^%s*:?%s*e%d?dit%s+(%S+)$")
     or cmd:match("^%s*:?%s*vsp%s+(%S+)$")
     or cmd:match("^%s*:?%s*vs%s+(%S+)$")

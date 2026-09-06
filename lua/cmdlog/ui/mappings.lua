@@ -4,8 +4,9 @@
 local notify = require("lib.nvim.notify.safe").create_safe("[cmdlog.nvim.mappings]")
 
 --- Creates a Telescope attach_mappings function.
---- Keys are read from `config.options.mappings` (select/toggle_favorite/refresh/
---- delete/tag), so users can remap or disable (set to `false`) any of them.
+--- Every key is read from `config.options.mappings`, so users can remap or
+--- disable (set to `false`) any of them; `mappings.enabled = false` turns the
+--- whole set off.
 --- @param refresh_fn function Function to refresh the picker
 --- @param delete_fn? fun(cmd: string, on_done: fun(ok: boolean, err: string|nil), opts?: { skip_confirm?: boolean }) Deletes `cmd`
 ---        from its underlying history source (async: may show a confirmation dialog first);

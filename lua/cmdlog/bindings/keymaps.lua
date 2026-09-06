@@ -8,10 +8,9 @@
 ---
 ---   keymaps = { [""] = "<leader>hc", favorites = "<leader>hf" }
 ---
---- This replaced a fixed table keyed by the old flat command names when
---- those became `:Cmdlog <subcommand>` routes. Deriving the catalog from
---- `bindings.usrcmds` instead of restating it means a newly added
---- subcommand is mappable immediately, with no second list to update.
+--- The catalog is derived from `bindings.usrcmds` rather than restated, so a
+--- newly added subcommand is mappable immediately with no second list to keep
+--- in sync.
 
 local keymap = require("lib.nvim.bindings.keymap")
 

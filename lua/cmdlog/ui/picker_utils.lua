@@ -161,6 +161,9 @@ end
 function M.open_picker(entries, favs, opts)
   opts = opts or {}
 
+  --- CDX: only `"fzf"` routes here; `health.lua` and `@types` also accept
+  --- `"fzf-lua"`, which falls through to the Telescope branch below. The three
+  --- sites disagree on the accepted picker values.
   if config.options.picker == "fzf" then
     -- fzf-lua entries double as the selected value (see the default action
     -- below), so decorating them the way the Telescope entry_maker does

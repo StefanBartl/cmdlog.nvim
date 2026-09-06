@@ -6,6 +6,10 @@
 
 local M = {}
 
+--- CDX: incomplete -- `config.options.mappings` has 10 configurable keys
+--- (toggle_selection, tag, cycle_source, undo_favorite, move_favorite_up/down
+--- are missing here), and docs/BINDINGS.md says this file "mirrors" the full
+--- picker-keymap table. `M.resolved()` feeds `bindings.catalog()`.
 ---@type table<string, {config_key: string, desc: string}>
 M.catalog = {
   select = {
