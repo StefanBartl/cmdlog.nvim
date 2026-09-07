@@ -172,7 +172,12 @@ function M.open_picker(entries, favs, opts)
     local fzf = require("fzf-lua")
     fzf.fzf_exec(entries, {
       prompt = opts.fzf_prompt or ":commands> ",
-      previewer = require("cmdlog.ui.fzf-previewer").command_previewer(),
+      -- `previewer = fn` no longer exists; the function form of the
+      -- top-level `preview` key runs it as content, not as a shell
+      -- command. `command_previewer()` returns a command string, so it
+      -- needs the { fn, type = "cmd" } form (stringify_cmd, not
+      -- stringify_data -- see fzf-lua/previewer/init.lua's normalize_spec).
+      preview = { fn = require("cmdlog.ui.fzf-previewer").command_previewer(), type = "cmd" },
       actions = opts.actions or {
         ["default"] = function(selected)
           if selected[1] then vim.cmd(selected[1]) end
