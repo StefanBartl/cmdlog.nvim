@@ -119,7 +119,9 @@ keymap.
 Verifies the Neovim version, that `lib.nvim` is installed (the command
 tree and cross-platform fs/notify helpers are built on it), that the
 configured picker backend is actually installed, and shell-history
-detection.
+detection. Reports which picker backend resolved, which shell history
+file was detected and whether it is readable, and where the favorites
+store lives.
 
 - **Module:** `cmdlog/health.lua`
 - **Usercmds:** `:checkhealth cmdlog`

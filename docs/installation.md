@@ -130,4 +130,7 @@ Checks the Neovim version, that `lib.nvim` is present, that the *configured*
 backend is installed, and whether a shell history file was detected. Then open
 `:Cmdlog` — bare, no subcommand — and you should see your recent `:` commands.
 
+Full field-by-field detail is in
+[FEATURES/PICKER.md](FEATURES/PICKER.md#checkhealth-cmdlog).
+
 Next: [configuration.md](configuration.md) for every option and its default.

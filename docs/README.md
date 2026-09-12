@@ -8,6 +8,7 @@ is the short version of all of it.
 | Page | Answers |
 | --- | --- |
 | [installation.md](installation.md) | Requirements, a spec for each package manager, which picker backend to install — and what lazy-loading costs you here specifically |
+| [quickstart.md](quickstart.md) | The first thing to run after installing |
 | [configuration.md](configuration.md) | Every `setup()` option, its default, and where the plugin reads it |
 | [commands.md](commands.md) | Every `:Cmdlog` subcommand and its arguments — one command with `<Tab>` completion, built on `lib.nvim`'s usercmd composer |
 | [BINDINGS.md](BINDINGS.md) | Every user command, in-picker keymap and autocmd this plugin registers, and how to inspect the live set at runtime |
@@ -17,7 +18,10 @@ is the short version of all of it.
 
 | Page | Answers |
 | --- | --- |
+| [what-you-get.md](what-you-get.md) | The 5–8 things that matter on day one, with the two demo images |
 | [FEATURES/](FEATURES/README.md) | One page per part of the plugin — the command surface, the history sources, favorites and tags, the picker UI, and the two safety features — grouped by what they belong to rather than by when they arrived |
+| [integrations.md](integrations.md) | Which third-party plugins cmdlog notices when installed |
+| [around-it.md](around-it.md) | How cmdlog's scope differs from its siblings in the collection |
 
 ## Working on it
 
