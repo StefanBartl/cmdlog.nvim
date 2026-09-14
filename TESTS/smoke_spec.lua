@@ -29,6 +29,15 @@ if vim.env.LIB_NVIM_PATH and vim.fn.isdirectory(vim.env.LIB_NVIM_PATH) == 1 then
 end
 if vim.fn.isdirectory(lib) == 1 then vim.opt.runtimepath:append(lib) end
 
+-- ui.nvim: cmdlog.core.shell requires ui.kit at module load (the
+-- delete-confirmation prompt), and this script require()s every module
+-- including that one, so ui.nvim has to be reachable the same way lib.nvim is.
+local ui = siblings_root .. "/ui.nvim"
+if vim.env.UI_NVIM_PATH and vim.fn.isdirectory(vim.env.UI_NVIM_PATH) == 1 then
+  ui = vim.env.UI_NVIM_PATH
+end
+if vim.fn.isdirectory(ui) == 1 then vim.opt.runtimepath:append(ui) end
+
 -- Optional: telescope.nvim (+ its own plenary.nvim dependency), if checked
 -- out as a sibling -- see optional_telescope_modules below.
 for _, name in ipairs({ "telescope.nvim", "plenary.nvim" }) do
