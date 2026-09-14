@@ -25,8 +25,8 @@ jobs:
       - name: luacheck
         run: luacheck lua
 
-  # Real gate: headless smoke test. lib.nvim is checked out as a sibling so
-  # require("lib.nvim....") resolves.
+  # Real gate: headless smoke test. lib.nvim and ui.nvim are checked out as
+  # siblings so require("lib.nvim...")/require("ui...") resolve.
   test:
     runs-on: ubuntu-latest
     steps:
@@ -41,6 +41,15 @@ jobs:
           repository: StefanBartl/lib.nvim
           path: lib.nvim
           ref: ci-verified
+
+      # cmdlog.core.shell requires ui.kit at module load (the
+      # delete-confirmation prompt), and the smoke test require()s every
+      # module, so ui.nvim has to be reachable the same way lib.nvim is.
+      - name: Checkout ui.nvim
+        uses: actions/checkout@v5
+        with:
+          repository: StefanBartl/ui.nvim
+          path: ui.nvim
 
       # Optional runtime dependency (picker = "telescope", the default) --
       # checked out so the telescope-specific modules get real require()

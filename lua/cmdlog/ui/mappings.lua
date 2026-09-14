@@ -183,7 +183,7 @@ return function(refresh_fn, delete_fn, opts)
           return
         end
 
-        require("lib.nvim.ui.kit").confirm({
+        require("ui.kit").confirm({
           question = ("Delete %d selected entries from their underlying history?"):format(#targets),
           on_answer = function(yes)
             if yes then run(true) end

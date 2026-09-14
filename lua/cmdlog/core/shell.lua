@@ -19,7 +19,7 @@
 ---    to surface a failure to the user (see cmdlog.health, which already has
 ---    its own vim.health.warn() for exactly this case).
 local M = {}
-local kit = require("lib.nvim.ui.kit")
+local kit = require("ui.kit")
 
 --- CDX: split into submodules (detection / parsing / deletion) and tighten annotations
 

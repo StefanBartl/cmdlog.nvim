@@ -13,6 +13,10 @@ have to make while installing: which picker backend to pull in.
   - [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim) — only
     if `picker = "telescope"` (the default)
   - [fzf-lua](https://github.com/ibhagwan/fzf-lua) — only if `picker = "fzf"`
+- [ui.nvim](https://github.com/StefanBartl/ui.nvim) — optional. Backs the
+  delete-confirmation prompt (batch-delete in the picker, and single-entry
+  deletes from shell history); required only the first time `:Cmdlog shell`
+  or `:Cmdlog shell-full` actually deletes an entry.
 
 Install the backend you configure, not both. `:checkhealth cmdlog` reports a
 missing one as an error.
