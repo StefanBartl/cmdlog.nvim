@@ -1126,16 +1126,20 @@ do
   vim.fn.histadd(":", "lua= 1 + 1")
   vim.fn.histadd(":", "= 2 + 2")
   -- `:history`'s output marks the most-recently-added entry with a leading
-  -- '>' instead of its index, which get_command_history()'s
-  -- "^%s*%d+%s+..." pattern doesn't match -- one more entry keeps
-  -- "= 2 + 2" off that position so this test exercises the normal parse
-  -- path, not that display quirk.
-  vim.fn.histadd(":", marker .. "_sentinel")
+  -- '>' instead of its index. This entry sits in exactly that "current"
+  -- slot, so its presence below also pins the '>' marker being parsed.
+  local sentinel = marker .. "_sentinel"
+  vim.fn.histadd(":", sentinel)
 
   local cmds = history.get_command_history()
   check(
     "history.get_command_history: includes a just-added command",
     vim.tbl_contains(cmds, plain_cmd),
+    vim.inspect(cmds)
+  )
+  check(
+    "history.get_command_history: includes the '>'-marked most-recent entry",
+    vim.tbl_contains(cmds, sentinel),
     vim.inspect(cmds)
   )
 
@@ -1415,9 +1419,8 @@ do
   local marker = "cmdlog_allpicker_" .. tostring(os.time())
   local nvim_cmd = marker .. "_nvim"
   vim.fn.histadd(":", nvim_cmd)
-  -- Keeps nvim_cmd off the ">"-marked "current" slot in `:history`'s output,
-  -- which get_command_history()'s parser doesn't match (see core.history's
-  -- own suite above).
+  -- Keeps nvim_cmd off the ">"-marked "current" slot in `:history`'s output
+  -- (see core.history's own suite above for why that slot gets its own test).
   vim.fn.histadd(":", marker .. "_sentinel")
 
   local shell_hist_file = vim.fn.tempname() .. "-cmdlog-allpicker-shell"

@@ -10,7 +10,10 @@ function M.get_command_history()
   local entries = {}
 
   for line in vim.gsplit(output, "\n") do
-    local cmd = line:match("^%s*%d+%s+(.*)")
+    -- The most-recently-added entry is marked with a leading '>' in place
+    -- of a space rather than getting its own index, so the marker must be
+    -- accepted alongside plain whitespace or that entry is silently dropped.
+    local cmd = line:match("^[%s>]*%d+%s+(.*)")
     if cmd and cmd ~= "" then table.insert(entries, cmd) end
   end
 
