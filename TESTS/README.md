@@ -51,11 +51,10 @@ A few of these exist because the failure they pin is easy to reintroduce
 silently:
 
 - **`:history`'s `>` marker.** Neovim's `:history` output marks the
-  most-recently-added entry with a leading `>` instead of an index, which
-  `core.history.get_command_history()`'s `"^%s*%d+%s+..."` pattern does not
-  match — that entry is silently dropped. Every suite that `histadd()`s a
-  marker command and then checks for it appends one more throwaway entry
-  first, so the one under test isn't sitting in that blind spot.
+  most-recently-added entry with a leading `>` instead of an index.
+  `core.history.get_command_history()`'s pattern now accepts that marker
+  alongside a plain index, and `core.history`'s own suite pins this by
+  asserting the entry left sitting in that slot is still returned.
 - **`shell_history.parse` without `shell_history.matches`.** `delete_entry`
   refuses to guess at a custom format's raw-line syntax rather than risk
   deleting the wrong line.
