@@ -1997,8 +1997,16 @@ else
     check("job wiring: on_stdout is provided", type(captured_job.on_stdout) == "function")
     captured_job.on_stdout(nil, "hello stdout")
     captured_job.on_stderr(nil, "hello stderr")
-    vim.wait(50)
-    local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+    -- stream() appends through vim.schedule; wait for both lines to land
+    -- rather than for a stopwatch.
+    local function preview_lines()
+      return vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+    end
+    vim.wait(500, function()
+      local l = preview_lines()
+      return vim.tbl_contains(l, "hello stdout") and vim.tbl_contains(l, "Error: hello stderr")
+    end, 5)
+    local lines = preview_lines()
     check(
       "job wiring: stdout/stderr lines are appended to the preview buffer",
       vim.tbl_contains(lines, "hello stdout") and vim.tbl_contains(lines, "Error: hello stderr"),
@@ -2134,7 +2142,10 @@ else
     closed = nil
     refreshed = 0
     bound["i<C-r>"]() -- refresh
-    vim.wait(20)
+    -- refresh_fn runs through vim.schedule; wait for it, not for a stopwatch.
+    vim.wait(500, function()
+      return refreshed == 1
+    end, 5)
     check("refresh: closes and schedules refresh_fn", closed == 1 and refreshed == 1)
 
     closed = nil
@@ -2236,7 +2247,9 @@ else
     end, delete_fn))
     closed = nil
     bound["i<C-x>"]()
-    vim.wait(20)
+    vim.wait(500, function()
+      return refreshed == 1
+    end, 5)
     check(
       "delete: a single selection deletes without confirmation and refreshes",
       #delete_calls == 1 and delete_calls[1].cmd == "git status" and closed == 1 and refreshed == 1,
@@ -2289,7 +2302,9 @@ else
     end
     closed = nil
     bound["i<C-x>"]()
-    vim.wait(20)
+    vim.wait(500, function()
+      return refreshed == 1
+    end, 5)
     vim.notify = original_notify
     kit.confirm = original_confirm
 
