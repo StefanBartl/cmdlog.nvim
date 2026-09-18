@@ -185,6 +185,202 @@ do
   )
 end
 
+-- ── picker_utils.open_picker: the real Telescope branch ─────────────────────
+-- Every other picker suite in this file monkey-patches open_picker itself
+-- away, so the construction logic actually living inside it -- entry
+-- decoration priority, the mappings legend, section-divider splicing -- had
+-- never run for real. Now that telescope.nvim is a real sibling (see
+-- TESTS/README.md), `telescope.pickers.new`/`telescope.finders.new_table` are
+-- stubbed instead (identity-ish, capturing their arguments) so this drives
+-- cmdlog's own code without opening a live picker window.
+if not pcall(require, "telescope.pickers") then
+  print("  skip picker_utils.open_picker (telescope.nvim not on runtimepath)")
+  skipped = skipped + 1
+else
+  local config = require("cmdlog.config")
+  local errors = require("cmdlog.core.errors")
+  local picker_utils = require("cmdlog.ui.picker_utils")
+  local pickers = require("telescope.pickers")
+  local finders = require("telescope.finders")
+  local tconfig = require("telescope.config")
+  local previewer_mod = require("cmdlog.ui.telescope-previewer")
+
+  local original_pickers_new = pickers.new
+  local original_finders_new_table = finders.new_table
+  local original_generic_sorter = tconfig.values.generic_sorter
+  local original_previewer = previewer_mod.command_previewer
+  local original_picker_backend = config.options.picker
+  local original_errors_path = config.options.errors_path
+  local original_risky_patterns = config.options.risky_patterns
+  local original_highlight_risky = config.options.highlight_risky
+
+  config.options.picker = "telescope"
+
+  local captured_finder_opts, captured_picker_opts
+  ---@diagnostic disable-next-line: duplicate-set-field
+  finders.new_table = function(opts)
+    captured_finder_opts = opts
+    return opts
+  end
+  ---@diagnostic disable-next-line: duplicate-set-field
+  tconfig.values.generic_sorter = function()
+    return {}
+  end
+  ---@diagnostic disable-next-line: duplicate-set-field
+  previewer_mod.command_previewer = function()
+    return {}
+  end
+  ---@diagnostic disable-next-line: duplicate-set-field
+  pickers.new = function(_, opts)
+    captured_picker_opts = opts
+    return { find = function() end }
+  end
+
+  local errors_path = vim.fn.tempname() .. "-cmdlog-picker-utils-errors.json"
+  config.options.errors_path = errors_path
+  package.loaded["cmdlog.core.errors"] = nil
+  errors = require("cmdlog.core.errors")
+  errors.record("bad cmd", "E123")
+
+  config.options.risky_patterns = { "rm%s+%-rf" }
+  config.options.highlight_risky = true
+
+  picker_utils.open_picker({ "git status", "bad cmd", "sudo rm -rf /" }, { "git status" }, {
+    prompt_title = ":test",
+    label = function(cmd)
+      return cmd == "git status" and "tag1" or nil
+    end,
+  })
+
+  check("open_picker: builds a real telescope picker", captured_picker_opts ~= nil)
+  check(
+    "open_picker: prompt_title gets the mappings legend appended",
+    captured_picker_opts.prompt_title:find(":test", 1, true) ~= nil
+      and captured_picker_opts.prompt_title:find("select", 1, true) ~= nil,
+    tostring(captured_picker_opts.prompt_title)
+  )
+
+  local entry_maker = captured_finder_opts.entry_maker
+  check("open_picker: passes an entry_maker to the finder", type(entry_maker) == "function")
+
+  do
+    local e = entry_maker("git status")
+    local text = e.display(e)
+    check(
+      "entry_maker: a favorite gets the star marker and its label suffix",
+      text == "★ git status  [tag1]",
+      tostring(text)
+    )
+  end
+
+  do
+    local e = entry_maker("bad cmd")
+    local text, hl = e.display(e)
+    check(
+      "entry_maker: a known-bad command gets the cross marker and ErrorMsg highlight",
+      text == "✗ bad cmd" and hl[1][2] == "ErrorMsg",
+      tostring(text)
+    )
+  end
+
+  do
+    local e = entry_maker("sudo rm -rf /")
+    local text, hl = e.display(e)
+    check(
+      "entry_maker: a risky (but not known-bad) command gets CmdlogRiskyCommand",
+      text == "   sudo rm -rf /" and hl[1][2] == "CmdlogRiskyCommand",
+      tostring(text)
+    )
+  end
+
+  -- Section-divider pseudo-entries: inert value, own highlight group.
+  do
+    picker_utils.open_picker(
+      { "one", "two" },
+      {},
+      { prompt_title = ":test", sections = { { at = 1, label = "nvim history" } } }
+    )
+    local results = captured_finder_opts.results
+    check(
+      "open_picker: splices a section-divider entry at the configured index",
+      #results == 3 and type(results[1]) == "table" and results[2] == "one",
+      vim.inspect(results)
+    )
+    local marker_entry = entry_maker(results[1])
+    local text, hl = marker_entry.display()
+    check(
+      "entry_maker: a section marker renders as an inert, unselectable divider row",
+      marker_entry.value == false
+        and marker_entry.ordinal == ""
+        and text:find("nvim history", 1, true) ~= nil
+        and hl[1][2] == "CmdlogSectionDivider",
+      tostring(text)
+    )
+  end
+
+  vim.fn.delete(errors_path)
+  config.options.errors_path = original_errors_path
+  config.options.risky_patterns = original_risky_patterns
+  config.options.highlight_risky = original_highlight_risky
+  config.options.picker = original_picker_backend
+  package.loaded["cmdlog.core.errors"] = nil
+  pickers.new = original_pickers_new
+  finders.new_table = original_finders_new_table
+  tconfig.values.generic_sorter = original_generic_sorter
+  previewer_mod.command_previewer = original_previewer
+end
+
+-- ── picker_utils.open_picker: the real fzf-lua branch ───────────────────────
+-- Same blind spot as the Telescope branch above, on the other backend:
+-- every existing suite bypasses open_picker entirely. Simpler than the
+-- Telescope branch -- decoration is Telescope-only by design (see the module
+-- comment), so this just pins the argv/options fzf_exec actually receives
+-- and the default action's dispatch.
+if not pcall(require, "fzf-lua") then
+  print("  skip picker_utils.open_picker/fzf (fzf-lua not on runtimepath)")
+  skipped = skipped + 1
+else
+  local config = require("cmdlog.config")
+  local picker_utils = require("cmdlog.ui.picker_utils")
+  local fzf = require("fzf-lua")
+
+  local original_picker_backend = config.options.picker
+  local original_fzf_exec = fzf.fzf_exec
+  config.options.picker = "fzf"
+
+  local captured
+  ---@diagnostic disable-next-line: duplicate-set-field
+  fzf.fzf_exec = function(entries, opts)
+    captured = { entries = entries, opts = opts }
+  end
+
+  picker_utils.open_picker({ "git status", "ls -la" }, {}, { fzf_prompt = ":test> " })
+
+  check(
+    "open_picker(fzf): passes entries through undecorated",
+    vim.deep_equal(captured.entries, { "git status", "ls -la" }),
+    vim.inspect(captured.entries)
+  )
+  check("open_picker(fzf): uses opts.fzf_prompt", captured.opts.prompt == ":test> ")
+  check(
+    "open_picker(fzf): preview is the {fn, type = 'cmd'} form fzf-lua expects",
+    captured.opts.preview.type == "cmd" and type(captured.opts.preview.fn) == "function"
+  )
+
+  local executed
+  local original_vim_cmd = vim.cmd
+  ---@diagnostic disable-next-line: duplicate-set-field
+  vim.cmd = function(c)
+    executed = c
+  end
+  captured.opts.actions["default"]({ "git status" })
+  vim.cmd = original_vim_cmd
+  check("open_picker(fzf): the default action runs the selected command", executed == "git status")
+
+  fzf.fzf_exec = original_fzf_exec
+  config.options.picker = original_picker_backend
+end
+
 -- ── core.risky: which patterns matched, not just whether any did ───────────
 do
   local config = require("cmdlog.config")
@@ -213,12 +409,71 @@ do
   check("risky.is_risky honours highlight_risky", risky.is_risky("mkfs.ext4 /dev/sda") == false)
   config.options.highlight_risky = true
 
-  local ok_report = pcall(function()
-    require("cmdlog.ui.risky_test").report("sudo rm -rf /")
-    require("cmdlog.ui.risky_test").report("ls")
-    require("cmdlog.ui.risky_test").report("")
-  end)
-  check("risky_test.report: runs for match / no-match / empty", ok_report)
+  local risky_test = require("cmdlog.ui.risky_test")
+  local original_notify = vim.notify
+
+  ---@param cmd string
+  ---@return string
+  local function report(cmd)
+    local msg
+    ---@diagnostic disable-next-line: duplicate-set-field
+    vim.notify = function(m)
+      msg = m
+    end
+    risky_test.report(cmd)
+    vim.notify = original_notify
+    return msg
+  end
+
+  local empty_msg = report("")
+  check(
+    "risky_test.report: an empty command shows usage instead of a report",
+    empty_msg ~= nil and empty_msg:find("Usage: :Cmdlog risky test", 1, true) ~= nil,
+    tostring(empty_msg)
+  )
+
+  config.options.risky_patterns = {}
+  local none_configured_msg = report("git status")
+  check(
+    "risky_test.report: no risky_patterns configured says so by name",
+    none_configured_msg ~= nil
+      and none_configured_msg:find("No risky_patterns configured", 1, true) ~= nil,
+    tostring(none_configured_msg)
+  )
+
+  config.options.risky_patterns = { "rm%s+%-rf", "mkfs" }
+  config.options.highlight_risky = true
+  local match_msg = report("sudo rm -rf /tmp")
+  check(
+    "risky_test.report: a match reports the count and the pattern that fired",
+    match_msg ~= nil
+      and match_msg:find("Matched 1 of 2 pattern(s)", 1, true) ~= nil
+      and match_msg:find("rm%s+%-rf", 1, true) ~= nil,
+    tostring(match_msg)
+  )
+  check(
+    "risky_test.report: highlight_risky on does not add the disclaimer",
+    match_msg:find("highlight_risky is off", 1, true) == nil
+  )
+
+  local no_match_msg = report("ls -la")
+  check(
+    "risky_test.report: no match reports the checked-pattern count",
+    no_match_msg ~= nil and no_match_msg:find("No match (2 pattern(s) checked).", 1, true) ~= nil,
+    tostring(no_match_msg)
+  )
+
+  config.options.highlight_risky = false
+  local disclaimer_msg = report("sudo rm -rf /tmp")
+  check(
+    "risky_test.report: a match while highlight_risky is off adds the disclaimer",
+    disclaimer_msg ~= nil
+      and disclaimer_msg:find("highlight_risky is off, so this match is not shown", 1, true)
+        ~= nil,
+    tostring(disclaimer_msg)
+  )
+
+  config.options.highlight_risky = true
 end
 
 -- ── core.shell: the custom-parser escape hatch ─────────────────────────────
@@ -695,6 +950,71 @@ do
   vim.env.SHELL = original_shell
 end
 
+-- ── core.shell.get_shell_name: SHELL-unset candidate probing ───────────────
+-- Branch 2 of get_shell_name() (probing default history-file locations) only
+-- runs when $SHELL is empty/unsupported, and was never exercised by any
+-- existing suite. Fully isolated from the real machine so the result does
+-- not depend on what the dev box actually has in ~/.bash_history or
+-- %APPDATA%: HOME is faked via vim.uv.os_homedir (the only thing
+-- lib.nvim.cross.fs.expand_path consults for `~`), and APPDATA is a plain
+-- env var like SHELL already is above.
+do
+  local shell = require("cmdlog.core.shell")
+  local is_windows = require("lib.nvim.cross.platform.is_windows")()
+  local uv = vim.uv or vim.loop
+
+  local original_shell = vim.env.SHELL
+  local original_appdata = vim.env.APPDATA
+  local original_homedir = uv.os_homedir
+
+  local fake_home = vim.fn.tempname()
+  vim.fn.mkdir(fake_home, "p")
+  local fake_appdata = vim.fn.tempname()
+  vim.fn.mkdir(fake_appdata, "p")
+
+  vim.env.SHELL = ""
+  vim.env.APPDATA = fake_appdata
+  ---@diagnostic disable-next-line: duplicate-set-field
+  uv.os_homedir = function()
+    return fake_home
+  end
+
+  check(
+    "get_shell_name: nothing found anywhere returns '' without throwing",
+    shell.get_shell_name() == ""
+  )
+
+  if is_windows then
+    -- Windows candidate order checks 'powershell' before 'bash'. A
+    -- lower-priority bash marker is dropped at the same time so this pins
+    -- the order itself, not just "something is found".
+    local ps_dir = fake_appdata .. "/Microsoft/Windows/PowerShell/PSReadLine"
+    vim.fn.mkdir(ps_dir, "p")
+    vim.fn.writefile({ "Get-ChildItem" }, ps_dir .. "/ConsoleHost_history.txt")
+    vim.fn.writefile({ "ls" }, fake_home .. "/.bash_history")
+
+    check(
+      "get_shell_name: on Windows, an APPDATA-anchored PSReadLine file wins over bash",
+      shell.get_shell_name() == "powershell"
+    )
+  else
+    -- Unix candidate order checks 'zsh' before 'bash'.
+    vim.fn.writefile({ ": 1:0;ls" }, fake_home .. "/.zsh_history")
+    vim.fn.writefile({ "ls" }, fake_home .. "/.bash_history")
+
+    check(
+      "get_shell_name: on Unix, a ~-anchored zsh history file wins over bash",
+      shell.get_shell_name() == "zsh"
+    )
+  end
+
+  uv.os_homedir = original_homedir
+  vim.env.APPDATA = original_appdata
+  vim.env.SHELL = original_shell
+  vim.fn.delete(fake_home, "rf")
+  vim.fn.delete(fake_appdata, "rf")
+end
+
 -- ── core.shell: shell_history_path override ──────────────────────────────────
 do
   local config = require("cmdlog.config")
@@ -1031,6 +1351,16 @@ do
         and git_root:gsub("\\", "/"):find(vim.fn.fnamemodify(repo_dir, ":t"), 1, true) ~= nil,
       tostring(git_root)
     )
+    -- Empirically verified elsewhere (see TESTS/README.md): vim.fs.find /
+    -- vim.fs.dirname already return forward slashes on Windows, so the
+    -- module's own `dir:gsub("\\", "/")` never actually has anything to do.
+    -- Pinned on the *raw* return value, unlike the check above, which
+    -- normalizes before comparing and would hide a regression here.
+    check(
+      "project_history.get_git_root: the raw return value has no backslashes to normalize",
+      git_root ~= nil and git_root:find("\\") == nil,
+      tostring(git_root)
+    )
 
     local tmp = vim.fn.tempname() .. "-cmdlog-project-history.json"
     config.options.project_history_path = tmp
@@ -1186,6 +1516,125 @@ do
     "process_list: nil opts behaves as unique=false",
     vim.deep_equal(utils.process_list({ "x", "x" }), { "x", "x" })
   )
+end
+
+-- ── core.tracker: the CmdlineLeave -> project_history/stats/errors relay ───
+-- Had zero assertions beyond load-time require(): setup()'s dedup-on-
+-- re-setup, is_redacted's pcall guard and the errmsg-diff error path all ran
+-- unexercised. Driven end to end with real keystrokes (nvim_feedkeys mode
+-- "x") rather than vim.cmd("normal! ..."), because the latter raises
+-- straight through pcall on an invalid Ex command instead of setting
+-- v:errmsg -- verified empirically before writing this suite.
+do
+  local config = require("cmdlog.config")
+  local tracker = require("cmdlog.core.tracker")
+  local autocmd = require("lib.nvim.bindings.autocmd")
+  local project_history = require("cmdlog.core.project_history")
+  local stats = require("cmdlog.core.stats")
+  local errors = require("cmdlog.core.errors")
+
+  local original_track = config.options.track_commands
+  local original_redact = config.options.redact_patterns
+  local original_ph_record = project_history.record
+  local original_stats_record = stats.record
+  local original_errors_record = errors.record
+
+  local recorded
+
+  ---@param cmd string fed as a real command-line invocation, not vim.cmd()
+  local function fire(cmd)
+    recorded = {}
+    local keys = vim.api.nvim_replace_termcodes(":" .. cmd .. "<CR>", true, false, true)
+    vim.api.nvim_feedkeys(keys, "x", false)
+    vim.wait(200, function()
+      return #recorded > 0
+    end, 10)
+  end
+
+  ---@diagnostic disable-next-line: duplicate-set-field
+  project_history.record = function(cmd)
+    recorded[#recorded + 1] = "ph:" .. cmd
+  end
+  ---@diagnostic disable-next-line: duplicate-set-field
+  stats.record = function(cmd)
+    recorded[#recorded + 1] = "stats:" .. cmd
+  end
+  ---@diagnostic disable-next-line: duplicate-set-field
+  errors.record = function(cmd, msg)
+    recorded[#recorded + 1] = "err:" .. cmd .. ":" .. tostring(msg)
+  end
+
+  -- An earlier suite already ran cmdlog.setup({}) with the default
+  -- track_commands=true, so the group may already carry a registration at
+  -- this point; reset it to a known-empty baseline first (autocmd.group's
+  -- own clear=true semantics -- see lib.nvim) rather than assume 0.
+  autocmd.group("cmdlog_tracker", true)
+  config.options.track_commands = false
+  config.options.redact_patterns = false
+  package.loaded["cmdlog.core.tracker"] = nil
+  tracker = require("cmdlog.core.tracker")
+  tracker.setup()
+  check(
+    "tracker.setup(): track_commands=false registers no autocmd",
+    #autocmd.registered({ group = "cmdlog_tracker" }) == 0
+  )
+
+  config.options.track_commands = true
+  tracker.setup()
+  local after_first = #autocmd.registered({ group = "cmdlog_tracker" })
+  check("tracker.setup(): registers exactly one autocmd", after_first == 1, tostring(after_first))
+
+  tracker.setup() -- second call: must clear the group, not double it up
+  local after_second = #autocmd.registered({ group = "cmdlog_tracker" })
+  check(
+    "tracker.setup(): calling it again does not double the registration",
+    after_second == 1,
+    tostring(after_second)
+  )
+
+  fire("echo 1")
+  check(
+    "tracker: a plain command reaches both project_history and stats",
+    vim.tbl_contains(recorded, "ph:echo 1") and vim.tbl_contains(recorded, "stats:echo 1"),
+    vim.inspect(recorded)
+  )
+
+  config.options.redact_patterns = { "secret" }
+  fire("echo has secret in it")
+  check(
+    "tracker: a command matching redact_patterns reaches neither store",
+    #recorded == 0,
+    vim.inspect(recorded)
+  )
+
+  -- A malformed user pattern must not crash the tracker (is_redacted's own
+  -- pcall), and a pcall failure must not be mistaken for a match either.
+  config.options.redact_patterns = { "[" }
+  local ok_malformed = pcall(fire, "echo 1")
+  check("tracker: a malformed redact_patterns entry does not raise", ok_malformed)
+  check(
+    "tracker: ...and does not suppress recording either",
+    vim.tbl_contains(recorded, "ph:echo 1"),
+    vim.inspect(recorded)
+  )
+
+  config.options.redact_patterns = false
+  fire("ThisCommandDoesNotExistXYZ")
+  local has_err = false
+  for _, r in ipairs(recorded) do
+    if r:match("^err:ThisCommandDoesNotExistXYZ:") then has_err = true end
+  end
+  check(
+    "tracker: a command that sets v:errmsg is also recorded as a known error",
+    has_err,
+    vim.inspect(recorded)
+  )
+
+  config.options.track_commands = original_track
+  config.options.redact_patterns = original_redact
+  project_history.record = original_ph_record
+  stats.record = original_stats_record
+  errors.record = original_errors_record
 end
 
 -- ── bindings.usrcmds: catalog shape + real :Cmdlog registration ─────────────
@@ -1402,6 +1851,561 @@ do
 
     config.options.preview_execute = false
   end
+end
+
+-- ── ui.telescope-previewer: define_preview branch dispatch ─────────────────
+-- Previously entirely skipped ("hard-requires telescope.nvim, not
+-- available"). telescope.nvim is a genuine sibling here now (see
+-- TESTS/README.md), so this drives the real module: `new_buffer_previewer`
+-- is stubbed to return its opts table as-is (define_preview included) and
+-- `lib.nvim.system.job.start` is stubbed so no real subprocess ever runs,
+-- per the campaign rule against real subprocesses in this suite.
+if not pcall(require, "telescope.previewers") then
+  print("  skip ui.telescope-previewer (telescope.nvim not on runtimepath)")
+  skipped = skipped + 1
+else
+  local config = require("cmdlog.config")
+  local previewers = require("telescope.previewers")
+  local job = require("lib.nvim.system.job")
+
+  local original_new_buffer_previewer = previewers.new_buffer_previewer
+  local original_job_start = job.start
+  local original_preview_execute = config.options.preview_execute
+  local original_risky = config.options.risky_patterns
+
+  ---@diagnostic disable-next-line: duplicate-set-field
+  previewers.new_buffer_previewer = function(opts)
+    return opts
+  end
+
+  local captured_job
+  ---@diagnostic disable-next-line: duplicate-set-field
+  job.start = function(opts)
+    captured_job = opts
+    return {}
+  end
+
+  local tp = require("cmdlog.ui.telescope-previewer")
+  local obj = tp.command_previewer()
+  check("command_previewer(): exposes define_preview", type(obj.define_preview) == "function")
+
+  ---@param cmd string
+  ---@return integer bufnr
+  local function render(cmd)
+    local buf = vim.api.nvim_create_buf(false, true)
+    captured_job = nil
+    obj.define_preview({ state = { bufnr = buf } }, { value = cmd }, nil)
+    return buf
+  end
+
+  config.options.preview_execute = false
+  config.options.risky_patterns = {}
+  do
+    local buf = render(":!rm -rf build")
+    local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+    check(
+      "define_preview: a refused command explains itself via preview_policy",
+      table.concat(lines, "\n"):find("Execution previews are off", 1, true) ~= nil,
+      vim.inspect(lines)
+    )
+    check("define_preview: a refused command never starts a job", captured_job == nil)
+    vim.api.nvim_buf_delete(buf, { force = true })
+  end
+
+  config.options.preview_execute = true
+
+  do
+    local file = vim.fn.tempname()
+    vim.fn.writefile({ "line one", "line two" }, file)
+    local buf = render(":edit " .. file)
+    local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+    check(
+      "define_preview: :edit reads the file's lines directly",
+      lines[1] == "line one" and lines[2] == "line two",
+      vim.inspect(lines)
+    )
+    check("define_preview: reading a file starts no job", captured_job == nil)
+    vim.fn.delete(file)
+    vim.api.nvim_buf_delete(buf, { force = true })
+  end
+
+  do
+    local buf = render(":edit /no/such/cmdlog-file-xyz")
+    local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+    check(
+      "define_preview: an unreadable file reports 'not readable' instead of throwing",
+      table.concat(lines, "\n"):find("not readable", 1, true) ~= nil,
+      vim.inspect(lines)
+    )
+    vim.api.nvim_buf_delete(buf, { force = true })
+  end
+
+  do
+    local buf = render(":lua vim.fn.getcwd()")
+    local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+    check(
+      "define_preview: a Lua expression is evaluated and rendered via vim.inspect",
+      vim.deep_equal(lines, vim.split(vim.inspect(vim.fn.getcwd()), "\n")),
+      vim.inspect(lines)
+    )
+    check("define_preview: evaluating Lua starts no job", captured_job == nil)
+    vim.api.nvim_buf_delete(buf, { force = true })
+  end
+
+  do
+    local buf = render(":lua error('boom')")
+    local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+    check(
+      "define_preview: a raising Lua expression reports the error instead of throwing",
+      table.concat(lines, "\n"):find("Error evaluating", 1, true) ~= nil,
+      vim.inspect(lines)
+    )
+    vim.api.nvim_buf_delete(buf, { force = true })
+  end
+
+  do
+    render(":help vim.lsp")
+    check(
+      "define_preview: :help streams via a headless nvim -c 'help ...'",
+      captured_job ~= nil
+        and captured_job.command == "nvim"
+        and vim.tbl_contains(captured_job.args, "--headless"),
+      vim.inspect(captured_job)
+    )
+  end
+
+  do
+    render(":terminal top")
+    check(
+      "define_preview: :terminal streams via $SHELL -c <arg>",
+      captured_job ~= nil and captured_job.command == vim.o.shell,
+      vim.inspect(captured_job)
+    )
+  end
+
+  do
+    render(":!git status")
+    check(
+      "define_preview: a bare shell command streams verbatim",
+      captured_job ~= nil and captured_job.command == "git status",
+      vim.inspect(captured_job)
+    )
+  end
+
+  do
+    local buf = render(":!git status")
+    check("job wiring: on_stdout is provided", type(captured_job.on_stdout) == "function")
+    captured_job.on_stdout(nil, "hello stdout")
+    captured_job.on_stderr(nil, "hello stderr")
+    vim.wait(50)
+    local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+    check(
+      "job wiring: stdout/stderr lines are appended to the preview buffer",
+      vim.tbl_contains(lines, "hello stdout") and vim.tbl_contains(lines, "Error: hello stderr"),
+      vim.inspect(lines)
+    )
+    vim.api.nvim_buf_delete(buf, { force = true })
+  end
+
+  do
+    local buf = vim.api.nvim_create_buf(false, true)
+    vim.api.nvim_buf_delete(buf, { force = true })
+    local ok = pcall(obj.define_preview, { state = { bufnr = buf } }, { value = ":lua 1" }, nil)
+    check("define_preview: a preview buffer wiped mid-flight does not raise", ok)
+  end
+
+  previewers.new_buffer_previewer = original_new_buffer_previewer
+  job.start = original_job_start
+  config.options.preview_execute = original_preview_execute
+  config.options.risky_patterns = original_risky
+end
+
+-- ── ui.mappings: the attach_mappings factory (select/fav/tag/delete/…) ─────
+-- Round 2 skipped this as "Telescope-only glue with no logic of its own once
+-- separated from a real picker session" -- wrong on inspection: the delete
+-- mapping alone has real branching (single vs. multi-selection, a
+-- confirm-once-for-the-batch flow, failure aggregation that filters out a
+-- user's own "cancelled" answer). telescope.actions/actions.state are
+-- stubbed (as sessions.nvim's picker_spec.lua already does for the same
+-- reason); everything else -- favorites/tags storage, the confirm dialog --
+-- is the real thing.
+if not pcall(require, "telescope.actions") then
+  print("  skip ui.mappings (telescope.nvim not on runtimepath)")
+  skipped = skipped + 1
+else
+  local actions = require("telescope.actions")
+  local actions_state = require("telescope.actions.state")
+  local original_close = actions.close
+  local original_toggle_selection = actions.toggle_selection
+  local original_move_worse = actions.move_selection_worse
+  local original_get_selected = actions_state.get_selected_entry
+  local original_get_picker = actions_state.get_current_picker
+
+  local closed
+  ---@diagnostic disable-next-line: duplicate-set-field
+  actions.close = function(bufnr)
+    closed = bufnr
+  end
+  ---@diagnostic disable-next-line: duplicate-set-field
+  actions.toggle_selection = function() end
+  ---@diagnostic disable-next-line: duplicate-set-field
+  actions.move_selection_worse = function() end
+
+  local mappings_factory = require("cmdlog.ui.mappings")
+
+  ---Captures every `map(mode, lhs, fn)` call an attach_mappings makes.
+  ---@param attach fun(prompt_bufnr: integer, map: function): boolean
+  ---@return table<string, function>
+  local function collect_maps(attach)
+    local bound = {}
+    attach(1, function(mode, lhs, fn)
+      bound[mode .. lhs] = fn
+    end)
+    return bound
+  end
+
+  do
+    local config = require("cmdlog.config")
+    local original_enabled = config.options.mappings.enabled
+    config.options.mappings.enabled = false
+    local map_called = false
+    local attach = mappings_factory(function() end, nil)
+    local ok = attach(1, function()
+      map_called = true
+    end)
+    check("mappings factory: enabled=false is a no-op that keeps telescope defaults", ok == true)
+    check("mappings factory: enabled=false never calls map()", map_called == false)
+    config.options.mappings.enabled = original_enabled
+  end
+
+  do
+    local bound = collect_maps(mappings_factory(function() end, nil))
+    check("mappings: <CR> (select) is bound", type(bound["i<CR>"]) == "function")
+
+    ---@diagnostic disable-next-line: duplicate-set-field
+    actions_state.get_selected_entry = function()
+      return { value = "git status" }
+    end
+    local fed
+    local original_feedkeys = vim.fn.feedkeys
+    ---@diagnostic disable-next-line: duplicate-set-field
+    vim.fn.feedkeys = function(keys, mode)
+      fed = { keys = keys, mode = mode }
+    end
+    closed = nil
+    bound["i<CR>"]()
+    vim.fn.feedkeys = original_feedkeys
+    check(
+      "select: closes the picker and feeds ':<cmd>' back onto the cmdline",
+      closed == 1 and fed and fed.keys == ":git status",
+      vim.inspect(fed)
+    )
+  end
+
+  -- toggle_favorite / refresh / undo_favorite / tag / move_favorite_*:
+  -- driven against the real cmdlog.core.favorites/tags, not spies, so the
+  -- wiring is exercised end to end.
+  do
+    local config = require("cmdlog.config")
+    local favorites = require("cmdlog.core.favorites")
+    local fav_path = vim.fn.tempname() .. "-cmdlog-mapping-favs.json"
+    config.options.favorites_path = fav_path
+    package.loaded["cmdlog.core.favorites"] = nil
+    favorites = require("cmdlog.core.favorites")
+
+    local refreshed = 0
+    local bound = collect_maps(mappings_factory(function()
+      refreshed = refreshed + 1
+    end, nil, { tag = true, reorder = true }))
+
+    ---@diagnostic disable-next-line: duplicate-set-field
+    actions_state.get_selected_entry = function()
+      return { value = "git status" }
+    end
+    closed = nil
+    bound["i<Tab>"]() -- toggle_favorite
+    vim.wait(20)
+    check(
+      "toggle_favorite: adds the selected entry to favorites and refreshes",
+      vim.tbl_contains(favorites.load(), "git status") and closed == 1,
+      vim.inspect(favorites.load())
+    )
+
+    closed = nil
+    refreshed = 0
+    bound["i<C-r>"]() -- refresh
+    vim.wait(20)
+    check("refresh: closes and schedules refresh_fn", closed == 1 and refreshed == 1)
+
+    closed = nil
+    bound["i<C-z>"]() -- undo_favorite: something to undo
+    check(
+      "undo_favorite: undoes the toggle and closes when there is something to undo",
+      not vim.tbl_contains(favorites.load(), "git status") and closed == 1,
+      vim.inspect(favorites.load())
+    )
+
+    local notified
+    local original_notify = vim.notify
+    ---@diagnostic disable-next-line: duplicate-set-field
+    vim.notify = function(msg)
+      notified = msg
+    end
+    closed = nil
+    bound["i<C-z>"]() -- undo_favorite: nothing left to undo
+    vim.wait(50, function()
+      return notified ~= nil
+    end, 5)
+    vim.notify = original_notify
+    check(
+      "undo_favorite: nothing to undo notifies instead of closing",
+      closed == nil and notified ~= nil and notified:find("Nothing to undo", 1, true) ~= nil,
+      tostring(notified)
+    )
+
+    favorites.toggle("git status")
+    favorites.toggle("git log")
+    check(
+      "move_favorite_up/down: bound when opts.reorder is true",
+      type(bound["i<C-Up>"]) == "function" and type(bound["i<C-Down>"]) == "function"
+    )
+    local before = favorites.load()
+    closed = nil
+    bound["i<C-Down>"]()
+    check(
+      "move_favorite_down: reorders the persisted list and closes",
+      not vim.deep_equal(favorites.load(), before) and closed == 1,
+      vim.inspect(favorites.load())
+    )
+
+    local tags = require("cmdlog.core.tags")
+    local original_input = vim.ui.input
+    vim.ui.input = function(_, on_confirm)
+      on_confirm("nightly")
+    end
+    closed = nil
+    bound["i<C-t>"]() -- tag: bound because opts.tag = true
+    vim.ui.input = original_input
+    check(
+      "tag: adds the typed tag to the selected favorite and closes",
+      vim.tbl_contains(tags.get_tags("git status"), "nightly") and closed == 1,
+      vim.inspect(tags.get_tags("git status"))
+    )
+
+    vim.fn.delete(fav_path)
+    config.options.favorites_path = require("cmdlog.config.DEFAULTS").favorites_path
+    package.loaded["cmdlog.core.favorites"] = nil
+  end
+
+  do
+    local toggled, moved = false, false
+    ---@diagnostic disable-next-line: duplicate-set-field
+    actions.toggle_selection = function()
+      toggled = true
+    end
+    ---@diagnostic disable-next-line: duplicate-set-field
+    actions.move_selection_worse = function()
+      moved = true
+    end
+    local bound = collect_maps(mappings_factory(function() end, nil))
+    bound["i<C-Space>"]()
+    check("toggle_selection: forwards to telescope's own toggle + move-down", toggled and moved)
+  end
+
+  do
+    ---@diagnostic disable-next-line: duplicate-set-field
+    actions_state.get_current_picker = function()
+      return {
+        get_multi_selection = function()
+          return {}
+        end,
+      }
+    end
+    ---@diagnostic disable-next-line: duplicate-set-field
+    actions_state.get_selected_entry = function()
+      return { value = "git status" }
+    end
+    local delete_calls = {}
+    local delete_fn = function(cmd, on_done, opts)
+      delete_calls[#delete_calls + 1] = { cmd = cmd, opts = opts }
+      on_done(true)
+    end
+    local refreshed = 0
+    local bound = collect_maps(mappings_factory(function()
+      refreshed = refreshed + 1
+    end, delete_fn))
+    closed = nil
+    bound["i<C-x>"]()
+    vim.wait(20)
+    check(
+      "delete: a single selection deletes without confirmation and refreshes",
+      #delete_calls == 1 and delete_calls[1].cmd == "git status" and closed == 1 and refreshed == 1,
+      vim.inspect(delete_calls)
+    )
+  end
+
+  -- Multi-selection: confirms once for the whole batch, deletes every target
+  -- with skip_confirm, and aggregates failures without reporting a per-entry
+  -- "cancelled" as if it were one.
+  do
+    ---@diagnostic disable-next-line: duplicate-set-field
+    actions_state.get_current_picker = function()
+      return {
+        get_multi_selection = function()
+          return { { value = "a" }, { value = "b" }, { value = "c" } }
+        end,
+      }
+    end
+    local kit = require("ui.kit")
+    local original_confirm = kit.confirm
+    local confirm_question
+    ---@diagnostic disable-next-line: duplicate-set-field
+    kit.confirm = function(opts)
+      confirm_question = opts.question
+      opts.on_answer(true)
+    end
+
+    local delete_calls = {}
+    local delete_fn = function(cmd, on_done)
+      delete_calls[#delete_calls + 1] = { cmd = cmd }
+      if cmd == "b" then
+        on_done(false, "boom")
+      elseif cmd == "c" then
+        on_done(false, "cancelled")
+      else
+        on_done(true)
+      end
+    end
+    local refreshed = 0
+    local bound = collect_maps(mappings_factory(function()
+      refreshed = refreshed + 1
+    end, delete_fn))
+
+    local warned
+    local original_notify = vim.notify
+    ---@diagnostic disable-next-line: duplicate-set-field
+    vim.notify = function(msg)
+      warned = msg
+    end
+    closed = nil
+    bound["i<C-x>"]()
+    vim.wait(20)
+    vim.notify = original_notify
+    kit.confirm = original_confirm
+
+    check(
+      "delete: a multi-selection confirms once for the whole batch",
+      confirm_question ~= nil and confirm_question:find("3 selected entries", 1, true) ~= nil,
+      tostring(confirm_question)
+    )
+    check(
+      "delete: real failures are reported, but a per-entry 'cancelled' is filtered out",
+      warned ~= nil
+        and warned:find("boom", 1, true) ~= nil
+        and warned:find("cancelled", 1, true) == nil,
+      tostring(warned)
+    )
+    check("delete: at least one success still closes and refreshes", closed == 1 and refreshed == 1)
+  end
+
+  actions.close = original_close
+  actions.toggle_selection = original_toggle_selection
+  actions.move_selection_worse = original_move_worse
+  actions_state.get_selected_entry = original_get_selected
+  actions_state.get_current_picker = original_get_picker
+end
+
+-- ── ui.cycle: mappings.cycle_source rotation between the four pickers ──────
+-- Round 2 skipped this alongside ui.mappings for the same (also wrong) "no
+-- logic of its own" reason -- the name lookup + modulo wraparound is real,
+-- previously-untested logic.
+if not pcall(require, "telescope.actions") then
+  print("  skip ui.cycle (telescope.nvim not on runtimepath)")
+  skipped = skipped + 1
+else
+  local config = require("cmdlog.config")
+  local cycle = require("cmdlog.ui.cycle")
+  local actions = require("telescope.actions")
+  local actions_state = require("telescope.actions.state")
+  local original_close = actions.close
+  local original_get_line = actions_state.get_current_line
+
+  local closed
+  ---@diagnostic disable-next-line: duplicate-set-field
+  actions.close = function(bufnr)
+    closed = bufnr
+  end
+  ---@diagnostic disable-next-line: duplicate-set-field
+  actions_state.get_current_line = function()
+    return "partial query"
+  end
+
+  do
+    local original_enabled = config.options.mappings.enabled
+    config.options.mappings.enabled = false
+    local mapped = false
+    cycle.attach(1, function()
+      mapped = true
+    end, "nvim")
+    check("cycle.attach: no-op when mappings.enabled is false", mapped == false)
+    config.options.mappings.enabled = original_enabled
+  end
+
+  do
+    local original_key = config.options.mappings.cycle_source
+    config.options.mappings.cycle_source = false
+    local mapped = false
+    cycle.attach(1, function()
+      mapped = true
+    end, "nvim")
+    check("cycle.attach: no-op when mappings.cycle_source is unset", mapped == false)
+    config.options.mappings.cycle_source = original_key
+  end
+
+  -- Rotation order: nvim -> shell -> favorites -> project -> nvim (wraps).
+  -- Each case patches the *next* source's show function (what `current`
+  -- should rotate to), not the current one's.
+  local sources = {
+    { "shell_unique_picker", "show_shell_unique_picker", "nvim", "shell" },
+    { "favorites_picker", "show_favorites_picker", "shell", "favorites" },
+    { "project_picker", "show_project_picker", "favorites", "project" },
+    { "history_unique_picker", "show_history_unique_picker", "project", "nvim" },
+  }
+
+  for _, case in ipairs(sources) do
+    local modname, fnname, current, expected_next_name = case[1], case[2], case[3], case[4]
+    local mod = require("cmdlog.ui." .. modname)
+    local original_fn = mod[fnname]
+    local received_text
+    ---@diagnostic disable-next-line: duplicate-set-field
+    mod[fnname] = function(text)
+      received_text = text or "<nil>"
+    end
+
+    local bound
+    closed = nil
+    cycle.attach(7, function(_, _, fn)
+      bound = fn
+    end, current)
+    bound()
+    vim.wait(50, function()
+      return received_text ~= nil
+    end, 5)
+
+    check(
+      ("cycle.attach: from %s, closes the picker and carries the prompt text to %s"):format(
+        current,
+        expected_next_name
+      ),
+      closed == 7 and received_text == "partial query",
+      tostring(received_text)
+    )
+
+    mod[fnname] = original_fn
+  end
+
+  actions.close = original_close
+  actions_state.get_current_line = original_get_line
 end
 
 -- ── ui.all_picker: cross-source merge, origin labels, delete adapter ───────
@@ -1645,12 +2649,88 @@ do
   picker_utils.open_picker = original_open_picker
 end
 
--- ── :checkhealth cmdlog (smoke only -- asserts it runs without erroring) ────
+-- ── :checkhealth cmdlog: per-branch verdicts, driven against a recording
+-- vim.health ────────────────────────────────────────────────────────────────
+-- Was smoke-only ("runs without erroring"); now asserts what each branch
+-- actually reports, mirroring diff.nvim's health_spec.lua record() pattern.
 do
-  local ok, err = pcall(function()
-    require("cmdlog.health").check()
-  end)
-  check("cmdlog.health.check() runs without error", ok, err)
+  local COMPOSER = "lib.nvim.bindings.usercmd.composer"
+
+  ---Run cmdlog.health.check() against a recording vim.health, returning
+  ---every call as "<level>: <message>" plus a joined blob for substring
+  ---checks.
+  ---@return { text: string, ok: boolean, err: any }
+  local function record()
+    local calls = {}
+    local saved = vim.health
+    ---@diagnostic disable-next-line: duplicate-set-field
+    vim.health = setmetatable({}, {
+      __index = function(_, level)
+        return function(msg)
+          calls[#calls + 1] = level .. ": " .. tostring(msg)
+        end
+      end,
+    })
+    package.loaded["cmdlog.health"] = nil
+    local call_ok, err = pcall(function()
+      require("cmdlog.health").check()
+    end)
+    vim.health = saved
+    return { text = table.concat(calls, "\n"), ok = call_ok, err = err }
+  end
+
+  do
+    local r = record()
+    check("health.check(): runs to completion on a fully-equipped machine", r.ok, tostring(r.err))
+    check(
+      "health.check(): reports lib.nvim as found",
+      r.text:find("lib.nvim found", 1, true) ~= nil
+    )
+    check(
+      "health.check(): reports the configured picker backend one way or the other",
+      r.text:find("picker = 'telescope' and telescope.nvim found", 1, true) ~= nil
+        or r.text:find("but telescope.nvim is not installed", 1, true) ~= nil,
+      r.text
+    )
+  end
+
+  -- Regression: lib.nvim missing must not crash the very report that exists
+  -- to diagnose it (see the fix comment in lua/cmdlog/health.lua -- the
+  -- unconditional require used to abort :checkhealth right after telling
+  -- the user lib.nvim was the problem).
+  do
+    local saved_loaded = package.loaded[COMPOSER]
+    local saved_preload = package.preload[COMPOSER]
+    package.loaded[COMPOSER] = nil
+    package.preload[COMPOSER] = function()
+      error("module '" .. COMPOSER .. "' not found")
+    end
+
+    local r = record()
+
+    package.preload[COMPOSER] = saved_preload
+    package.loaded[COMPOSER] = saved_loaded
+
+    check(
+      "health.check(): survives a missing lib.nvim composer instead of throwing",
+      r.ok,
+      tostring(r.err)
+    )
+    check("health.check(): the composer is requirable again afterwards", pcall(require, COMPOSER))
+  end
+
+  do
+    local config = require("cmdlog.config")
+    local original_picker = config.options.picker
+    config.options.picker = "not-a-real-picker"
+    local r = record()
+    config.options.picker = original_picker
+    check(
+      "health.check(): an invalid config.options.picker is reported as an error",
+      r.text:find("Invalid config.options.picker", 1, true) ~= nil,
+      r.text
+    )
+  end
 end
 
 print(("\n%d passed, %d failed, %d skipped"):format(passed, failed, skipped))
