@@ -82,7 +82,12 @@ function M.check()
     warn("Could not detect a supported shell (SHELL unset and no known history file found)")
   end
 
-  require("lib.nvim.bindings.usercmd.composer").checkhealth("Cmdlog")
+  -- Guarded like the lib.nvim check above: without lib.nvim this require
+  -- throws, and `:checkhealth cmdlog` would abort right here -- on exactly
+  -- the machine whose report says lib.nvim is missing, so the user would
+  -- never get to read the diagnosis they came for.
+  local ok_composer, composer = pcall(require, "lib.nvim.bindings.usercmd.composer")
+  if ok_composer then composer.checkhealth("Cmdlog") end
 end
 
 return M
