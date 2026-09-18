@@ -38,11 +38,22 @@ if vim.env.UI_NVIM_PATH and vim.fn.isdirectory(vim.env.UI_NVIM_PATH) == 1 then
 end
 if vim.fn.isdirectory(ui) == 1 then vim.opt.runtimepath:append(ui) end
 
--- Optional: telescope.nvim (+ its own plenary.nvim dependency), if checked
--- out as a sibling -- see optional_telescope_modules below.
+-- Optional: telescope.nvim (+ its own plenary.nvim dependency) -- see
+-- optional_telescope_modules below. A sibling checkout wins (that is what
+-- CI provides); otherwise the plugin manager's own directory, which is
+-- where both already are on any machine that runs this plugin. Without
+-- that fallback a plain `nvim -l TESTS/smoke_spec.lua` skipped every
+-- telescope-gated block, so a local "passed" said nothing about them.
 for _, name in ipairs({ "telescope.nvim", "plenary.nvim" }) do
-  local dir = siblings_root .. "/" .. name
-  if vim.fn.isdirectory(dir) == 1 then vim.opt.runtimepath:append(dir) end
+  for _, dir in ipairs({
+    siblings_root .. "/" .. name,
+    vim.fn.stdpath("data") .. "/lazy/" .. name,
+  }) do
+    if vim.fn.isdirectory(dir) == 1 then
+      vim.opt.runtimepath:append(dir)
+      break
+    end
+  end
 end
 
 local passed, failed = 0, 0
@@ -2132,7 +2143,13 @@ else
     end
     closed = nil
     bound["i<Tab>"]() -- toggle_favorite
-    vim.wait(20)
+    -- The check below reads only synchronously-set state, but the toggle
+    -- also schedules refresh_fn, and the refresh block next resets
+    -- `refreshed` to 0 -- so that scheduled bump has to land here, or the
+    -- refresh check would see 2. Wait for it, not for a stopwatch.
+    vim.wait(500, function()
+      return refreshed == 1
+    end, 5)
     check(
       "toggle_favorite: adds the selected entry to favorites and refreshes",
       vim.tbl_contains(favorites.load(), "git status") and closed == 1,
@@ -2302,8 +2319,12 @@ else
     end
     closed = nil
     bound["i<C-x>"]()
+    -- Two scheduled outcomes are asserted below: refresh_fn, and the
+    -- failure warning, which notify.safe also delivers through
+    -- vim.schedule. Wait for both before vim.notify is put back, or a
+    -- late warning would go to the real one and `warned` stay nil.
     vim.wait(500, function()
-      return refreshed == 1
+      return refreshed == 1 and warned ~= nil
     end, 5)
     vim.notify = original_notify
     kit.confirm = original_confirm
