@@ -2177,12 +2177,41 @@ else
   end
 
   do
-    render(":!git status")
+    render(":!git status --short")
     check(
-      "define_preview: a bare shell command streams verbatim",
-      captured_job ~= nil and captured_job.command == "git status",
+      -- ERR-01: a full command line is not a resolvable executable on its
+      -- own (job.start's argv would be { "git status --short" }, one
+      -- element -- ENOENT). Same shape as the :terminal branch above: run
+      -- it through $SHELL -c <line>, exactly what a real `:!` does.
+      "define_preview: a multi-word shell command runs through $SHELL, not as argv[0]",
+      captured_job ~= nil
+        and captured_job.command == vim.o.shell
+        and vim.tbl_contains(captured_job.args, "git status --short"),
       vim.inspect(captured_job)
     )
+  end
+
+  do
+    -- ERR-01: job.start -> vim.system raises synchronously for a
+    -- non-resolvable executable; stream() must not let that escape
+    -- define_preview uncaught.
+    ---@diagnostic disable-next-line: duplicate-set-field
+    job.start = function()
+      error("ENOENT: no such file or directory")
+    end
+    local buf = render(":!git status")
+    local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+    check(
+      "define_preview: a job.start error is caught and shown, not raised",
+      table.concat(lines, "\n"):find("ENOENT", 1, true) ~= nil,
+      vim.inspect(lines)
+    )
+    vim.api.nvim_buf_delete(buf, { force = true })
+    ---@diagnostic disable-next-line: duplicate-set-field
+    job.start = function(opts)
+      captured_job = opts
+      return {}
+    end
   end
 
   do
