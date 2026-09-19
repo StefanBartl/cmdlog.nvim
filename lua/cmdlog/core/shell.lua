@@ -218,6 +218,11 @@ end
 
 --- The user's `shell_history.matches`, if any.
 ---
+--- Named the same way as `Cmdlog.ShellHistoryParser` above, for the same
+--- reason (LLS-13): `(fun(...): T)|nil` is read as `fun(...): T|nil`, the
+--- union landing on the return value instead of the function itself.
+---@alias Cmdlog.ShellHistoryMatcher fun(line: string, cmd: string): boolean
+---
 --- Parsing and deleting are two halves of one format: `delete_entry` has to
 --- find the *raw line* a parsed command came from in order to remove it. A
 --- custom parser without a matching `matches` is therefore incomplete, and
@@ -225,7 +230,7 @@ end
 --- guessing here rewrites a history file, and the wrong guess deletes the
 --- wrong lines.
 ---@internal
----@return (fun(line: string, cmd: string): boolean)|nil
+---@return Cmdlog.ShellHistoryMatcher|nil
 function M.custom_matcher()
   local cfg = require("cmdlog.config").options.shell_history
   if type(cfg) == "table" and type(cfg.matches) == "function" then return cfg.matches end

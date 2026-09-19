@@ -34,11 +34,16 @@ local M = {}
 --- through as if it were legitimate data, still losing the original bytes
 --- on the next save with no backup and no trace (ERR-11) -- exactly the
 --- decode-failure case above, just one layer up.
+---
+--- Named instead of an inline `(fun(decoded: any): boolean)|nil` (LLS-13):
+--- that form is read as `fun(decoded: any): boolean|nil`, the union landing
+--- on the return value instead of on `validate` itself being optional.
+---@alias Cmdlog.Store.Validate fun(decoded: any): boolean
 ---@param path string
 ---@param default any Value returned when the file is missing/empty/invalid
----@param validate (fun(decoded: any): boolean)|nil Optional shape check run
----  on a successfully decoded value; a `false` result is treated the same
----  as a decode failure.
+---@param validate Cmdlog.Store.Validate|nil Optional shape check run on a
+---  successfully decoded value; a `false` result is treated the same as a
+---  decode failure.
 ---@return any data
 ---@return string|nil err `nil` when the file is missing or empty; set when
 ---  it exists but could not be decoded or decoded to the wrong shape.
