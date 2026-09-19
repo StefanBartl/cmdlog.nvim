@@ -789,6 +789,43 @@ do
   vim.fn.delete(path)
 end
 
+-- ── core.favorites: a corrupt file is backed up, not silently discarded ────
+-- ERR-11: M.save() always rewrites the WHOLE file, so collapsing "corrupt"
+-- into the same empty list as "first run" means the very next toggle
+-- destroys hand-curated favorites with no trace they ever existed.
+do
+  local config = require("cmdlog.config")
+  local path = vim.fn.tempname() .. "-cmdlog-favCorrupt.json"
+  config.options.favorites_path = path
+  config.options.project_scoped = { enabled = false }
+  vim.fn.writefile({ "{not valid json" }, path)
+  package.loaded["cmdlog.core.favorites"] = nil
+  local favorites = require("cmdlog.core.favorites")
+
+  local loaded = favorites.load()
+  check("favorites.load: a corrupt file loads as an empty table, not a crash", #loaded == 0)
+  check(
+    "favorites.load: the corrupt file was backed up",
+    vim.fn.filereadable(path .. ".corrupt") == 1
+  )
+  check(
+    "favorites.load: the backup preserves the original bytes",
+    vim.fn.readfile(path .. ".corrupt")[1] == "{not valid json"
+  )
+
+  -- The bug this guards against: toggling after a corrupt load must not
+  -- silently destroy the corrupt file without a trace -- it is already
+  -- backed up above, and the next toggle only has to not error out.
+  favorites.toggle("git status")
+  check(
+    "favorites.toggle: still works after recovering from a corrupt load",
+    vim.deep_equal(favorites.load(), { "git status" })
+  )
+
+  vim.fn.delete(path)
+  vim.fn.delete(path .. ".corrupt")
+end
+
 -- ── core.favorites: undo_last_toggle (single-level) ─────────────────────────
 do
   local config = require("cmdlog.config")
@@ -894,6 +931,17 @@ do
   check(
     "favorites.import: invalid JSON reports failure",
     favorites.import(base .. "/bad.json") == false
+  )
+
+  -- SEC-34: vim.fn.expand() reads a leading '#' as the alternate-buffer
+  -- cmdline special. lib.nvim.cross.fs.expand_path does not, so a literal
+  -- '#' in a user-supplied path is written where it was actually asked for
+  -- instead of being silently redirected to an unrelated file.
+  local hash_path = base .. "/#literal.json"
+  check(
+    "favorites.export: a leading '#' in the path is treated literally",
+    favorites.export(hash_path) == true and vim.fn.filereadable(hash_path) == 1,
+    hash_path
   )
 
   vim.fn.delete(base, "rf")
