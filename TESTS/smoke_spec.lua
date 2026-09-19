@@ -821,6 +821,39 @@ do
   )
   check("store.load_json: empty file reports no err -- it is legitimately empty", empty_err == nil)
 
+  -- ERR-11: valid JSON of the wrong shape must be treated the same as a
+  -- decode failure -- backed up, notified, and reported via `err` -- not
+  -- silently accepted as if it were legitimate data.
+  vim.fn.delete(tmp .. ".corrupt")
+  vim.fn.writefile({ vim.fn.json_encode({ 1, 2, 3 }) }, tmp)
+  local is_record = function(v)
+    return type(v) == "table" and v.expected == true
+  end
+  local shape_data, shape_err = store.load_json(tmp, { fallback = true }, is_record)
+  check(
+    "store.load_json: a validate rejection returns the default",
+    vim.deep_equal(shape_data, { fallback = true })
+  )
+  check(
+    "store.load_json: a validate rejection reports a non-nil err (ERR-11)",
+    shape_err ~= nil,
+    tostring(shape_err)
+  )
+  check(
+    "store.load_json: a validate rejection backs up the original bytes",
+    vim.fn.filereadable(tmp .. ".corrupt") == 1
+  )
+  check(
+    "store.load_json: a validate that passes returns the decoded value",
+    vim.deep_equal(
+      store.load_json(tmp, {}, function()
+        return true
+      end),
+      { 1, 2, 3 }
+    )
+  )
+  vim.fn.delete(tmp .. ".corrupt")
+
   vim.fn.delete(tmp)
 end
 
@@ -1492,6 +1525,33 @@ do
   errors.record("", "should be ignored")
   check("errors.record: ignores an empty command", errors.is_known_bad("") == false)
 
+  -- ERR-11: a persisted errors.json is untrusted input -- valid JSON of the
+  -- wrong shape (here: a JSON array instead of the table<string,string>
+  -- this module writes) must be rejected the same way a decode failure is:
+  -- backed up before the next load-modify-save (record()) would otherwise
+  -- silently overwrite it with a near-empty file and no trace.
+  vim.fn.delete(tmp .. ".corrupt")
+  vim.fn.writefile({ vim.fn.json_encode({ "not", "a", "record" }) }, tmp)
+  package.loaded["cmdlog.core.errors"] = nil
+  local bad_errors = require("cmdlog.core.errors")
+  local ok_call = pcall(bad_errors.is_known_bad, "git status")
+  check("errors: a wrong-shape file does not crash is_known_bad", ok_call)
+  check(
+    "errors: a wrong-shape file rejects the whole load",
+    bad_errors.is_known_bad("git status") == false
+  )
+  check(
+    "errors: a wrong-shape file is backed up before falling back to empty",
+    vim.fn.filereadable(tmp .. ".corrupt") == 1
+  )
+  bad_errors.record("git log", "E999: broken")
+  local on_disk = require("cmdlog.core.store").load_json(tmp, {})
+  check(
+    "errors: recording after a wrong-shape load still works and persists",
+    vim.deep_equal(on_disk, { ["git log"] = "E999: broken" })
+  )
+  vim.fn.delete(tmp .. ".corrupt")
+
   config.options.errors_path = require("cmdlog.config.DEFAULTS").errors_path
   package.loaded["cmdlog.core.errors"] = nil
   vim.fn.delete(tmp)
@@ -1540,6 +1600,7 @@ do
   -- with the wrong shape (here: a string count) must not crash
   -- by_frequency()'s comparator, and the whole load is rejected rather than
   -- trusting the rest of the file.
+  vim.fn.delete(tmp .. ".corrupt")
   vim.fn.writefile(
     { vim.fn.json_encode({ ["git status"] = { count = "not-a-number", last_used = 1 } }) },
     tmp
@@ -1549,6 +1610,24 @@ do
   local ok_sort = pcall(bad_stats.by_frequency)
   check("stats: a malformed entry's shape does not crash by_frequency", ok_sort)
   check("stats: a malformed entry rejects the whole load", #bad_stats.by_frequency() == 0)
+
+  -- ERR-11: rejecting the load must not mean silently discarding the file.
+  -- stats.record() below is a load-modify-save cycle -- without a backup,
+  -- the very next record() overwrites the shape-invalid file with a
+  -- near-empty one and the original entry is gone without a trace.
+  check(
+    "stats: a shape-invalid file is backed up before falling back to empty",
+    vim.fn.filereadable(tmp .. ".corrupt") == 1
+  )
+  bad_stats.record("git log")
+  local on_disk = require("cmdlog.core.store").load_json(tmp, {})
+  check(
+    "stats: recording after a shape-invalid load still works and persists",
+    vim.deep_equal(on_disk, {
+      ["git log"] = { count = 1, last_used = bad_stats.all()["git log"].last_used },
+    })
+  )
+  vim.fn.delete(tmp .. ".corrupt")
 
   config.options.stats_path = require("cmdlog.config.DEFAULTS").stats_path
   package.loaded["cmdlog.core.stats"] = nil
@@ -1596,6 +1675,7 @@ do
   -- SEC-33: a hand-edited favorite_tags.json with a non-string tag must not
   -- crash table.concat downstream (favorites_picker.lua); the whole load is
   -- rejected instead.
+  vim.fn.delete(tmp .. ".corrupt")
   vim.fn.writefile({ vim.fn.json_encode({ ["git status"] = { "vcs", 5 } }) }, tmp)
   package.loaded["cmdlog.core.tags"] = nil
   local bad_tags = require("cmdlog.core.tags")
@@ -1603,6 +1683,22 @@ do
     "tags: a non-string tag entry rejects the whole load",
     #bad_tags.get_tags("git status") == 0
   )
+
+  -- ERR-11: rejecting the load must not mean silently discarding the file.
+  -- add_tag() below is a load-modify-save cycle -- without a backup, the
+  -- very next add_tag() overwrites the shape-invalid file with a near-empty
+  -- one and the original entry is gone without a trace.
+  check(
+    "tags: a shape-invalid file is backed up before falling back to empty",
+    vim.fn.filereadable(tmp .. ".corrupt") == 1
+  )
+  bad_tags.add_tag("ls -la", "fs")
+  local on_disk = require("cmdlog.core.store").load_json(tmp, {})
+  check(
+    "tags: adding a tag after a shape-invalid load still works and persists",
+    vim.deep_equal(on_disk, { ["ls -la"] = { "fs" } })
+  )
+  vim.fn.delete(tmp .. ".corrupt")
 
   config.options.favorite_tags_path = require("cmdlog.config.DEFAULTS").favorite_tags_path
   package.loaded["cmdlog.core.tags"] = nil
@@ -1679,6 +1775,7 @@ end
 do
   local config = require("cmdlog.config")
   local tmp = vim.fn.tempname() .. "-cmdlog-project-history-bad.json"
+  vim.fn.delete(tmp .. ".corrupt")
   vim.fn.writefile({ vim.fn.json_encode({ ["/some/root"] = "not-a-list" }) }, tmp)
   config.options.project_history_path = tmp
   package.loaded["cmdlog.core.project_history"] = nil
@@ -1687,6 +1784,26 @@ do
   local ok_call, history = pcall(project_history.get_project_history)
   check("project_history: a malformed root value does not crash the caller", ok_call)
   check("project_history: a malformed root value rejects the whole load", ok_call and #history == 0)
+
+  -- ERR-11: rejecting the load must not mean silently discarding the file.
+  -- record() below is a load-modify-save cycle -- without a backup, the
+  -- very next record() overwrites the shape-invalid file with a near-empty
+  -- one and the original root's entry is gone without a trace.
+  check(
+    "project_history: a shape-invalid file is backed up before falling back to empty",
+    vim.fn.filereadable(tmp .. ".corrupt") == 1
+  )
+  local test_root = project_history.get_git_root()
+  if test_root then
+    project_history.record("git log", test_root)
+    local on_disk = require("cmdlog.core.store").load_json(tmp, {})
+    check(
+      "project_history: recording after a shape-invalid load still works and persists",
+      vim.deep_equal(on_disk, { [test_root] = { "git log" } }),
+      vim.inspect(on_disk)
+    )
+  end
+  vim.fn.delete(tmp .. ".corrupt")
 
   config.options.project_history_path = require("cmdlog.config.DEFAULTS").project_history_path
   package.loaded["cmdlog.core.project_history"] = nil
