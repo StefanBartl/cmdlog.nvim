@@ -8,6 +8,7 @@ local is_readable_file = require("lib.nvim.fs.is_readable_file")
 local read_file = require("lib.nvim.fs.read")
 local write_to_file = require("lib.nvim.fs.write.to_file")
 local find_upward_dir = require("lib.nvim.fs.find_upward_dir")
+local expand_path = require("lib.nvim.cross.fs.expand_path")
 local notify = require("lib.nvim.notify.safe").create_safe("[cmdlog.nvim.favorites]")
 
 local M = {}
@@ -57,6 +58,12 @@ local last_toggle_snapshot = nil
 
 --- Load favorites from disk (with caching, keyed by the resolved path so
 --- switching projects doesn't leak favorites between them).
+---
+--- The returned list is the live cache table, not a copy -- callers that
+--- sort or otherwise mutate it in place (rather than reading it) must
+--- `vim.deepcopy()` first, the way `M.move()` and the picker modules
+--- already do, or they corrupt the cache for the rest of the session and
+--- for the next `M.save()`.
 --- @return string[] favorites or empty table
 function M.load()
   -- Expanded, matching M.save()'s cache key -- on Windows, vim.fn.expand()
@@ -80,6 +87,17 @@ function M.load()
 
   local ok_json, decoded = pcall(vim.fn.json_decode, content)
   if not ok_json or type(decoded) ~= "table" then
+    -- A decode failure on an existing, non-empty file is not "first run":
+    -- M.save() always rewrites the WHOLE file, so falling straight through
+    -- to an empty list here means the very next favorite toggled silently
+    -- replaces a corrupt favorites.json with a single-entry list -- every
+    -- hand-curated favorite gone with no trace it ever existed. Back up the
+    -- original bytes once so that loss stays recoverable.
+    local backup_path = target .. ".corrupt"
+    if not is_readable_file(backup_path) then write_to_file(backup_path, content) end
+    notify.error(
+      ("Favorites file '%s' is corrupt; original kept at '%s'"):format(target, backup_path)
+    )
     favorites_cache[target] = {}
     return favorites_cache[target]
   end
@@ -182,7 +200,11 @@ end
 --- @param path? string Defaults to the favorites file's path + `.export.json`
 --- @return boolean ok
 function M.export(path)
-  local target = vim.fn.expand(path and path ~= "" and path or default_export_path())
+  -- lib.nvim.cross.fs.expand_path, not vim.fn.expand: this runs on a path
+  -- the user typed on the `:Cmdlog export` command line, and expand()'s
+  -- Vim-command-line semantics (backtick spans run through &shell, leading
+  -- `%`/`#`/<cfile> are cmdline specials) do not belong on user text (SEC-34).
+  local target = expand_path(path and path ~= "" and path or default_export_path())
   local favs = M.load()
   local encoded = vim.fn.json_encode(favs)
 
@@ -202,7 +224,10 @@ end
 --- @param path string
 --- @return boolean ok
 function M.import(path)
-  local target = vim.fn.expand(path)
+  -- See M.export above (SEC-34): the composer's PATH argtype already ran
+  -- this through lib.nvim.cross.fs.expand_path, so this is only the second
+  -- layer of defense for a direct M.import() caller -- never vim.fn.expand.
+  local target = expand_path(path)
 
   if not is_readable_file(target) then
     notify.error(("Cannot import: '%s' does not exist"):format(target))
