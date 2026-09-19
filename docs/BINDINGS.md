@@ -53,8 +53,9 @@ also shows in the Telescope prompt title.
 handed to Telescope through a picker's `attach_mappings`, which
 [`ui/picker_utils.lua`](../lua/cmdlog/ui/picker_utils.lua)'s fzf-lua branch
 does not pass on. Under `picker = "fzf"` exactly one action is bound —
-`default` (`<CR>`), which *runs* the selected command rather than inserting
-it. No favorite toggle, no tag, no delete, in any picker.
+`default` (`<CR>`), which inserts the selected command into the cmdline,
+same as `mappings.select` on the Telescope side. No favorite toggle, no
+tag, no delete, in any picker.
 
 | Default | Config key        | Action                                            |
 | ------- | ------------------ | -------------------------------------------------- |

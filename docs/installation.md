@@ -27,8 +27,8 @@ missing one as an error.
 and known-error highlighting, `<C-s>` cycling, and every in-picker keymap
 (`<Tab>` to favorite, `<C-x>` to delete, `<C-t>` to tag). `fzf` is the faster,
 more minimal option — under it exactly one action is bound, `<CR>`, which
-*runs* the selected command; previews work on Linux and macOS but not on
-Windows.
+inserts the selected command into the cmdline (never executes it); previews
+work on Linux and macOS but not on Windows.
 
 Everything else is identical: `picker` changes how a picker renders, never
 which subcommands exist. Details in

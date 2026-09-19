@@ -161,14 +161,15 @@ end
 function M.open_picker(entries, favs, opts)
   opts = opts or {}
 
-  --- CDX: only `"fzf"` routes here; `health.lua` and `@types` also accept
-  --- `"fzf-lua"`, which falls through to the Telescope branch below. The three
-  --- sites disagree on the accepted picker values.
-  if config.options.picker == "fzf" then
+  -- "fzf-lua" is accepted here too -- health.lua and @types already declare
+  -- it valid, and :checkhealth otherwise certifies a config that throws on
+  -- every :Cmdlog subcommand (ERR-22: an invalid value must degrade to a
+  -- default, not be blessed by :checkhealth while the runtime rejects it).
+  if config.options.picker == "fzf" or config.options.picker == "fzf-lua" then
     -- fzf-lua entries double as the selected value (see the default action
     -- below), so decorating them the way the Telescope entry_maker does
-    -- would corrupt `vim.cmd(selected[1])`. Marker/tag/risky decoration is
-    -- therefore Telescope-only.
+    -- would corrupt that value. Marker/tag/risky decoration is therefore
+    -- Telescope-only.
     local fzf = require("fzf-lua")
     fzf.fzf_exec(entries, {
       prompt = opts.fzf_prompt or ":commands> ",
@@ -179,8 +180,15 @@ function M.open_picker(entries, favs, opts)
       -- stringify_data -- see fzf-lua/previewer/init.lua's normalize_spec).
       preview = { fn = require("cmdlog.ui.fzf-previewer").command_previewer(), type = "cmd" },
       actions = opts.actions or {
+        -- Feeds the entry back onto the command-line, same as the
+        -- Telescope backend's `mappings.select` (ui/mappings.lua) -- never
+        -- vim.cmd(selected[1]). A history/favorites entry is not
+        -- necessarily the user's own: extra_files and shell history fold
+        -- foreign text in as a source, and README.md promises recall, not
+        -- auto-exec (SEC-50: a preview -- and a picker's default action --
+        -- reads, it does not run).
         ["default"] = function(selected)
-          if selected[1] then vim.cmd(selected[1]) end
+          if selected[1] then vim.fn.feedkeys(":" .. selected[1], "n") end
         end,
       },
     })
