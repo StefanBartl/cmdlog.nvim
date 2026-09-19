@@ -68,10 +68,17 @@ Example:
       },
     })
 
+Options are validated before the merge: an unknown key (top level, or
+inside extra_files/project_scoped/mappings/shell_history) is dropped with a
+did-you-mean hint rather than silently surviving as a dead field, and a
+non-table value for one of those four falls back to its default. Both are
+reported via vim.notify and again by :checkhealth cmdlog.
+
 Available options:
 
 picker              Picker backend to use.
-                     Values: "telescope" (default), "fzf"
+                     Values: "telescope" (default), "fzf", "fzf-lua"
+                     ("fzf-lua" is an alias for "fzf")
 
 track_commands       Record every ':' command via a single CmdlineLeave
                      autocmd, feeding project history, usage stats and

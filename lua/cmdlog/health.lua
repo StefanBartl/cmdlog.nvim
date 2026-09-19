@@ -11,7 +11,8 @@ local function has_module(modname)
 end
 
 --- Runs `:checkhealth cmdlog`: verifies dependencies (lib.nvim, the
---- configured picker backend) and shell-history detection.
+--- configured picker backend), the `setup()` options themselves (unknown or
+--- mistyped keys the merge had to ignore), and shell-history detection.
 ---@return nil
 function M.check()
   local health = vim.health or require("health")
@@ -38,6 +39,15 @@ function M.check()
   if not config_ok then
     error_("cmdlog.config could not be loaded: " .. tostring(config))
     return
+  end
+
+  local config_issues = config.issues()
+  if #config_issues == 0 then
+    ok("every setup() option was recognised")
+  else
+    for _, issue in ipairs(config_issues) do
+      warn(issue, { "Fix the key in require('cmdlog').setup({ ... })" })
+    end
   end
 
   local picker = config.options.picker
