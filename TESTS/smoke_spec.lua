@@ -1536,6 +1536,20 @@ do
     all["git status"] and all["git status"].count == 2
   )
 
+  -- SEC-33: a persisted stats.json is untrusted input. A hand-edited entry
+  -- with the wrong shape (here: a string count) must not crash
+  -- by_frequency()'s comparator, and the whole load is rejected rather than
+  -- trusting the rest of the file.
+  vim.fn.writefile(
+    { vim.fn.json_encode({ ["git status"] = { count = "not-a-number", last_used = 1 } }) },
+    tmp
+  )
+  package.loaded["cmdlog.core.stats"] = nil
+  local bad_stats = require("cmdlog.core.stats")
+  local ok_sort = pcall(bad_stats.by_frequency)
+  check("stats: a malformed entry's shape does not crash by_frequency", ok_sort)
+  check("stats: a malformed entry rejects the whole load", #bad_stats.by_frequency() == 0)
+
   config.options.stats_path = require("cmdlog.config.DEFAULTS").stats_path
   package.loaded["cmdlog.core.stats"] = nil
   vim.fn.delete(tmp)
@@ -1577,6 +1591,17 @@ do
   check(
     "tags.remove_tag: removing the last tag clears the entry",
     #tags.get_tags("git status") == 0
+  )
+
+  -- SEC-33: a hand-edited favorite_tags.json with a non-string tag must not
+  -- crash table.concat downstream (favorites_picker.lua); the whole load is
+  -- rejected instead.
+  vim.fn.writefile({ vim.fn.json_encode({ ["git status"] = { "vcs", 5 } }) }, tmp)
+  package.loaded["cmdlog.core.tags"] = nil
+  local bad_tags = require("cmdlog.core.tags")
+  check(
+    "tags: a non-string tag entry rejects the whole load",
+    #bad_tags.get_tags("git status") == 0
   )
 
   config.options.favorite_tags_path = require("cmdlog.config.DEFAULTS").favorite_tags_path
@@ -1642,6 +1667,30 @@ do
   end)
   vim.fn.chdir(original_cwd)
   check("project_history: test body did not throw", ok_test, tostring(err_test))
+end
+
+-- SEC-33: a hand-edited project_history.json with a non-list value for a
+-- root must not crash get_project_history(); the whole load is rejected.
+-- No chdir here on purpose: is_valid() rejects the file regardless of which
+-- root ends up queried, and re-require()ing a module after this bootstrap's
+-- relative runtimepath entry has followed a chdir elsewhere silently fails
+-- to resolve it (see the two chdir'd blocks around this one, which never
+-- reload a module while cwd is pointed away from the repo root).
+do
+  local config = require("cmdlog.config")
+  local tmp = vim.fn.tempname() .. "-cmdlog-project-history-bad.json"
+  vim.fn.writefile({ vim.fn.json_encode({ ["/some/root"] = "not-a-list" }) }, tmp)
+  config.options.project_history_path = tmp
+  package.loaded["cmdlog.core.project_history"] = nil
+  local project_history = require("cmdlog.core.project_history")
+
+  local ok_call, history = pcall(project_history.get_project_history)
+  check("project_history: a malformed root value does not crash the caller", ok_call)
+  check("project_history: a malformed root value rejects the whole load", ok_call and #history == 0)
+
+  config.options.project_history_path = require("cmdlog.config.DEFAULTS").project_history_path
+  package.loaded["cmdlog.core.project_history"] = nil
+  vim.fn.delete(tmp)
 end
 
 do
