@@ -1801,13 +1801,29 @@ do
   )
 
   -- A malformed user pattern must not crash the tracker (is_redacted's own
-  -- pcall), and a pcall failure must not be mistaken for a match either.
+  -- pcall), and SEC-45's safe failure mode applies: a pattern that cannot
+  -- be evaluated is treated as a match (over-redaction), never as "no
+  -- match" -- the alternative would let exactly the commands a broken
+  -- pattern was meant to catch reach the plaintext stores.
   config.options.redact_patterns = { "[" }
   local ok_malformed = pcall(fire, "echo 1")
   check("tracker: a malformed redact_patterns entry does not raise", ok_malformed)
   check(
-    "tracker: ...and does not suppress recording either",
-    vim.tbl_contains(recorded, "ph:echo 1"),
+    "tracker: ...and over-redacts rather than recording through it",
+    #recorded == 0,
+    vim.inspect(recorded)
+  )
+
+  -- ERR-02: redact_patterns set to a bare string (a plausible single-
+  -- pattern typo) is a config mistake, not the documented `false` opt-out
+  -- -- must not crash (ipairs on a string used to raise here), and per
+  -- SEC-45 must fail closed rather than silently disable redaction.
+  config.options.redact_patterns = "token"
+  local ok_bad_type = pcall(fire, "echo 1")
+  check("tracker: a non-table redact_patterns does not raise", ok_bad_type)
+  check(
+    "tracker: ...and is treated as redact-everything, not as disabled",
+    #recorded == 0,
     vim.inspect(recorded)
   )
 

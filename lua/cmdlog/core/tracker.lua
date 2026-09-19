@@ -20,11 +20,19 @@ local augroup = nil
 ---@return boolean
 local function is_redacted(cmd)
   local patterns = config.options.redact_patterns
-  if not patterns or patterns == false then return false end
+  -- `false` is the documented, deliberate way to disable redaction
+  -- (DEFAULTS.lua); any other non-table value is a config mistake, not an
+  -- opt-out, and SEC-45 says over-redaction is the safe failure mode for a
+  -- mistake here -- the consequence of guessing wrong the other way is a
+  -- secret written to the plaintext stores under stdpath("data").
+  if patterns == false then return false end
+  if type(patterns) ~= "table" then return true end
 
   for _, pattern in ipairs(patterns) do
     local ok, matched = pcall(string.find, cmd, pattern)
-    if ok and matched then return true end
+    -- Same reasoning per-pattern: a malformed entry that cannot be
+    -- evaluated must not be read as "no match".
+    if not ok or matched then return true end
   end
 
   return false
