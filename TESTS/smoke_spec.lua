@@ -779,6 +779,34 @@ do
     vim.inspect(config.issues())
   )
 
+  -- ERR-22: a known key with a value outside its accepted range degrades to
+  -- the default instead of reaching M.options as-is -- picker = "sublime"
+  -- must not fall through to open_picker()'s Telescope branch and later
+  -- throw "module 'telescope.pickers' not found" on a Telescope-less setup.
+  config.setup({ picker = "sublime", highlight_risky = false })
+  check(
+    "config.setup: an out-of-range value falls back to the default",
+    config.options.picker == DEFAULTS.picker
+  )
+  check(
+    "config.setup: ...sibling top-level options are still applied",
+    config.options.highlight_risky == false
+  )
+  check(
+    "config.setup: ...and it is reported via issues()",
+    #config.issues() == 1 and config.issues()[1]:find("invalid value for 'picker'", 1, true) ~= nil,
+    vim.inspect(config.issues())
+  )
+
+  -- Both accepted spellings for the fzf-lua backend must still pass through
+  -- untouched (regression guard for the ENUM_VALUES allowlist itself).
+  config.setup({ picker = "fzf-lua" })
+  check(
+    "config.setup: 'fzf-lua' is accepted, not treated as out-of-range",
+    config.options.picker == "fzf-lua" and #config.issues() == 0,
+    vim.inspect(config.issues())
+  )
+
   -- Clean baseline for every suite below.
   config.setup({})
   check("config.setup({}): issues() is empty again", #config.issues() == 0)

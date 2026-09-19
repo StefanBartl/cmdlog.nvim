@@ -71,8 +71,10 @@ Example:
 Options are validated before the merge: an unknown key (top level, or
 inside extra_files/project_scoped/mappings/shell_history) is dropped with a
 did-you-mean hint rather than silently surviving as a dead field, and a
-non-table value for one of those four falls back to its default. Both are
-reported via vim.notify and again by :checkhealth cmdlog.
+non-table value for one of those four falls back to its default. A known
+key with a value outside its accepted range (currently just `picker`)
+likewise falls back to its default instead of being used as-is. All three
+are reported via vim.notify and again by :checkhealth cmdlog.
 
 Available options:
 

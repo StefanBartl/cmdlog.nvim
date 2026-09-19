@@ -16,8 +16,10 @@ select = false, slect = "<C-s>" }` reports `mappings.slect (did you mean
 'mappings.select'?)`), instead of silently surviving the merge as a dead
 field with its default still in force. A non-table value for one of those
 four (`mappings = false`) falls back to its default instead of replacing
-the whole table. Both are reported once via `vim.notify` and again by
-`:checkhealth cmdlog`.
+the whole table. A known key with a value outside its accepted range --
+currently just `picker`, e.g. `picker = "sublime"` -- likewise falls back
+to its default instead of reaching `config.options` as-is. All three are
+reported once via `vim.notify` and again by `:checkhealth cmdlog`.
 
 ## The defaults at a glance
 

@@ -53,6 +53,19 @@ local KNOWN = {
   risky_patterns = true,
 }
 
+--- Values accepted for a `KNOWN` key whose *type* alone isn't restrictive
+--- enough. `picker` is a plain string as far as `KNOWN` is concerned, but
+--- only three are meaningful; anything else must degrade to
+--- `DEFAULTS.picker` before the merge (ERR-22) -- `open_picker()` routes
+--- only `"telescope"`/`"fzf"`/`"fzf-lua"` to a real backend, and a typo
+--- reaching `M.options` as-is falls through to the Telescope branch, which
+--- throws "module 'telescope.pickers' not found" on every `:Cmdlog`
+--- subcommand on a setup that does not have Telescope installed.
+---@type table<string, table<string, true>>
+local ENUM_VALUES = {
+  picker = { telescope = true, fzf = true, ["fzf-lua"] = true },
+}
+
 ---@internal
 ---`key` with the nearest known one as a hint when there is a plausible one.
 ---@param key any
@@ -108,7 +121,13 @@ local function sanitize(user_opts)
         clean[key] = nested
       end
     else
-      clean[key] = value
+      local enum = ENUM_VALUES[key]
+      if enum and not enum[value] then
+        found_issues[#found_issues + 1] =
+          string.format("invalid value for '%s': %s -- using the default", key, vim.inspect(value))
+      else
+        clean[key] = value
+      end
     end
   end
   table.sort(found_issues)
@@ -122,8 +141,11 @@ end
 --- `shell_history` -- is dropped with a did-you-mean hint instead of
 --- silently surviving the merge as a dead field with the default still in
 --- force; a non-table value for one of those four falls back to its
---- default rather than replacing the whole table. Both are reported here
---- and again by `:checkhealth cmdlog` (see `M.issues()`).
+--- default rather than replacing the whole table. A known key with a value
+--- outside its accepted range -- currently just `picker` -- likewise
+--- degrades to its default instead of reaching `M.options` as-is (ERR-22).
+--- All three are reported here and again by `:checkhealth cmdlog` (see
+--- `M.issues()`).
 ---@param opts table|nil
 ---@return nil
 function M.setup(opts)
@@ -139,9 +161,9 @@ function M.setup(opts)
   M.options = vim.tbl_deep_extend("force", vim.deepcopy(DEFAULTS), clean)
 end
 
---- What the last `setup()` ignored: unknown keys and option tables of the
---- wrong type, one human-readable line each. Empty when everything was
---- accepted.
+--- What the last `setup()` ignored: unknown keys, option tables of the
+--- wrong type, and out-of-range values, one human-readable line each. Empty
+--- when everything was accepted.
 ---@return string[]
 function M.issues()
   return vim.list_extend({}, issues)
