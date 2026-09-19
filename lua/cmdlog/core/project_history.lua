@@ -51,12 +51,41 @@ function M.get_git_root()
   return root
 end
 
+-- Generous headroom over any real project/command-history size; a corrupt
+-- or hand-edited project_history.json with more than this is rejected
+-- outright, not silently truncated.
+local MAX_ROOTS = 20000
+local MAX_COMMANDS_PER_ROOT = 20000
+
+---@internal
+--- A persisted project_history.json is untrusted input (SEC-33): decoding
+--- as valid JSON only means the file was well-formed, not that it has the
+--- shape this module wrote -- `data[root]` reaches `core.utils.process_list`
+--- downstream, which expects a list of strings. Rejects the whole load on
+--- the first bad entry rather than trying to salvage individual ones.
+---@param data table
+---@return boolean ok
+local function is_valid(data)
+  local roots = 0
+  for root, cmds in pairs(data) do
+    roots = roots + 1
+    if roots > MAX_ROOTS then return false end
+    if type(root) ~= "string" then return false end
+    if type(cmds) ~= "table" then return false end
+    if #cmds > MAX_COMMANDS_PER_ROOT then return false end
+    for _, cmd in ipairs(cmds) do
+      if type(cmd) ~= "string" then return false end
+    end
+  end
+  return true
+end
+
 ---@internal
 ---@return table<string, string[]>
 local function load()
   if cache then return cache end
   cache = store.load_json(config.options.project_history_path, {})
-  if type(cache) ~= "table" then cache = {} end
+  if type(cache) ~= "table" or not is_valid(cache) then cache = {} end
   return cache
 end
 

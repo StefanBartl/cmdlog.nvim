@@ -9,12 +9,39 @@ local M = {}
 ---@type table<string, { count: integer, last_used: integer }>|nil
 local cache = nil
 
+-- Generous headroom over any real command-history size; a corrupt or
+-- hand-edited stats.json with more entries than this is rejected outright,
+-- not silently truncated.
+local MAX_ENTRIES = 20000
+
+---@internal
+--- A persisted stats.json is untrusted input (SEC-33): decoding as valid
+--- JSON only means the file was well-formed, not that each entry has the
+--- shape this module wrote -- `count`/`last_used` reach a `table.sort`
+--- comparator and `os.date` below, and a JSON `null` decodes to a still-
+--- truthy `vim.NIL`, not Lua `nil`. Rejects the whole load on the first bad
+--- entry rather than trying to salvage individual ones.
+---@param data table
+---@return boolean ok
+local function is_valid(data)
+  local n = 0
+  for cmd, entry in pairs(data) do
+    n = n + 1
+    if n > MAX_ENTRIES then return false end
+    if type(cmd) ~= "string" then return false end
+    if type(entry) ~= "table" then return false end
+    if type(entry.count) ~= "number" then return false end
+    if type(entry.last_used) ~= "number" then return false end
+  end
+  return true
+end
+
 ---@internal
 ---@return table<string, { count: integer, last_used: integer }>
 local function load()
   if cache then return cache end
   cache = store.load_json(config.options.stats_path, {})
-  if type(cache) ~= "table" then cache = {} end
+  if type(cache) ~= "table" or not is_valid(cache) then cache = {} end
   return cache
 end
 

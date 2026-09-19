@@ -10,12 +10,40 @@ local M = {}
 ---@type table<string, string[]>|nil
 local cache = nil
 
+-- Generous headroom over any real favorites-tagging usage; a corrupt or
+-- hand-edited favorite_tags.json with more entries than this is rejected
+-- outright, not silently truncated.
+local MAX_ENTRIES = 20000
+
+---@internal
+--- A persisted favorite_tags.json is untrusted input (SEC-33): decoding as
+--- valid JSON only means the file was well-formed, not that its shape
+--- matches what this module wrote -- the tag list reaches `table.concat` in
+--- favorites_picker.lua, which raises on a non-string entry. Rejects the
+--- whole load on the first bad entry rather than trying to salvage
+--- individual ones.
+---@param data table
+---@return boolean ok
+local function is_valid(data)
+  local n = 0
+  for cmd, tags in pairs(data) do
+    n = n + 1
+    if n > MAX_ENTRIES then return false end
+    if type(cmd) ~= "string" then return false end
+    if type(tags) ~= "table" then return false end
+    for _, tag in ipairs(tags) do
+      if type(tag) ~= "string" then return false end
+    end
+  end
+  return true
+end
+
 ---@internal
 ---@return table<string, string[]>
 local function load()
   if cache then return cache end
   cache = store.load_json(config.options.favorite_tags_path, {})
-  if type(cache) ~= "table" then cache = {} end
+  if type(cache) ~= "table" or not is_valid(cache) then cache = {} end
   return cache
 end
 
