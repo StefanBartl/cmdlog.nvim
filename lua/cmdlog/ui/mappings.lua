@@ -29,7 +29,7 @@ return function(refresh_fn, delete_fn, opts)
 
     --- Closes the picker only if the prompt buffer -- and therefore the
     --- picker -- is still around. A callback deferred past an async
-    --- confirmation dialog (core.shell's kit.confirm) or `vim.ui.input`
+    --- confirmation dialog (core.shell's cmdlog.ui.confirm.ask) or `vim.ui.input`
     --- can land after the user has already closed the picker some other
     --- way in the meantime (ERR-33: re-validate the handle at execution
     --- time, not just at capture time).
@@ -196,7 +196,10 @@ return function(refresh_fn, delete_fn, opts)
           return
         end
 
-        require("ui.kit").confirm({
+        -- cmdlog.ui.confirm is a soft dependency on ui.nvim (LUA-01): falls
+        -- back to vim.fn.confirm() when ui.nvim isn't installed, matching
+        -- docs/installation.md's "ui.nvim is optional".
+        require("cmdlog.ui.confirm").ask({
           question = ("Delete %d selected entries from their underlying history?"):format(#targets),
           on_answer = function(yes)
             if yes then run(true) end

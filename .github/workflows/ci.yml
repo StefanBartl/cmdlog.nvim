@@ -54,9 +54,10 @@ jobs:
           path: lib.nvim
           ref: ci-verified
 
-      # cmdlog.core.shell requires ui.kit at module load (the
-      # delete-confirmation prompt), and the smoke test require()s every
-      # module, so ui.nvim has to be reachable the same way lib.nvim is.
+      # cmdlog.ui.confirm (the soft dependency wrapping the
+      # delete-confirmation prompt) and the smoke test's own fallback
+      # coverage both require("ui.kit") directly, so ui.nvim has to be
+      # reachable the same way lib.nvim is.
       - name: Checkout ui.nvim
         uses: actions/checkout@v5
         with:

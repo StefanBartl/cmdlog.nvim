@@ -370,7 +370,8 @@ end
 --- Deletes every occurrence of `cmd` from the detected shell's history file.
 --- This rewrites the file on disk, so a confirmation prompt is shown unless
 --- `opts.skip_confirm` is set. Async: `on_done(ok, err)` fires once the
---- (possible) confirmation dialog resolves, since kit.confirm is callback-based.
+--- (possible) confirmation dialog resolves, since cmdlog.ui.confirm.ask is
+--- callback-based.
 ---@param cmd string
 ---@param opts? { skip_confirm?: boolean }
 ---@param on_done fun(ok: boolean, err: string|nil)
@@ -456,11 +457,11 @@ function M.delete_entry(cmd, opts, on_done)
     return
   end
 
-  -- Required only here, the one place this module actually needs it (see
-  -- docs/installation.md: ui.nvim is optional until a delete-confirmation
-  -- prompt is actually shown) -- every other function in this module reads
-  -- shell history without it.
-  require("ui.kit").confirm({
+  -- cmdlog.ui.confirm is a soft dependency on ui.nvim (LUA-01): it prefers
+  -- ui.kit's dialog but falls back to vim.fn.confirm() when ui.nvim isn't
+  -- installed, matching docs/installation.md's "ui.nvim is optional" --
+  -- every other function in this module reads shell history without it.
+  require("cmdlog.ui.confirm").ask({
     question = ("Delete %d occurrence(s) of '%s' from shell history file?\n%s"):format(
       first.removed,
       cmd,

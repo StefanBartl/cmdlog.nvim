@@ -29,11 +29,12 @@ if vim.env.LIB_NVIM_PATH and vim.fn.isdirectory(vim.env.LIB_NVIM_PATH) == 1 then
 end
 if vim.fn.isdirectory(lib) == 1 then vim.opt.runtimepath:append(lib) end
 
--- ui.nvim: cmdlog.core.shell requires ui.kit lazily, only where a
--- delete-confirmation prompt is actually shown -- but the confirmation-
--- dialog tests further down (see "core.shell.delete_entry: confirmation
--- dialog") require("ui.kit") directly to monkeypatch kit.confirm, so
--- ui.nvim has to be reachable the same way lib.nvim is.
+-- ui.nvim: cmdlog.ui.confirm (LUA-01's soft-dependency wrapper around
+-- ui.kit.confirm) requires ui.kit lazily, only where a delete-confirmation
+-- prompt is actually shown -- but the confirmation-dialog tests further
+-- down (see "core.shell.delete_entry: confirmation dialog") require
+-- ("ui.kit") directly to monkeypatch kit.confirm, so ui.nvim has to be
+-- reachable the same way lib.nvim is.
 local ui = siblings_root .. "/ui.nvim"
 if vim.env.UI_NVIM_PATH and vim.fn.isdirectory(vim.env.UI_NVIM_PATH) == 1 then
   ui = vim.env.UI_NVIM_PATH
@@ -96,6 +97,7 @@ local modules = {
   "cmdlog.integrations.which_key",
   "cmdlog.ui.all_picker",
   "cmdlog.ui.all_unique_picker",
+  "cmdlog.ui.confirm",
   "cmdlog.ui.cycle",
   "cmdlog.ui.favorites_picker",
   "cmdlog.ui.fzf-previewer",
@@ -134,10 +136,12 @@ for _, modname in ipairs(modules) do
   end
 end
 
--- LUA-01: ui.nvim is documented as optional, needed only the first time a
--- delete-confirmation dialog is actually shown (docs/installation.md). If
--- requiring every module above pulled in ui.kit anyway, it would still be
--- cached here even though nothing yet asked to delete anything.
+-- LUA-01: ui.nvim is documented as optional (docs/installation.md).
+-- cmdlog.ui.confirm only reaches for ui.kit when a delete-confirmation
+-- dialog is actually shown, falling back to vim.fn.confirm() when ui.nvim
+-- isn't installed. If requiring every module above pulled in ui.kit
+-- anyway, it would still be cached here even though nothing yet asked to
+-- delete anything.
 check(
   "cmdlog.core.shell: loading every module did not eagerly require ui.kit",
   package.loaded["ui.kit"] == nil
@@ -1442,6 +1446,72 @@ do
   vim.env.SHELL = original_shell
   config.options.shell_history_path = "default"
   vim.fn.delete(tmp)
+end
+
+-- ── cmdlog.ui.confirm: falls back to vim.fn.confirm() without ui.nvim ──────
+-- LUA-01: docs/installation.md documents ui.nvim as optional, so a missing
+-- ui.nvim must degrade gracefully (not error/traceback) instead of the bare
+-- require("ui.kit") this plugin used to have at both call sites.
+do
+  local confirm = require("cmdlog.ui.confirm")
+
+  local saved_loaded = package.loaded["ui.kit"]
+  local saved_preload = package.preload["ui.kit"]
+  package.loaded["ui.kit"] = nil
+  package.preload["ui.kit"] = function()
+    error("module 'ui.kit' not found")
+  end
+
+  local original_vim_confirm = vim.fn.confirm
+  local confirm_question, confirm_choices
+  ---@diagnostic disable-next-line: duplicate-set-field
+  vim.fn.confirm = function(question, choices)
+    confirm_question, confirm_choices = question, choices
+    return 1 -- "Yes"
+  end
+
+  local answer
+  local ok, err = pcall(function()
+    confirm.ask({
+      question = "Delete it?",
+      on_answer = function(yes)
+        answer = yes
+      end,
+    })
+  end)
+  check(
+    "cmdlog.ui.confirm.ask: does not error/traceback when ui.nvim is missing",
+    ok,
+    tostring(err)
+  )
+  check("cmdlog.ui.confirm.ask: fallback answers 'yes' through on_answer", answer == true)
+  check(
+    "cmdlog.ui.confirm.ask: fallback passes the question through to vim.fn.confirm()",
+    confirm_question == "Delete it?",
+    tostring(confirm_question)
+  )
+  check(
+    "cmdlog.ui.confirm.ask: fallback offers a Yes/No choice",
+    confirm_choices == "&Yes\n&No",
+    tostring(confirm_choices)
+  )
+
+  -- "No" (choice 2) must answer false, not just any falsy/truthy value.
+  answer = nil
+  vim.fn.confirm = function()
+    return 2 -- "No"
+  end
+  confirm.ask({
+    question = "Delete it?",
+    on_answer = function(yes)
+      answer = yes
+    end,
+  })
+  check("cmdlog.ui.confirm.ask: fallback answers 'no' through on_answer", answer == false)
+
+  vim.fn.confirm = original_vim_confirm
+  package.preload["ui.kit"] = saved_preload
+  package.loaded["ui.kit"] = saved_loaded
 end
 
 -- ── core.shell.delete_entry: re-verifies against the file before writing ───
