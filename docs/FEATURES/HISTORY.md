@@ -34,7 +34,11 @@ history, with per-shell path detection:
 - `csh` — `~/.history`
 - `pwsh` — `%APPDATA%\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt`
 
-`opts.shell_history_path` overrides auto-detection with a custom path.
+`opts.shell_history_path` overrides auto-detection with a custom path. It also
+stands in for auto-detection when that finds nothing — common on Windows,
+where `$SHELL` is unset and none of the probed defaults may exist. The
+configured file is read regardless, as one command per line, or through
+`shell_history.parse` with its `shell` argument set to `""`.
 
 - **Module:** `cmdlog/core/shell.lua`
 - **Config:** `opts.shell_history_path` (default `"default"`, i.e. auto-detect),

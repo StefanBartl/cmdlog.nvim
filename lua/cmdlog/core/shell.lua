@@ -203,6 +203,10 @@ end
 --- The whole function type is given a name because `(fun(...): T)|nil` is read
 --- as `fun(...): T|nil` -- the parentheses do not help, and the union then
 --- applies to the *return value* instead of to the function.
+---
+--- `shell` is the detected shell's canonical name, or `""` when detection found
+--- none -- the parser still runs, since being handed a file whose shell this
+--- module cannot name is precisely the case the escape hatch is for.
 ---@alias Cmdlog.ShellHistoryParser fun(lines: string[], shell: string): string[]
 
 ---@internal
@@ -250,8 +254,19 @@ function M.get_shell_history()
   local ok, lines = pcall(vim.fn.readfile, path)
   if not ok or not lines or vim.tbl_isempty(lines) then return history end
 
+  -- An unknown shell is not a reason to throw the file away. Reaching this
+  -- point means a path was resolved and read, and past the override branch of
+  -- `get_shell_history_path()` that only happens for an explicitly configured
+  -- `shell_history_path` -- the user pointed at this file by hand. Bailing
+  -- here discarded it and left `:Cmdlog shell` silently empty, which is the
+  -- normal case on Windows: SHELL is unset there, so detection falls back to
+  -- probing, and a machine whose PSReadLine history is not at the APPDATA
+  -- default (and which has no ~/.bash_history) matches no candidate at all.
+  -- Both the `shell_history.parse` escape hatch -- documented as covering "a
+  -- shell not listed here at all" -- and the generic one-command-per-line
+  -- fallback below handle "" fine; this guard was what kept that fallback
+  -- from ever being reachable.
   local shell = M.get_shell_name()
-  if shell == "" then return history end
 
   local parse = custom_parser()
   if parse then
@@ -313,7 +328,9 @@ function M.get_shell_history()
       if line and line ~= "" then table.insert(history, line) end
     end
   else
-    -- Unknown shell fallback: attempt to return non-empty lines
+    -- Unknown or undetected shell: treat the file as one command per line,
+    -- which is what every plain-text history format degrades to. Better a
+    -- picker with slightly noisy entries than an empty one.
     for _, line in ipairs(lines) do
       if line and line ~= "" then table.insert(history, line) end
     end
