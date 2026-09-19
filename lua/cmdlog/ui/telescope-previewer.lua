@@ -49,7 +49,12 @@ local function stream(bufnr, opts)
       end)
     end
   end
-  job.start(opts)
+  -- job.start -> vim.system raises synchronously for a non-resolvable
+  -- executable rather than routing the failure to on_stderr (ERR-01: a
+  -- spawn is a system boundary and needs a pcall); telescope does not pcall
+  -- its previewer, so an uncaught error here escapes define_preview.
+  local ok, err = pcall(job.start, opts)
+  if not ok then append(bufnr, "Error: " .. tostring(err)) end
 end
 
 --- Returns the Telescope buffer previewer.
@@ -123,7 +128,11 @@ function M.command_previewer()
       end
 
       if plan.kind == "shell" then
-        stream(bufnr, { command = plan.arg })
+        -- Same shape as the "terminal" branch above, and for the same
+        -- reason: `plan.arg` is a full command line (e.g. "git status
+        -- --short"), not an executable name, so it has to go through the
+        -- shell rather than become a single, unresolvable argv[0].
+        stream(bufnr, { command = vim.o.shell, args = { vim.o.shellcmdflag, plan.arg } })
         return
       end
     end,
