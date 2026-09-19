@@ -19,7 +19,6 @@
 ---    to surface a failure to the user (see cmdlog.health, which already has
 ---    its own vim.health.warn() for exactly this case).
 local M = {}
-local kit = require("ui.kit")
 
 --- CDX: split into submodules (detection / parsing / deletion) and tighten annotations
 
@@ -394,30 +393,57 @@ function M.delete_entry(cmd, opts, on_done)
     return
   end
 
-  local ok, lines = pcall(vim.fn.readfile, path)
-  if not ok or not lines then
-    on_done(false, "could not read " .. path)
+  local shell = M.get_shell_name()
+
+  --- Reads the file's CURRENT content and splits it into what would be kept
+  --- vs. removed for `cmd`. Called once up front (for the confirmation
+  --- prompt's count) and again immediately before writing (see `do_write`
+  --- below) -- an unbounded amount of wall-clock time can pass between the
+  --- two while an async confirmation dialog is open, and a live shell may
+  --- append to this file continuously in that window (ERR-30: re-verify
+  --- against the current text right before overwriting, don't write a
+  --- stale scan).
+  ---@internal
+  ---@return { kept: string[], removed: integer }|nil scan
+  ---@return string|nil err
+  local function scan()
+    local ok, lines = pcall(vim.fn.readfile, path)
+    if not ok or not lines then return nil, "could not read " .. path end
+
+    local kept = {}
+    local removed = 0
+    for _, line in ipairs(lines) do
+      if line_matches_command(shell, line, cmd) then
+        removed = removed + 1
+      else
+        table.insert(kept, line)
+      end
+    end
+    return { kept = kept, removed = removed }, nil
+  end
+
+  local first, scan_err = scan()
+  if not first then
+    on_done(false, scan_err)
     return
   end
-
-  local shell = M.get_shell_name()
-  local kept = {}
-  local removed_count = 0
-  for _, line in ipairs(lines) do
-    if line_matches_command(shell, line, cmd) then
-      removed_count = removed_count + 1
-    else
-      table.insert(kept, line)
-    end
-  end
-
-  if removed_count == 0 then
+  if first.removed == 0 then
     on_done(false, "not found in " .. path)
     return
   end
 
   local function do_write()
-    local ok_write, err_write = pcall(vim.fn.writefile, kept, path)
+    local fresh, err = scan()
+    if not fresh then
+      on_done(false, err)
+      return
+    end
+    if fresh.removed == 0 then
+      on_done(false, "not found in " .. path)
+      return
+    end
+
+    local ok_write, err_write = pcall(vim.fn.writefile, fresh.kept, path)
     if not ok_write then
       on_done(false, tostring(err_write))
       return
@@ -430,9 +456,13 @@ function M.delete_entry(cmd, opts, on_done)
     return
   end
 
-  kit.confirm({
+  -- Required only here, the one place this module actually needs it (see
+  -- docs/installation.md: ui.nvim is optional until a delete-confirmation
+  -- prompt is actually shown) -- every other function in this module reads
+  -- shell history without it.
+  require("ui.kit").confirm({
     question = ("Delete %d occurrence(s) of '%s' from shell history file?\n%s"):format(
-      removed_count,
+      first.removed,
       cmd,
       path
     ),

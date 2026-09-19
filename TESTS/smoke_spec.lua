@@ -29,9 +29,11 @@ if vim.env.LIB_NVIM_PATH and vim.fn.isdirectory(vim.env.LIB_NVIM_PATH) == 1 then
 end
 if vim.fn.isdirectory(lib) == 1 then vim.opt.runtimepath:append(lib) end
 
--- ui.nvim: cmdlog.core.shell requires ui.kit at module load (the
--- delete-confirmation prompt), and this script require()s every module
--- including that one, so ui.nvim has to be reachable the same way lib.nvim is.
+-- ui.nvim: cmdlog.core.shell requires ui.kit lazily, only where a
+-- delete-confirmation prompt is actually shown -- but the confirmation-
+-- dialog tests further down (see "core.shell.delete_entry: confirmation
+-- dialog") require("ui.kit") directly to monkeypatch kit.confirm, so
+-- ui.nvim has to be reachable the same way lib.nvim is.
 local ui = siblings_root .. "/ui.nvim"
 if vim.env.UI_NVIM_PATH and vim.fn.isdirectory(vim.env.UI_NVIM_PATH) == 1 then
   ui = vim.env.UI_NVIM_PATH
@@ -131,6 +133,15 @@ for _, modname in ipairs(modules) do
     check("require(" .. modname .. ")", ok, err)
   end
 end
+
+-- LUA-01: ui.nvim is documented as optional, needed only the first time a
+-- delete-confirmation dialog is actually shown (docs/installation.md). If
+-- requiring every module above pulled in ui.kit anyway, it would still be
+-- cached here even though nothing yet asked to delete anything.
+check(
+  "cmdlog.core.shell: loading every module did not eagerly require ui.kit",
+  package.loaded["ui.kit"] == nil
+)
 
 -- ── setup() with defaults ───────────────────────────────────────────────────
 do
@@ -1335,6 +1346,49 @@ do
     result_no.ok == false and result_no.err == "cancelled"
   )
   check("delete_entry: declined confirmation leaves the file untouched", #vim.fn.readfile(tmp) == 1)
+
+  kit.confirm = original_confirm
+  vim.env.SHELL = original_shell
+  config.options.shell_history_path = "default"
+  vim.fn.delete(tmp)
+end
+
+-- ── core.shell.delete_entry: re-verifies against the file before writing ───
+-- ERR-30: the scan that decides what to keep must not go stale across the
+-- async confirmation dialog. Simulates a line appended to the history file
+-- (e.g. a live shell with INC_APPEND_HISTORY) while the dialog is open.
+do
+  local config = require("cmdlog.config")
+  local shell = require("cmdlog.core.shell")
+  local kit = require("ui.kit")
+  local original_confirm = kit.confirm
+  local original_shell = vim.env.SHELL
+
+  local tmp = vim.fn.tempname() .. "-cmdlog-stale-scan"
+  vim.fn.writefile({ "git status" }, tmp)
+  config.options.shell_history_path = tmp
+  vim.env.SHELL = "/bin/bash"
+
+  ---@diagnostic disable-next-line: duplicate-set-field
+  kit.confirm = function(opts)
+    -- A command lands in the file after the scan that produced the
+    -- confirmation count, but before the answer comes back.
+    local current = vim.fn.readfile(tmp)
+    table.insert(current, "ls -la")
+    vim.fn.writefile(current, tmp)
+    opts.on_answer(true)
+  end
+
+  local result
+  shell.delete_entry("git status", nil, function(ok, err)
+    result = { ok = ok, err = err }
+  end)
+
+  check("delete_entry: still deletes the target after a late append", result.ok == true)
+  check(
+    "delete_entry: a write that lands during the confirmation dialog survives",
+    vim.deep_equal(vim.fn.readfile(tmp), { "ls -la" })
+  )
 
   kit.confirm = original_confirm
   vim.env.SHELL = original_shell
