@@ -9,11 +9,21 @@ your table over a deep copy of them with
 `vim.tbl_deep_extend("force", {}, DEFAULTS, user_config or {})` and exposes the
 result as `config.options`, which is the only way plugin code reads an option.
 
+Options are validated *before* that merge: an unknown key -- at the top
+level, or inside `extra_files`, `project_scoped`, `mappings`, or
+`shell_history` -- is dropped with a did-you-mean hint (`mappings = {
+select = false, slect = "<C-s>" }` reports `mappings.slect (did you mean
+'mappings.select'?)`), instead of silently surviving the merge as a dead
+field with its default still in force. A non-table value for one of those
+four (`mappings = false`) falls back to its default instead of replacing
+the whole table. Both are reported once via `vim.notify` and again by
+`:checkhealth cmdlog`.
+
 ## The defaults at a glance
 
 | Option | Default | What it decides |
 | --- | --- | --- |
-| `picker` | `"telescope"` | Backend: `"telescope"` or `"fzf"` |
+| `picker` | `"telescope"` | Backend: `"telescope"`, `"fzf"`, or `"fzf-lua"` (an alias for `"fzf"`) |
 | `favorites_path` | `stdpath("data")/cmdlog/favorites.json` | Where favorites are stored |
 | `favorite_tags_path` | `…/cmdlog/favorite_tags.json` | Where favorite tags are stored |
 | `project_history_path` | `…/cmdlog/project_history.json` | Per-project command history |

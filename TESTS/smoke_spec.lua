@@ -707,6 +707,11 @@ do
     "config.setup: a malformed mappings value falls back to the default table",
     vim.deep_equal(config.options.mappings, DEFAULTS.mappings)
   )
+  check(
+    "config.setup: ...and is reported via issues()",
+    #config.issues() == 1 and config.issues()[1]:find("'mappings' must be a table", 1, true) ~= nil,
+    vim.inspect(config.issues())
+  )
 
   config.setup({ mappings = { select = "<leader>s" } })
   check(
@@ -718,8 +723,54 @@ do
     config.options.mappings.delete == DEFAULTS.mappings.delete
   )
 
+  -- ERR-50: validation runs before the merge, not after -- an unknown key
+  -- never reaches M.options as a dead field.
+  config.setup({ pikcer = "fzf" })
+  ---@diagnostic disable-next-line: undefined-field
+  check("config.setup: an unknown top-level key is dropped", config.options.pikcer == nil)
+  check("config.setup: ...its default is untouched", config.options.picker == DEFAULTS.picker)
+  check(
+    "config.setup: ...and it is reported with a did-you-mean hint",
+    #config.issues() == 1
+      and config.issues()[1]:find("'pikcer'", 1, true) ~= nil
+      and config.issues()[1]:find("did you mean 'picker'", 1, true) ~= nil,
+    vim.inspect(config.issues())
+  )
+
+  config.setup({ mappings = { slect = "<leader>s", refresh = "<C-r>" } })
+  ---@diagnostic disable-next-line: undefined-field
+  check(
+    "config.setup: an unknown nested key is dropped, its sibling kept",
+    config.options.mappings.slect == nil and config.options.mappings.refresh == "<C-r>"
+  )
+  check(
+    "config.setup: ...reported with its dotted path",
+    #config.issues() == 1 and config.issues()[1]:find("'mappings.slect'", 1, true) ~= nil,
+    vim.inspect(config.issues())
+  )
+
+  -- redact_patterns/risky_patterns are `string[]|false`, not option tables
+  -- -- sanitize() must not force them through the nested-table check.
+  config.setup({ redact_patterns = false, risky_patterns = false })
+  check(
+    "config.setup: redact_patterns=false is accepted, not flagged as a bad table",
+    config.options.redact_patterns == false and #config.issues() == 0,
+    vim.inspect(config.issues())
+  )
+
+  -- keymaps is keyed by arbitrary :Cmdlog subcommand names -- not validated
+  -- against a fixed key set here (bindings.keymaps checks subcommand
+  -- existence itself, at registration time).
+  config.setup({ keymaps = { [""] = "<leader>ch", made_up_subcommand = "<leader>x" } })
+  check(
+    "config.setup: keymaps keys pass through unvalidated",
+    config.options.keymaps.made_up_subcommand == "<leader>x" and #config.issues() == 0,
+    vim.inspect(config.issues())
+  )
+
   -- Clean baseline for every suite below.
   config.setup({})
+  check("config.setup({}): issues() is empty again", #config.issues() == 0)
 end
 
 -- ── core.store: shared JSON persistence helper ───────────────────────────────
@@ -3008,6 +3059,30 @@ do
       r.text:find("Invalid config.options.picker", 1, true) ~= nil,
       r.text
     )
+  end
+
+  -- ERR-50: setup() option issues are surfaced again through :checkhealth,
+  -- not just the one-off notify at setup() time.
+  do
+    local config = require("cmdlog.config")
+    config.setup({})
+    local r = record()
+    check(
+      "health.check(): every setup() option recognised reports ok",
+      r.text:find("every setup() option was recognised", 1, true) ~= nil,
+      r.text
+    )
+
+    config.setup({ unknown_top_level_option = true })
+    r = record()
+    check(
+      "health.check(): an unrecognised setup() option is reported as a warning",
+      r.text:find("unknown option 'unknown_top_level_option'", 1, true) ~= nil,
+      r.text
+    )
+
+    -- Clean baseline for anything after this block.
+    config.setup({})
   end
 end
 
