@@ -38,7 +38,7 @@ local function get_favorites_path()
   if type(scoped) == "table" and scoped.enabled then
     local root = find_upward_dir({ ".git" }, vim.fn.getcwd())
     if root then
-      local base_dir = vim.fn.fnamemodify(vim.fn.expand(opts.favorites_path), ":h")
+      local base_dir = vim.fn.fnamemodify(expand_path(opts.favorites_path), ":h")
       local project_name = vim.fs.basename(root):gsub("[^%w%-_.]", "_")
       return base_dir .. "/projects/" .. project_name .. "-" .. short_hash(root) .. ".json"
     end
@@ -66,11 +66,11 @@ local last_toggle_snapshot = nil
 --- for the next `M.save()`.
 --- @return string[] favorites or empty table
 function M.load()
-  -- Expanded, matching M.save()'s cache key -- on Windows, vim.fn.expand()
-  -- can change a path (e.g. normalizing `/` to `\` in a vim.fn.tempname()
-  -- style path), so an unexpanded key here would miss both the cache and
-  -- the on-disk file that M.save() actually wrote.
-  local target = vim.fn.expand(get_favorites_path())
+  -- expand_path, not vim.fn.expand (SEC-34): opts.favorites_path is a user
+  -- config value, and expand()'s backtick-span/&shell semantics do not
+  -- belong on it. Also matches M.save()'s cache key -- an unexpanded key
+  -- here would miss both the cache and the file M.save() actually wrote.
+  local target = expand_path(get_favorites_path())
 
   if favorites_cache[target] then return favorites_cache[target] end
 
@@ -110,7 +110,7 @@ end
 --- Ensures the parent directory exists and writes the file (via lib.nvim).
 --- @param favorites string[]
 function M.save(favorites)
-  local target = vim.fn.expand(get_favorites_path())
+  local target = expand_path(get_favorites_path())
   local encoded = vim.fn.json_encode(favorites)
 
   local ok, err = write_to_file(target, encoded)
@@ -126,7 +126,7 @@ end
 --- @param cmd string
 function M.toggle(cmd)
   local favs = M.load()
-  last_toggle_snapshot = { path = vim.fn.expand(get_favorites_path()), list = vim.deepcopy(favs) }
+  last_toggle_snapshot = { path = expand_path(get_favorites_path()), list = vim.deepcopy(favs) }
 
   ---@type string[]
   local new = {}
@@ -152,7 +152,7 @@ end
 ---   favorites path has since changed, e.g. a project switch)
 function M.undo_last_toggle()
   if not last_toggle_snapshot then return false end
-  if last_toggle_snapshot.path ~= vim.fn.expand(get_favorites_path()) then return false end
+  if last_toggle_snapshot.path ~= expand_path(get_favorites_path()) then return false end
 
   M.save(last_toggle_snapshot.list)
   last_toggle_snapshot = nil
