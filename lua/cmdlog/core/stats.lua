@@ -21,9 +21,16 @@ local MAX_ENTRIES = 20000
 --- comparator and `os.date` below, and a JSON `null` decodes to a still-
 --- truthy `vim.NIL`, not Lua `nil`. Rejects the whole load on the first bad
 --- entry rather than trying to salvage individual ones.
----@param data table
+---
+--- Passed to `store.load_json` as its `validate` (ERR-11): a shape-invalid
+--- file is well-formed JSON, so `json_decode` alone never flags it, and
+--- without this hooked into the same backup path as a decode failure,
+--- `M.record`'s next load-modify-save would silently overwrite it with a
+--- near-empty file, no backup, no trace it was ever anything else.
+---@param data any
 ---@return boolean ok
 local function is_valid(data)
+  if type(data) ~= "table" then return false end
   local n = 0
   for cmd, entry in pairs(data) do
     n = n + 1
@@ -40,8 +47,7 @@ end
 ---@return table<string, { count: integer, last_used: integer }>
 local function load()
   if cache then return cache end
-  cache = store.load_json(config.options.stats_path, {})
-  if type(cache) ~= "table" or not is_valid(cache) then cache = {} end
+  cache = store.load_json(config.options.stats_path, {}, is_valid)
   return cache
 end
 
