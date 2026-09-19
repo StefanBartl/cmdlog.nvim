@@ -7,5 +7,6 @@
   ],
   "diagnostics.globals": ["vim"],
   "diagnostics.unusedLocalExclude": ["_*"],
-  "workspace.checkThirdParty": false
+  "workspace.checkThirdParty": false,
+  "workspace.ignoreDir": [".claude", ".deps"]
 }
