@@ -15,8 +15,9 @@ have to make while installing: which picker backend to pull in.
   - [fzf-lua](https://github.com/ibhagwan/fzf-lua) — only if `picker = "fzf"`
 - [ui.nvim](https://github.com/StefanBartl/ui.nvim) — optional. Backs the
   delete-confirmation prompt (batch-delete in the picker, and single-entry
-  deletes from shell history); required only the first time `:Cmdlog shell`
-  or `:Cmdlog shell-full` actually deletes an entry.
+  deletes from shell history) with `ui.kit`'s dialog; without it, the same
+  prompt falls back to Neovim's built-in `vim.fn.confirm()`, so deleting
+  still works either way.
 
 Install the backend you configure, not both. `:checkhealth cmdlog` reports a
 missing one as an error.
