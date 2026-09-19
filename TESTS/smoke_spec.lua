@@ -730,17 +730,27 @@ do
     vim.deep_equal(store.load_json(tmp, {}), { a = 1, b = { "x", "y" } })
   )
 
+  vim.fn.delete(tmp .. ".corrupt")
   vim.fn.writefile({ "not json {{{" }, tmp)
+  local data, err = store.load_json(tmp, { fallback = true })
   check(
     "store.load_json: invalid JSON returns the default",
-    vim.deep_equal(store.load_json(tmp, { fallback = true }), { fallback = true })
+    vim.deep_equal(data, { fallback = true })
   )
+  check("store.load_json: invalid JSON reports a non-nil err (ERR-11)", err ~= nil, tostring(err))
+  check(
+    "store.load_json: invalid JSON backs up the original bytes",
+    vim.fn.filereadable(tmp .. ".corrupt") == 1
+  )
+  vim.fn.delete(tmp .. ".corrupt")
 
   vim.fn.writefile({}, tmp)
+  local empty_data, empty_err = store.load_json(tmp, { fallback = true })
   check(
     "store.load_json: empty file returns the default",
-    vim.deep_equal(store.load_json(tmp, { fallback = true }), { fallback = true })
+    vim.deep_equal(empty_data, { fallback = true })
   )
+  check("store.load_json: empty file reports no err -- it is legitimately empty", empty_err == nil)
 
   vim.fn.delete(tmp)
 end
