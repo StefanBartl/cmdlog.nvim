@@ -13,7 +13,7 @@ the faster, more minimal option, with cross-platform preview support
 except on Windows.
 
 - **Module:** `cmdlog/ui/picker_utils.lua`
-- **Config:** `opts.picker = "telescope"` (default) or `"fzf"`
+- **Config:** `opts.picker = "telescope"` (default), `"fzf"`, or `"fzf-lua"` (an alias for `"fzf"`)
 
 ## Command previews
 

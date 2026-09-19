@@ -91,8 +91,8 @@ are kept, new ones appended, duplicates dropped.
 - Commands prefixed with `✗` (Telescope only) are known to have errored
   the last time they ran (see `core/errors.lua`)
 - **The in-picker keys below are Telescope's.** Under `picker = "fzf"`
-  only `<CR>` is bound, and it *runs* the selected command instead of
-  inserting it — no favorite toggle, no tag, no delete
+  only `<CR>` is bound, and it inserts the selected command into the
+  cmdline like `mappings.select` — no favorite toggle, no tag, no delete
 - Use `<C-t>` inside the favorites picker to tag a command; tags are
   shown alongside favorites
 - Use `<C-z>` to undo the last favorite toggle, and `<C-Up>`/`<C-Down>`

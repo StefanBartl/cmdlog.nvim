@@ -389,15 +389,22 @@ else
     captured.opts.preview.type == "cmd" and type(captured.opts.preview.fn) == "function"
   )
 
-  local executed
-  local original_vim_cmd = vim.cmd
+  -- SEC-50: a preview -- and a picker's default action -- reads, it does
+  -- not run. The entry goes back onto the cmdline, same as the Telescope
+  -- backend's mappings.select, never straight to vim.cmd().
+  local fed
+  local original_feedkeys = vim.fn.feedkeys
   ---@diagnostic disable-next-line: duplicate-set-field
-  vim.cmd = function(c)
-    executed = c
+  vim.fn.feedkeys = function(keys, mode)
+    fed = { keys = keys, mode = mode }
   end
   captured.opts.actions["default"]({ "git status" })
-  vim.cmd = original_vim_cmd
-  check("open_picker(fzf): the default action runs the selected command", executed == "git status")
+  vim.fn.feedkeys = original_feedkeys
+  check(
+    "open_picker(fzf): the default action feeds ':<cmd>' back onto the cmdline, never executes it",
+    fed ~= nil and fed.keys == ":git status" and fed.mode == "n",
+    vim.inspect(fed)
+  )
 
   fzf.fzf_exec = original_fzf_exec
   config.options.picker = original_picker_backend
