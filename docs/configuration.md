@@ -275,6 +275,12 @@ format would remove the wrong lines.
 A `parse` that raises is contained: the shell history comes back empty with a
 warning, instead of breaking the picker.
 
+Auto-detection failing is not a dead end. When no known shell is found — the
+usual case on Windows, where `$SHELL` is unset and the probed default
+locations may hold nothing — a `shell_history_path` you set by hand is still
+read. `parse` then runs with its `shell` argument set to `""`; without a
+`parse`, the file is read as one command per line.
+
 ### Optional entry-point keymaps
 
 `keymaps` (empty by default) lets you assign normal-mode keys that call

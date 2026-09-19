@@ -1053,6 +1053,76 @@ do
   vim.fn.delete(tmp)
 end
 
+-- ── core.shell: a configured override survives failed shell detection ───────
+--
+-- Regression (surfaced by the Windows CI leg): get_shell_history() resolved
+-- and read the configured file, then threw the lines away because
+-- get_shell_name() had returned "". On the runner SHELL is unset and no
+-- candidate history file exists anywhere, so detection legitimately finds
+-- nothing -- and a user who pointed shell_history_path at their own file got
+-- an empty picker with no explanation. Detection failing is exactly when the
+-- override, and the shell_history.parse escape hatch, have to carry.
+do
+  local config = require("cmdlog.config")
+  local shell = require("cmdlog.core.shell")
+  local uv = vim.uv or vim.loop
+
+  local original_shell = vim.env.SHELL
+  local original_appdata = vim.env.APPDATA
+  local original_homedir = uv.os_homedir
+
+  local fake_home = vim.fn.tempname()
+  vim.fn.mkdir(fake_home, "p")
+  local fake_appdata = vim.fn.tempname()
+  vim.fn.mkdir(fake_appdata, "p")
+
+  vim.env.SHELL = ""
+  vim.env.APPDATA = fake_appdata
+  ---@diagnostic disable-next-line: duplicate-set-field
+  uv.os_homedir = function()
+    return fake_home
+  end
+
+  check("undetected shell: detection really did fail", shell.get_shell_name() == "")
+
+  local undetected = vim.fn.tempname() .. "-cmdlog-undetected"
+  vim.fn.writefile({ "git status", "", "ls -la" }, undetected)
+  config.options.shell_history_path = undetected
+
+  local plain = shell.get_shell_history()
+  check(
+    "undetected shell: the configured file is still read, one command per line",
+    vim.deep_equal(plain, { "git status", "ls -la" }),
+    vim.inspect(plain)
+  )
+
+  config.options.shell_history = {
+    parse = function(lines, detected)
+      local out = {}
+      for _, line in ipairs(lines) do
+        out[#out + 1] = line .. "/" .. tostring(detected)
+      end
+      return out
+    end,
+  }
+
+  local custom = shell.get_shell_history()
+  check(
+    'undetected shell: shell_history.parse still runs, and is handed ""',
+    vim.deep_equal(custom, { "git status/", "/", "ls -la/" }),
+    vim.inspect(custom)
+  )
+
+  config.options.shell_history = {}
+  config.options.shell_history_path = "default"
+  uv.os_homedir = original_homedir
+  vim.env.APPDATA = original_appdata
+  vim.env.SHELL = original_shell
+  vim.fn.delete(undetected)
+  vim.fn.delete(fake_home, "rf")
+  vim.fn.delete(fake_appdata, "rf")
+end
+
 -- ── core.shell.get_shell_history: per-shell built-in parsers ────────────────
 do
   local config = require("cmdlog.config")
