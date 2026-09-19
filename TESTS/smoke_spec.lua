@@ -2292,6 +2292,21 @@ else
   actions.close = function(bufnr)
     closed = bufnr
   end
+  -- ERR-33's safe_close() checks get_current_picker(prompt_bufnr) before
+  -- calling actions.close; the real implementation keys off telescope's own
+  -- global status table, which prompt_bufnr 1 below was never registered
+  -- into, so it would answer nil here and every "closes the picker"
+  -- assertion below would see closed staying nil. Stubbed truthy by
+  -- default, like a real, still-open picker; the multi-selection tests
+  -- further down override this with a more specific return.
+  ---@diagnostic disable-next-line: duplicate-set-field
+  actions_state.get_current_picker = function()
+    return {
+      get_multi_selection = function()
+        return {}
+      end,
+    }
+  end
   ---@diagnostic disable-next-line: duplicate-set-field
   actions.toggle_selection = function() end
   ---@diagnostic disable-next-line: duplicate-set-field

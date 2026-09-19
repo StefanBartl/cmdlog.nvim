@@ -27,6 +27,19 @@ return function(refresh_fn, delete_fn, opts)
     local favorites = require("cmdlog.core.favorites")
     local mappings = require("cmdlog.config").options.mappings
 
+    --- Closes the picker only if the prompt buffer -- and therefore the
+    --- picker -- is still around. A callback deferred past an async
+    --- confirmation dialog (core.shell's kit.confirm) or `vim.ui.input`
+    --- can land after the user has already closed the picker some other
+    --- way in the meantime (ERR-33: re-validate the handle at execution
+    --- time, not just at capture time).
+    ---@internal
+    local function safe_close()
+      if vim.api.nvim_buf_is_valid(prompt_bufnr) and state.get_current_picker(prompt_bufnr) then
+        actions.close(prompt_bufnr)
+      end
+    end
+
     if not mappings.enabled then return true end
 
     if mappings.select then
@@ -96,7 +109,7 @@ return function(refresh_fn, delete_fn, opts)
         vim.ui.input({ prompt = "Add tag: " }, function(tag)
           if tag and tag ~= "" then
             require("cmdlog.core.tags").add_tag(selected.value, tag)
-            actions.close(prompt_bufnr)
+            safe_close()
             vim.schedule(refresh_fn)
           end
         end)
@@ -145,7 +158,7 @@ return function(refresh_fn, delete_fn, opts)
 
           local function finish()
             if deleted > 0 then
-              actions.close(prompt_bufnr)
+              safe_close()
               vim.schedule(refresh_fn)
             end
             -- "cancelled" is the user's own answer to a confirmation, not a
