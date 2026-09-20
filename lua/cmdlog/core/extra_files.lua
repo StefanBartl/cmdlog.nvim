@@ -4,6 +4,7 @@
 --- lists, no favorites/tags/delete support, just folded into the relevant
 --- pickers alongside Neovim/shell history.
 local config = require("cmdlog.config")
+local expand_path = require("lib.nvim.cross.fs.expand_path")
 
 local M = {}
 
@@ -14,7 +15,12 @@ local M = {}
 ---@param path string
 ---@return string[]
 local function read_lines(path)
-  local expanded = vim.fn.expand(path)
+  -- expand_path, not vim.fn.expand (SEC-34): `path` comes from the
+  -- user-configured `extra_files.history`/`extra_files.all` list -- the
+  -- same hazard class already fixed in core/favorites.lua and
+  -- core/store.lua: vim.fn.expand() runs backtick spans through &shell and
+  -- treats a leading '#'/'%' as a Vim cmdline special.
+  local expanded = expand_path(path)
   local ok, lines = pcall(vim.fn.readfile, expanded)
   if not ok or not lines then return {} end
 

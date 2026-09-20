@@ -886,6 +886,26 @@ do
   )
   vim.fn.delete(tmp .. ".corrupt")
 
+  -- SEC-34: vim.fn.expand() reads a leading '#' as the alternate-buffer
+  -- cmdline special and a backtick span as a shell command substitution --
+  -- the identical hazard already fixed in core/favorites.lua. Every caller
+  -- here (stats/tags/errors/project_history) hands this module a
+  -- config.options.*_path value, so it must go through
+  -- lib.nvim.cross.fs.expand_path, not vim.fn.expand, the same way.
+  local hash_dir = vim.fn.tempname()
+  vim.fn.mkdir(hash_dir, "p")
+  local hash_path = hash_dir .. "/#literal.json"
+  check(
+    "store.save_json: a leading '#' in the path is treated literally",
+    store.save_json(hash_path, { ok = true }) == true and vim.fn.filereadable(hash_path) == 1,
+    hash_path
+  )
+  check(
+    "store.load_json: round-trips through the same literal '#' path",
+    vim.deep_equal(store.load_json(hash_path, {}), { ok = true })
+  )
+  vim.fn.delete(hash_dir, "rf")
+
   vim.fn.delete(tmp)
 end
 
@@ -1956,6 +1976,25 @@ do
 
   config.options.extra_files = { history = {}, all = {} }
   check("extra_files.get_history: empty when unconfigured", #extra_files.get_history() == 0)
+
+  -- SEC-34: vim.fn.expand() reads a leading '#' as the alternate-buffer
+  -- cmdline special and a backtick span as a shell command substitution --
+  -- the identical hazard already fixed in core/favorites.lua and
+  -- core/store.lua. `path` here comes straight from the user-configured
+  -- extra_files.history/all list, so it must go through
+  -- lib.nvim.cross.fs.expand_path, not vim.fn.expand, the same way.
+  local hash_dir = vim.fn.tempname()
+  vim.fn.mkdir(hash_dir, "p")
+  local hash_file = hash_dir .. "/#literal.txt"
+  vim.fn.writefile({ "git log" }, hash_file)
+  config.options.extra_files = { history = { hash_file }, all = {} }
+  check(
+    "extra_files.get_history: a leading '#' in a configured path is treated literally",
+    vim.deep_equal(extra_files.get_history(), { "git log" }),
+    hash_file
+  )
+  config.options.extra_files = { history = {}, all = {} }
+  vim.fn.delete(hash_dir, "rf")
 
   vim.fn.delete(f1)
   vim.fn.delete(f2)
