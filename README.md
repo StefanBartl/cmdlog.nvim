@@ -32,19 +32,19 @@ the command-line, never executed for you — this is recall, not automation.
 Start at [docs/README.md](docs/README.md) — what's where, and which question
 each page answers.
 
-**The Basics**
+### The Basics
 
 - [Requirements](docs/installation.md#requirements) — Neovim version, required plugins and one picker backend.
 - [Installation](docs/installation.md) — every package manager, and what lazy-loading costs.
 - [Quickstart](docs/quickstart.md) — the first thing to run after installing.
 
-**Configuration**
+### Configuration
 
 - [All options](docs/configuration.md) — every `setup()` option, its default, and where it is read.
 - [Commands](docs/commands.md) — each `:Cmdlog` subcommand and its arguments.
 - [Bindings](docs/BINDINGS.md) — every user command, in-picker keymap and autocmd.
 
-**The Rest**
+### The Rest
 
 - [What you get with the defaults](docs/what-you-get.md) — the 5–8 things that matter on day one.
 - [Features](docs/FEATURES/README.md) — one page per part of the plugin, and why each has its shape.
