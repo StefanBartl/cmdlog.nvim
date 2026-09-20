@@ -10,6 +10,7 @@
 local is_readable_file = require("lib.nvim.fs.is_readable_file")
 local read_file = require("lib.nvim.fs.read")
 local write_to_file = require("lib.nvim.fs.write.to_file")
+local expand_path = require("lib.nvim.cross.fs.expand_path")
 local notify = require("lib.nvim.notify.safe").create_safe("[cmdlog.nvim.store]")
 
 local M = {}
@@ -48,7 +49,13 @@ local M = {}
 ---@return string|nil err `nil` when the file is missing or empty; set when
 ---  it exists but could not be decoded or decoded to the wrong shape.
 function M.load_json(path, default, validate)
-  local target = vim.fn.expand(path)
+  -- expand_path, not vim.fn.expand (SEC-34): every caller passes a
+  -- config.options.*_path value (stats_path, tags_path, errors_path,
+  -- project_history_path, favorite_tags_path, ...) -- the identical hazard
+  -- class already fixed in core/favorites.lua: vim.fn.expand() runs
+  -- backtick spans through &shell and treats a leading '#'/'%' as a Vim
+  -- cmdline special, neither of which belongs on a config value.
+  local target = expand_path(path)
 
   if not is_readable_file(target) then return default, nil end
 
@@ -79,7 +86,10 @@ end
 ---@return boolean success
 function M.save_json(path, data)
   local encoded = vim.fn.json_encode(data)
-  local target = vim.fn.expand(path)
+  -- expand_path, not vim.fn.expand (SEC-34) -- see M.load_json above; the
+  -- cache key/write target for the same config path must resolve the same
+  -- way in both functions.
+  local target = expand_path(path)
 
   local ok, err = write_to_file(target, encoded)
   if not ok then
