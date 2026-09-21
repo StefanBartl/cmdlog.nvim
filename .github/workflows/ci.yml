@@ -9,6 +9,7 @@ jobs:
   # Gating: stylua + luacheck must pass.
   lint:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v5
 
@@ -30,6 +31,7 @@ jobs:
   test:
     name: test (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
     strategy:
       # One platform failing must not cancel the others: which of the three
       # broke is the whole information content of this job.
@@ -73,12 +75,16 @@ jobs:
         with:
           repository: nvim-telescope/telescope.nvim
           path: telescope.nvim
+          # Pinned to the 2026-09-20 HEAD; bump deliberately, not by drifting.
+          ref: 40aedd8a68c78a656a10a8d62d80c54af59420fb
 
       - name: Checkout plenary.nvim
         uses: actions/checkout@v5
         with:
           repository: nvim-lua/plenary.nvim
           path: plenary.nvim
+          # Pinned to the 2026-09-20 HEAD; bump deliberately, not by drifting.
+          ref: 74b06c6c75e4eeb3108ec01852001636d85a932b
 
       - name: Install Neovim (stable)
         uses: rhysd/action-setup-vim@v1
@@ -90,4 +96,12 @@ jobs:
         working-directory: cmdlog.nvim
         env:
           REPOS_DIR: ${{ github.workspace }}
-        run: nvim -l TESTS/smoke_spec.lua
+        run: |
+          exec > >(tee -a "$RUNNER_TEMP/test-output.log") 2>&1
+          nvim -n -i NONE -l TESTS/smoke_spec.lua
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: test-output-test-${{ matrix.os }}
+          path: ${{ runner.temp }}/test-output.log
+          if-no-files-found: ignore
