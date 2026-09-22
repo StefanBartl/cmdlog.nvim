@@ -45,6 +45,7 @@ local KNOWN = {
     undo_favorite = true,
     move_favorite_up = true,
     move_favorite_down = true,
+    lazygit = true,
   },
   keymaps = true,
   shell_history = { parse = true, matches = true },

@@ -37,7 +37,10 @@ function M.show_project_picker(initial_text)
     default_text = initial_text,
     attach_mappings = function(prompt_bufnr, map)
       cycle.attach(prompt_bufnr, map, "project")
-      return require("cmdlog.ui.mappings")(M.show_project_picker)(prompt_bufnr, map)
+      return require("cmdlog.ui.mappings")(M.show_project_picker, nil, { lazygit = true })(
+        prompt_bufnr,
+        map
+      )
     end,
   })
 end

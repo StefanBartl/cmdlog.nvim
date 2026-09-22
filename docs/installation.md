@@ -18,6 +18,10 @@ have to make while installing: which picker backend to pull in.
   deletes from shell history) with `ui.kit`'s dialog; without it, the same
   prompt falls back to Neovim's built-in `vim.fn.confirm()`, so deleting
   still works either way.
+- [gitsuite.nvim](https://github.com/StefanBartl/gitsuite.nvim) — optional.
+  Backs `mappings.lazygit` (project picker only, default `<C-g>`) — opens a
+  lazygit float for the current project without it, the mapping notifies
+  instead of erroring.
 
 Install the backend you configure, not both. `:checkhealth cmdlog` reports a
 missing one as an error.

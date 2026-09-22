@@ -14,6 +14,7 @@
 ---@field undo_favorite string|false
 ---@field move_favorite_up string|false
 ---@field move_favorite_down string|false
+---@field lazygit string|false  # open gitsuite.nvim's lazygit for the project root (project picker only, optional soft dep)
 
 ---Escape hatch for an unsupported shell-history format. Both halves belong
 ---together: `parse` turns raw file lines into commands, `matches` finds the

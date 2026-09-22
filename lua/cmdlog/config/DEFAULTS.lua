@@ -68,6 +68,7 @@ local DEFAULTS = {
     undo_favorite = "<C-z>", -- undo the most recent favorite toggle
     move_favorite_up = "<C-Up>", -- move the selected favorite one slot up (favorites picker only)
     move_favorite_down = "<C-Down>", -- move the selected favorite one slot down (favorites picker only)
+    lazygit = "<C-g>", -- open gitsuite.nvim's lazygit for the project root (project picker only, optional soft dep)
   },
 
   -- Escape hatch for a shell-history format the built-in parsers don't know
