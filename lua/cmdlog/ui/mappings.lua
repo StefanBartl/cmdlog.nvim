@@ -102,6 +102,29 @@ return function(refresh_fn, delete_fn, opts)
       end)
     end
 
+    -- gitsuite.nvim's lazygit for the project root (GS-27) -- project picker
+    -- only (`opts.lazygit`), the same "shared factory, feature-specific opt
+    -- flag" shape `tag`/`reorder` already use above. Optional soft
+    -- dependency: `pcall(require, ...)` degrades to a notification, never an
+    -- error, when gitsuite.nvim is not installed.
+    if mappings.lazygit and opts and opts.lazygit then
+      map("i", mappings.lazygit, function()
+        local git_root = require("cmdlog.core.project_history").get_git_root()
+        if not git_root then return end
+
+        local ok, ui = pcall(require, "gitsuite.features.ui")
+        if not ok then
+          notify.info(
+            'gitsuite.nvim is not installed -- install "StefanBartl/gitsuite.nvim" to use this mapping'
+          )
+          return
+        end
+
+        actions.close(prompt_bufnr)
+        ui.lazygit(git_root)
+      end)
+    end
+
     if mappings.tag and opts and opts.tag then
       map("i", mappings.tag, function()
         local selected = state.get_selected_entry()

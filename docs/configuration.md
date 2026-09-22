@@ -60,6 +60,7 @@ mappings = {
   undo_favorite = "<C-z>",         -- undo the most recent favorite toggle
   move_favorite_up = "<C-Up>",     -- move the selected favorite up (favorites picker only)
   move_favorite_down = "<C-Down>", -- move the selected favorite down (favorites picker only)
+  lazygit = "<C-g>",               -- open gitsuite.nvim's lazygit for the project root (project picker only, optional soft dep)
 }
 ```
 
@@ -193,6 +194,17 @@ only for the project/global favorites file it applied to.
 `<C-Down>`) swap the selected favorite's position in the persisted list
 order. Only bound in the favorites picker, where display order is exactly
 that persisted order (elsewhere, order is Telescope's own sort).
+
+### Project: lazygit
+
+`mappings.lazygit` (default `<C-g>`) opens
+[gitsuite.nvim](https://github.com/StefanBartl/gitsuite.nvim)'s lazygit
+float for the current project's Git root, straight from the project
+history picker (`:Cmdlog project` / the `project` source in `cycle_source`
+rotation) — no need to leave the picker to run `:Git ui lazygit` yourself.
+Only bound in the project picker, since it is the only one with a Git root
+to open. Optional soft dependency: without gitsuite.nvim installed, the
+mapping notifies instead of erroring; every other mapping still works.
 
 ### Favorites export/import
 
