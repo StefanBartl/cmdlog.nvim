@@ -20,8 +20,6 @@
 ---    its own vim.health.warn() for exactly this case).
 local M = {}
 
---- CDX: split into submodules (detection / parsing / deletion) and tighten annotations
-
 --- Map of supported shells to a canonical ID. Values are not final paths but keys
 --- that are later expanded depending on platform and config.
 ---@type table<string,string>
