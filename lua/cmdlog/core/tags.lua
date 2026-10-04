@@ -81,27 +81,6 @@ function M.add_tag(cmd, tag)
   end
 end
 
---- Remove a tag from a command.
---- CDX: no callers and not a documented API -- no picker mapping removes a tag
---- (`<C-t>` only adds). `M.filter` is documented; `add_tag`/`get_tags` are used.
----@param cmd string
----@param tag string
-function M.remove_tag(cmd, tag)
-  local data = load()
-  local tags = data[cmd]
-  if not tags then return end
-  local new_tags = {}
-  for _, t in ipairs(tags) do
-    if t ~= tag then table.insert(new_tags, t) end
-  end
-  if #new_tags == 0 then
-    data[cmd] = nil
-  else
-    data[cmd] = new_tags
-  end
-  save(data)
-end
-
 --- Commands tagged with `tag`.
 ---@param tag string
 ---@return string[]

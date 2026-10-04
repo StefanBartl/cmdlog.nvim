@@ -66,14 +66,6 @@ function M.record(cmd)
   store.save_json(config.options.stats_path, data)
 end
 
---- Return all recorded stats.
---- CDX: no callers and not a documented API -- the picker uses `by_frequency`
---- + `describe`. Vestigial accessor.
----@return table<string, { count: integer, last_used: integer }>
-function M.all()
-  return load()
-end
-
 --- Return commands sorted by usage count (descending, ties broken by
 --- most-recently-used first).
 ---@return string[]

@@ -1634,11 +1634,6 @@ do
   check("errors.is_known_bad: unknown command is false", errors.is_known_bad("git status") == false)
   errors.record("git status", "E123: bad thing")
   check("errors.is_known_bad: recorded command is true", errors.is_known_bad("git status") == true)
-  check(
-    "errors.get_error: returns the recorded message",
-    errors.get_error("git status") == "E123: bad thing"
-  )
-  check("errors.get_error: unknown command returns nil", errors.get_error("ls") == nil)
 
   errors.record("", "should be ignored")
   check("errors.record: ignores an empty command", errors.is_known_bad("") == false)
@@ -1708,12 +1703,6 @@ do
   stats.record("")
   check("stats.record: ignores an empty command", stats.describe("") == nil)
 
-  local all = stats.all()
-  check(
-    "stats.all: returns every recorded entry",
-    all["git status"] and all["git status"].count == 2
-  )
-
   -- SEC-33: a persisted stats.json is untrusted input. A hand-edited entry
   -- with the wrong shape (here: a string count) must not crash
   -- by_frequency()'s comparator, and the whole load is rejected rather than
@@ -1741,9 +1730,10 @@ do
   local on_disk = require("cmdlog.core.store").load_json(tmp, {})
   check(
     "stats: recording after a shape-invalid load still works and persists",
-    vim.deep_equal(on_disk, {
-      ["git log"] = { count = 1, last_used = bad_stats.all()["git log"].last_used },
-    })
+    vim.tbl_count(on_disk) == 1
+      and (on_disk["git log"] or {}).count == 1
+      and type((on_disk["git log"] or {}).last_used) == "number",
+    vim.inspect(on_disk)
   )
   vim.fn.delete(tmp .. ".corrupt")
 
@@ -1777,18 +1767,6 @@ do
 
   check("tags.filter: finds the tagged command", vim.tbl_contains(tags.filter("vcs"), "git status"))
   check("tags.filter: unknown tag returns empty", #tags.filter("nope") == 0)
-
-  tags.remove_tag("git status", "vcs")
-  check(
-    "tags.remove_tag: removes just that tag",
-    vim.deep_equal(tags.get_tags("git status"), { "daily" })
-  )
-
-  tags.remove_tag("git status", "daily")
-  check(
-    "tags.remove_tag: removing the last tag clears the entry",
-    #tags.get_tags("git status") == 0
-  )
 
   -- SEC-33: a hand-edited favorite_tags.json with a non-string tag must not
   -- crash table.concat downstream (favorites_picker.lua); the whole load is

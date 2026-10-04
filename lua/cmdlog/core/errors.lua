@@ -71,13 +71,4 @@ function M.is_known_bad(cmd)
   return load()[cmd] ~= nil
 end
 
---- Last recorded error message for `cmd`, if any.
---- CDX: no callers in the repo and not a documented API -- only `is_known_bad`
---- is consumed (by ui/picker_utils). Vestigial accessor or unfinished feature.
----@param cmd string
----@return string|nil
-function M.get_error(cmd)
-  return load()[cmd]
-end
-
 return M
