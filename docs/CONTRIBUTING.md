@@ -14,7 +14,7 @@ Thanks for your interest in contributing to `cmdlog.nvim`.
 3. Restart, run `:checkhealth cmdlog`, then `:Cmdlog` to see your changes.
 
 Style is enforced by `stylua.toml` and `.luacheckrc`, and CI runs both
-(`.github/workflows/ci.yml`) alongside the smoke test in `TESTS/`.
+(`.github/workflows/ci.yml`) alongside the specs in `TESTS/` (run with `bash scripts/test.sh`, see `TESTS/README.md`).
 
 ## Guidelines
 

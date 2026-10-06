@@ -16,12 +16,18 @@ nvim --cmd "lua vim.opt.rtp:append('/path/to/telescope.nvim'); vim.opt.rtp:appen
 ## Run
 
 ```sh
-nvim -l TESTS/smoke_spec.lua
+bash scripts/test.sh                  # all specs under TESTS/ (testing.nvim)
+bash scripts/test.sh --json ir.json   # also write the machine-readable result
 ```
 
-The script bootstraps its own `runtimepath` from its file location, so it
-works from any working directory. It exits non-zero on the first failing
-suite, making it CI-friendly.
+The suite is run by [testing.nvim](https://github.com/StefanBartl/testing.nvim)
+(dialect `script`: `smoke_spec.lua` runs itself in its own nvim process; its exit
+code and the printed `FAIL` lines are the verdict). `scripts/test.sh` finds
+testing.nvim and the dependencies listed in `.testing.lua` in `$<NAME>_DIR`,
+`.deps/<name>`, `../<name>` or `stdpath('data')/lazy/<name>` and exits 1 when one
+is missing. plenary.nvim is only on the list because telescope.nvim needs it; it
+is not a test runner here. The plain `nvim -l TESTS/smoke_spec.lua` still works
+and bootstraps its own `runtimepath` from the file location.
 
 ## Coverage
 

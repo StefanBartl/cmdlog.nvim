@@ -79,6 +79,7 @@ jobs:
           # Pinned to the 2026-09-20 HEAD; bump deliberately, not by drifting.
           ref: 40aedd8a68c78a656a10a8d62d80c54af59420fb
 
+      # telescope.nvim does not load without it, and scripts/test.sh requires it as a dependency.
       - name: Checkout plenary.nvim
         uses: actions/checkout@v5
         with:
@@ -93,13 +94,29 @@ jobs:
           neovim: true
           version: stable
 
-      - name: Run smoke test
+      # Checked out from the branch that only moves once the dependency's own CI is green.
+      - name: Checkout testing.nvim
+        uses: actions/checkout@v5
+        with:
+          repository: StefanBartl/testing.nvim
+          path: testing.nvim
+          ref: ci-verified
+
+      - name: Run the specs
         working-directory: cmdlog.nvim
         env:
           REPOS_DIR: ${{ github.workspace }}
         run: |
           exec > >(tee -a "$RUNNER_TEMP/test-output.log") 2>&1
-          nvim -n -i NONE -l TESTS/smoke_spec.lua
+          bash scripts/test.sh --json "$RUNNER_TEMP/testing-ir.json"
+      # The IR is what a reporter or a person reads to find out WHICH case failed on WHICH platform.
+      - uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: testing-ir-${{ matrix.os }}
+          path: ${{ runner.temp }}/testing-ir.json
+          if-no-files-found: ignore
+          retention-days: 14
       - uses: actions/upload-artifact@v7
         if: failure()
         with:
