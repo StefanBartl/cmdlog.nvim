@@ -19,4 +19,18 @@ return {
   host = "l",
   -- Environment variables the specs read; a child editor inherits an allowlist only (never secrets).
   env_allow = { "LIB_NVIM_PATH", "REPOS_DIR", "UI_NVIM_PATH" },
+  -- Guards (docs/GUARDS.md). The smoke spec is a self-running script (`nvim -l`, its own process),
+  -- where testing.nvim installs no guard at all: the fleet measurement found no data for this repo,
+  -- so there is nothing to allow and nothing to warn about. The strict value is set so the guards
+  -- bite as soon as a spec runs in a guarded dialect.
+  guards = {
+    fs = "error",
+    state = "error",
+    scheduled_error = "error",
+    prompt = "error",
+    deprecation = "error",
+    process_net = "error",
+  },
+  -- Nothing is allowed on purpose: no measured finding needs a hole (fs / spawn / network empty).
+  guard_allow = { fs = {}, spawn = {}, network = {} },
 }
