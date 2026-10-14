@@ -110,9 +110,10 @@ jobs:
           exec > >(tee -a "$RUNNER_TEMP/test-output.log") 2>&1
           bash scripts/test.sh --json "$RUNNER_TEMP/testing-ir.json"
       - name: Conformance gate
+        working-directory: cmdlog.nvim
         env:
           REPOS_DIR: ${{ github.workspace }}
-        run: scripts/test.sh conformance
+        run: bash scripts/test.sh conformance
       # The IR is what a reporter or a person reads to find out WHICH case failed on WHICH platform.
       - uses: actions/upload-artifact@v7
         if: failure()
