@@ -72,13 +72,16 @@ end
 ---@param cmd string
 ---@return string kind, string|nil arg
 local function classify(cmd)
-  --- CDX: `e%d?dit` is odd -- the `%d?` matches nothing useful, and this only
-  --- accepts the full word `edit`, so `:e file` / `:ed file` never classify as
-  --- "file". `:split` / `:sp` are unhandled too (only `:vsp` / `:vs` are).
-  local file = cmd:match("^%s*:?%s*e%d?dit%s+(%S+)$")
-    or cmd:match("^%s*:?%s*vsp%s+(%S+)$")
-    or cmd:match("^%s*:?%s*vs%s+(%S+)$")
-  if file then return "file", file end
+  -- Opens one file: `:e`, `:edit`, `:sp`, `:split`, `:vs`, `:vsplit` and every abbreviation in
+  -- between, with exactly one argument (`:e +10 file` has two and gets no preview).
+  local open_word, open_arg = cmd:match("^%s*:?%s*(%a+)%s+(%S+)$")
+  if open_word then
+    for _, full in ipairs({ { "edit", 1 }, { "split", 2 }, { "vsplit", 2 } }) do
+      if #open_word >= full[2] and full[1]:sub(1, #open_word) == open_word then
+        return "file", open_arg
+      end
+    end
+  end
 
   local lua_expr = cmd:match("^%s*:?%s*lua%s+(.*)$")
   if lua_expr then return "lua", lua_expr end
