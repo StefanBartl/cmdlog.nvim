@@ -19,6 +19,7 @@ function M.check()
   local start = health.start or health.report_start
   local ok = health.ok or health.report_ok
   local warn = health.warn or health.report_warn
+  local info = health.info or health.report_info
   local error_ = health.error or health.report_error
 
   start("cmdlog.nvim")
@@ -76,6 +77,13 @@ function M.check()
         .. "' (expected 'telescope', 'fzf' or 'fzf-lua')",
       { "Set picker to 'telescope', 'fzf' or 'fzf-lua' in setup()" }
     )
+  end
+
+  -- gitsuite.nvim is optional: the project picker's lazygit mapping needs it.
+  if has_module("gitsuite") then
+    ok("gitsuite.nvim found: the project picker's lazygit mapping is available")
+  else
+    info("gitsuite.nvim not installed: the project picker's lazygit mapping is unavailable")
   end
 
   local shell = require("cmdlog.core.shell")
