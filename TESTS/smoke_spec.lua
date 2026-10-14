@@ -636,6 +636,34 @@ do
     vim.inspect(file_plan)
   )
 
+  -- The abbreviations of the same three commands, with exactly one file argument.
+  for _, line in ipairs({
+    ":e init.lua",
+    ":ed init.lua",
+    ":edi init.lua",
+    "e init.lua",
+    ":sp init.lua",
+    ":split init.lua",
+    ":vs init.lua",
+    ":vsp init.lua",
+    ":vsplit init.lua",
+  }) do
+    local plan = policy.plan(line)
+    check(
+      ("preview_policy: %s previews as a file"):format(line),
+      plan.kind == "file" and plan.executes == false and plan.allowed == true,
+      vim.inspect(plan)
+    )
+  end
+  -- More than one argument, or a different command sharing the prefix: no file preview.
+  for _, line in ipairs({ ":e +10 init.lua", ":edit a b", ":s init.lua", ":v init.lua", ":sple x" }) do
+    check(
+      ("preview_policy: %s is not a file preview"):format(line),
+      policy.plan(line).kind ~= "file",
+      vim.inspect(policy.plan(line))
+    )
+  end
+
   config.options.preview_execute = true
 
   -- Opted in, but risky_patterns still wins: highlighting a command as
@@ -2295,12 +2323,11 @@ do
     "bindings.catalog: autocmds present",
     type(catalog.autocmds) == "table" and #catalog.autocmds > 0
   )
-  -- Documented quirk (see the CDX note in bindings/init.lua): `keymaps` is
-  -- assigned the catalog *function* itself, not its resolved table -- pinned
-  -- here so a future fix is a deliberate change, not a silent behaviour shift.
+  -- `keymaps` is the resolved table (it used to be the catalog function itself).
   check(
-    "bindings.catalog: keymaps is the unresolved function (known quirk)",
-    type(catalog.keymaps) == "function"
+    "bindings.catalog: keymaps is the resolved table",
+    type(catalog.keymaps) == "table" and catalog.keymaps[""] ~= nil and catalog.keymaps.full ~= nil,
+    type(catalog.keymaps)
   )
 end
 

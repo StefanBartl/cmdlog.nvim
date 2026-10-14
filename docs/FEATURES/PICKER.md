@@ -19,7 +19,9 @@ except on Windows.
 
 Previews what the highlighted entry would do before you commit to reusing
 it. `:edit <file>` shows the file's contents if readable — reading is not
-running, so that one always works.
+running, so that one always works. The same goes for `:e`, `:ed`, `:sp`,
+`:split`, `:vs`, `:vsp` and `:vsplit` (and the abbreviations in between) with
+exactly one file argument; `:e +10 file` has two and gets no preview.
 
 Everything else needs `preview_execute = true`, which is **off by default**.
 With it off, the preview shows the command line and why it was not run:
