@@ -15,6 +15,10 @@
 #   2. <repo>/.deps/<name>          (what CI checks out)
 #   3. <repo>/../<name>             (a sibling checkout)
 #   4. stdpath('data')/lazy/<name>  (what a plugin manager installed)
+#
+#   scripts/test.sh conformance      the conformance suite K1..K15 of testing.nvim (docs/CONFORMANCE.md);
+#                                    extra options go to `testing conformance .`; exit 1 when the repo is
+#                                    gated (`conformance.gate = true` in .testing.lua) and a check failed
 
 set -euo pipefail
 
@@ -113,5 +117,10 @@ done
 
 # Throwaway app name: the run gets its own stdpath("config"/"data"/"state"), never the developer's.
 export NVIM_APPNAME="${NVIM_APPNAME:-cmdlog-tests}"
+
+if [[ "${1:-}" == "conformance" ]]; then
+  shift
+  exec nvim -n -i NONE --headless -u NONE -l "$DRIVER" conformance . "$@"
+fi
 
 exec nvim -n -i NONE --headless -u NONE -l "$DRIVER" run . "$@"
