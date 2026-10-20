@@ -822,7 +822,7 @@ do
   )
   check(
     "config.setup: ...and it is reported via issues()",
-    #config.issues() == 1 and config.issues()[1]:find("invalid value for 'picker'", 1, true) ~= nil,
+    #config.issues() == 1 and config.issues()[1]:find("option 'picker' must be one of", 1, true) ~= nil,
     vim.inspect(config.issues())
   )
 
