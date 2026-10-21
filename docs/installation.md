@@ -8,16 +8,12 @@ have to make while installing: which picker backend to pull in.
 - Neovim **0.9+**
 - [lib.nvim](https://github.com/StefanBartl/lib.nvim) — **required**. The
   `:Cmdlog` command tree is built on `lib.nvim.bindings.usercmd.composer`,
-  and the cross-platform fs/notify/job helpers come from there too.
+  the cross-platform fs/notify/job helpers and the delete-confirmation dialog
+  (`ui.kit.ask`, with a `vim.ui.select` fallback) come from there too.
 - One picker backend:
   - [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim) — only
     if `picker = "telescope"` (the default)
   - [fzf-lua](https://github.com/ibhagwan/fzf-lua) — only if `picker = "fzf"`
-- [ui.nvim](https://github.com/StefanBartl/ui.nvim) — optional. Backs the
-  delete-confirmation prompt (batch-delete in the picker, and single-entry
-  deletes from shell history) with `ui.kit`'s dialog; without it, the same
-  prompt falls back to Neovim's built-in `vim.fn.confirm()`, so deleting
-  still works either way.
 - [gitsuite.nvim](https://github.com/StefanBartl/gitsuite.nvim) — optional.
   Backs `mappings.lazygit` (project picker only, default `<C-g>`) — opens a
   lazygit float for the current project without it, the mapping notifies

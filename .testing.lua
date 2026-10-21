@@ -10,7 +10,7 @@ return {
   dialect = "auto",
   -- Dependencies (directory names) put on the runtimepath: $<NAME>_DIR, .deps/<name>, ../<name>,
   -- stdpath('data')/lazy/<name>.
-  deps = { "lib.nvim", "telescope.nvim", "ui.nvim", "plenary.nvim" },
+  deps = { "lib.nvim", "telescope.nvim", "plenary.nvim" },
   -- "none" = all specs in one nvim, "file" = one nvim per spec file
   -- (nothing leaks from one file into the next).
   isolated = "none",
@@ -18,7 +18,7 @@ return {
   -- "l" = `nvim -l`.
   host = "l",
   -- Environment variables the specs read; a child editor inherits an allowlist only (never secrets).
-  env_allow = { "LIB_NVIM_PATH", "REPOS_DIR", "UI_NVIM_PATH" },
+  env_allow = { "LIB_NVIM_PATH", "REPOS_DIR" },
   -- Guards (docs/GUARDS.md). The smoke spec is a self-running script (`nvim -l`, its own process),
   -- where testing.nvim installs no guard at all: the fleet measurement found no data for this repo,
   -- so there is nothing to allow and nothing to warn about. The strict value is set so the guards

@@ -29,18 +29,6 @@ if vim.env.LIB_NVIM_PATH and vim.fn.isdirectory(vim.env.LIB_NVIM_PATH) == 1 then
 end
 if vim.fn.isdirectory(lib) == 1 then vim.opt.runtimepath:append(lib) end
 
--- ui.nvim: cmdlog.ui.confirm (LUA-01's soft-dependency wrapper around
--- ui.kit.confirm) requires ui.kit lazily, only where a delete-confirmation
--- prompt is actually shown -- but the confirmation-dialog tests further
--- down (see "core.shell.delete_entry: confirmation dialog") require
--- ("ui.kit") directly to monkeypatch kit.confirm, so ui.nvim has to be
--- reachable the same way lib.nvim is.
-local ui = siblings_root .. "/ui.nvim"
-if vim.env.UI_NVIM_PATH and vim.fn.isdirectory(vim.env.UI_NVIM_PATH) == 1 then
-  ui = vim.env.UI_NVIM_PATH
-end
-if vim.fn.isdirectory(ui) == 1 then vim.opt.runtimepath:append(ui) end
-
 -- Optional: telescope.nvim (+ its own plenary.nvim dependency) -- see
 -- optional_telescope_modules below. A sibling checkout wins (that is what
 -- CI provides); otherwise the plugin manager's own directory, which is
@@ -136,15 +124,13 @@ for _, modname in ipairs(modules) do
   end
 end
 
--- LUA-01: ui.nvim is documented as optional (docs/installation.md).
--- cmdlog.ui.confirm only reaches for ui.kit when a delete-confirmation
--- dialog is actually shown, falling back to vim.fn.confirm() when ui.nvim
--- isn't installed. If requiring every module above pulled in ui.kit
--- anyway, it would still be cached here even though nothing yet asked to
--- delete anything.
+-- cmdlog.ui.confirm only reaches for lib.nvim's ui.kit when a
+-- delete-confirmation dialog is actually shown. If requiring every module
+-- above pulled it in anyway, it would still be cached here even though nothing
+-- yet asked to delete anything.
 check(
-  "cmdlog.core.shell: loading every module did not eagerly require ui.kit",
-  package.loaded["ui.kit"] == nil
+  "cmdlog.core.shell: loading every module did not eagerly require the ui kit",
+  package.loaded["lib.nvim.ui.kit"] == nil
 )
 
 -- ── setup() with defaults ───────────────────────────────────────────────────
@@ -1483,8 +1469,8 @@ end
 do
   local config = require("cmdlog.config")
   local shell = require("cmdlog.core.shell")
-  local kit = require("ui.kit")
-  local original_confirm = kit.confirm
+  local kit = require("lib.nvim.ui.kit.confirm")
+  local original_confirm = kit.open
   local original_shell = vim.env.SHELL
 
   local tmp = vim.fn.tempname() .. "-cmdlog-confirm"
@@ -1493,8 +1479,9 @@ do
   vim.env.SHELL = "/bin/bash"
 
   ---@diagnostic disable-next-line: duplicate-set-field
-  kit.confirm = function(opts)
+  kit.open = function(opts)
     opts.on_answer(true)
+    return {} -- a dialog that opened (a nil return means it could not)
   end
   local result_yes
   shell.delete_entry("git status", nil, function(ok, err)
@@ -1505,8 +1492,9 @@ do
 
   vim.fn.writefile({ "git status" }, tmp)
   ---@diagnostic disable-next-line: duplicate-set-field
-  kit.confirm = function(opts)
+  kit.open = function(opts)
     opts.on_answer(false)
+    return {} -- a dialog that opened (a nil return means it could not)
   end
   local result_no
   shell.delete_entry("git status", nil, function(ok, err)
@@ -1518,76 +1506,96 @@ do
   )
   check("delete_entry: declined confirmation leaves the file untouched", #vim.fn.readfile(tmp) == 1)
 
-  kit.confirm = original_confirm
+  kit.open = original_confirm
   vim.env.SHELL = original_shell
   config.options.shell_history_path = "default"
   vim.fn.delete(tmp)
 end
 
--- ── cmdlog.ui.confirm: falls back to vim.fn.confirm() without ui.nvim ──────
--- LUA-01: docs/installation.md documents ui.nvim as optional, so a missing
--- ui.nvim must degrade gracefully (not error/traceback) instead of the bare
--- require("ui.kit") this plugin used to have at both call sites.
+-- ── cmdlog.ui.confirm: answered through lib.nvim's ui.kit.ask ──────────────
+-- A delete must never go ahead without an explicit yes: a dialog that cannot
+-- open falls back to vim.ui.select, a cancelled one is a "no", and a question
+-- raised while another dialog is open waits instead of replacing it.
 do
   local confirm = require("cmdlog.ui.confirm")
+  local kit_confirm = require("lib.nvim.ui.kit.confirm")
+  local original_open = kit_confirm.open
+  local original_select = vim.ui.select
+  local original_poll = kit_confirm.ASK_POLL_MS
 
-  local saved_loaded = package.loaded["ui.kit"]
-  local saved_preload = package.preload["ui.kit"]
-  package.loaded["ui.kit"] = nil
-  package.preload["ui.kit"] = function()
-    error("module 'ui.kit' not found")
-  end
-
-  local original_vim_confirm = vim.fn.confirm
-  local confirm_question, confirm_choices
+  -- the dialog opens and the user says yes
+  local seen_question
   ---@diagnostic disable-next-line: duplicate-set-field
-  vim.fn.confirm = function(question, choices)
-    confirm_question, confirm_choices = question, choices
-    return 1 -- "Yes"
+  kit_confirm.open = function(opts)
+    seen_question = opts.question
+    opts.on_answer(true)
+    return {}
   end
-
   local answer
-  local ok, err = pcall(function()
-    confirm.ask({
-      question = "Delete it?",
-      on_answer = function(yes)
-        answer = yes
-      end,
-    })
-  end)
-  check(
-    "cmdlog.ui.confirm.ask: does not error/traceback when ui.nvim is missing",
-    ok,
-    tostring(err)
-  )
-  check("cmdlog.ui.confirm.ask: fallback answers 'yes' through on_answer", answer == true)
-  check(
-    "cmdlog.ui.confirm.ask: fallback passes the question through to vim.fn.confirm()",
-    confirm_question == "Delete it?",
-    tostring(confirm_question)
-  )
-  check(
-    "cmdlog.ui.confirm.ask: fallback offers a Yes/No choice",
-    confirm_choices == "&Yes\n&No",
-    tostring(confirm_choices)
-  )
-
-  -- "No" (choice 2) must answer false, not just any falsy/truthy value.
-  answer = nil
-  vim.fn.confirm = function()
-    return 2 -- "No"
-  end
   confirm.ask({
     question = "Delete it?",
     on_answer = function(yes)
       answer = yes
     end,
   })
-  check("cmdlog.ui.confirm.ask: fallback answers 'no' through on_answer", answer == false)
+  check("cmdlog.ui.confirm.ask: passes the question to the dialog", seen_question == "Delete it?")
+  check("cmdlog.ui.confirm.ask: a yes answers true", answer == true)
 
-  vim.fn.confirm = original_vim_confirm
-  package.preload["ui.kit"] = saved_preload
-  package.loaded["ui.kit"] = saved_loaded
+  -- the float cannot open: vim.ui.select takes over, and its "No" is a false
+  ---@diagnostic disable-next-line: duplicate-set-field
+  kit_confirm.open = function(opts)
+    opts.on_answer(false)
+    return nil
+  end
+  local select_prompt
+  ---@diagnostic disable-next-line: duplicate-set-field
+  vim.ui.select = function(_, o, cb)
+    select_prompt = o.prompt
+    cb("No")
+  end
+  answer = nil
+  confirm.ask({
+    question = "Delete it?",
+    on_answer = function(yes)
+      answer = yes
+    end,
+  })
+  check("cmdlog.ui.confirm.ask: falls back to vim.ui.select", select_prompt == "Delete it?")
+  check("cmdlog.ui.confirm.ask: the fallback's No answers false", answer == false)
+
+  -- another dialog is open: the question waits for it and does not replace it
+  kit_confirm.ASK_POLL_MS = 5
+  local blocker_answer
+  kit_confirm.open = original_open
+  kit_confirm.open({
+    question = "blocker",
+    on_answer = function(yes)
+      blocker_answer = yes
+    end,
+  })
+  local waiting_answer
+  confirm.ask({
+    question = "waits",
+    on_answer = function(yes)
+      waiting_answer = yes
+    end,
+  })
+  check(
+    "cmdlog.ui.confirm.ask: a question raised during an open dialog does not replace it",
+    waiting_answer == nil and blocker_answer == nil
+  )
+  kit_confirm.confirm() -- yes to the blocker
+  vim.wait(500, function()
+    return kit_confirm.is_open()
+  end, 5)
+  kit_confirm.cancel() -- decline the waiting question
+  check("cmdlog.ui.confirm.ask: the open dialog still got its own answer", blocker_answer == true)
+  check("cmdlog.ui.confirm.ask: a declined waiting question answers false", waiting_answer == false)
+
+  kit_confirm.open = original_open
+  kit_confirm.ASK_POLL_MS = original_poll
+  vim.ui.select = original_select
+  kit_confirm.close()
 end
 
 -- ── core.shell.delete_entry: re-verifies against the file before writing ───
@@ -1597,8 +1605,8 @@ end
 do
   local config = require("cmdlog.config")
   local shell = require("cmdlog.core.shell")
-  local kit = require("ui.kit")
-  local original_confirm = kit.confirm
+  local kit = require("lib.nvim.ui.kit.confirm")
+  local original_confirm = kit.open
   local original_shell = vim.env.SHELL
 
   local tmp = vim.fn.tempname() .. "-cmdlog-stale-scan"
@@ -1607,13 +1615,14 @@ do
   vim.env.SHELL = "/bin/bash"
 
   ---@diagnostic disable-next-line: duplicate-set-field
-  kit.confirm = function(opts)
+  kit.open = function(opts)
     -- A command lands in the file after the scan that produced the
     -- confirmation count, but before the answer comes back.
     local current = vim.fn.readfile(tmp)
     table.insert(current, "ls -la")
     vim.fn.writefile(current, tmp)
     opts.on_answer(true)
+    return {} -- a dialog that opened (a nil return means it could not)
   end
 
   local result
@@ -1627,7 +1636,7 @@ do
     vim.deep_equal(vim.fn.readfile(tmp), { "ls -la" })
   )
 
-  kit.confirm = original_confirm
+  kit.open = original_confirm
   vim.env.SHELL = original_shell
   config.options.shell_history_path = "default"
   vim.fn.delete(tmp)
@@ -2894,13 +2903,14 @@ else
         end,
       }
     end
-    local kit = require("ui.kit")
-    local original_confirm = kit.confirm
+    local kit = require("lib.nvim.ui.kit.confirm")
+    local original_confirm = kit.open
     local confirm_question
     ---@diagnostic disable-next-line: duplicate-set-field
-    kit.confirm = function(opts)
+    kit.open = function(opts)
       confirm_question = opts.question
       opts.on_answer(true)
+      return {} -- a dialog that opened (a nil return means it could not)
     end
 
     local delete_calls = {}
@@ -2935,7 +2945,7 @@ else
       return refreshed == 1 and warned ~= nil
     end, 5)
     vim.notify = original_notify
-    kit.confirm = original_confirm
+    kit.open = original_confirm
 
     check(
       "delete: a multi-selection confirms once for the whole batch",

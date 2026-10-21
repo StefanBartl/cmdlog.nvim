@@ -26,7 +26,7 @@ cd "$(dirname "$0")/.."
 ROOT="$(pwd)"
 
 # The runner first, then what the project needs (this list is the `deps` of .testing.lua).
-DEPS=('testing.nvim' 'lib.nvim' 'telescope.nvim' 'ui.nvim' 'plenary.nvim')
+DEPS=('testing.nvim' 'lib.nvim' 'telescope.nvim' 'plenary.nvim')
 
 fail() {
   printf '\033[31m%s\033[0m\n' "$1" >&2

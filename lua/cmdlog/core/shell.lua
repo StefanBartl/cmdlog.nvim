@@ -460,10 +460,9 @@ function M.delete_entry(cmd, opts, on_done)
     return
   end
 
-  -- cmdlog.ui.confirm is a soft dependency on ui.nvim (LUA-01): it prefers
-  -- ui.kit's dialog but falls back to vim.fn.confirm() when ui.nvim isn't
-  -- installed, matching docs/installation.md's "ui.nvim is optional" --
-  -- every other function in this module reads shell history without it.
+  -- cmdlog.ui.confirm answers through lib.nvim's ui.kit.ask (a "no" unless the
+  -- user said yes; vim.ui.select when the dialog cannot open) -- every other
+  -- function in this module reads shell history without it.
   require("cmdlog.ui.confirm").ask({
     question = ("Delete %d occurrence(s) of '%s' from shell history file?\n%s"):format(
       first.removed,

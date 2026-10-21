@@ -1,32 +1,19 @@
 ---@module 'cmdlog.ui.confirm'
---- Soft dependency on ui.nvim's `ui.kit.confirm` dialog.
+--- Yes/no question for the delete confirmations, answered through lib.nvim's
+--- `ui.kit.ask`: it waits for a dialog that is already open instead of
+--- replacing it (which would drop that dialog's answer), and anything that is
+--- not an explicit yes -- no answer in ten minutes, a dialog that cannot open --
+--- is a "no", so a delete never goes ahead by accident. When the float cannot
+--- open at all, `ask` falls back to `vim.ui.select`.
 ---
---- docs/installation.md documents ui.nvim as optional, so a missing ui.nvim
---- must not turn a delete into a hard crash/traceback (LUA-01): `M.ask`
---- prefers `ui.kit.confirm` when ui.nvim is installed and otherwise falls
---- back to Neovim's own `vim.fn.confirm()`, answering the exact same
---- `{ question, on_answer(yes: boolean) }` contract either way (see
---- ui.nvim's lua/ui/kit/confirm.lua "Answer contract" -- the default two-
---- choice dialog resolves to a boolean, Yes == true) -- callers never need
---- to know which backend actually answered.
+--- Contract: `{ question, on_answer(yes: boolean) }`, `on_answer` at most once.
 
 local M = {}
 
---- Ask a yes/no question, preferring ui.kit's dialog and falling back to
---- `vim.fn.confirm()` when ui.nvim isn't installed. `vim.fn.confirm()`
---- answers synchronously, but `on_answer` still fires exactly once either
---- way, so callers can treat this as async in both cases.
 ---@param opts { question: string, on_answer: fun(yes: boolean) }
 ---@return nil
 function M.ask(opts)
-  local ok_kit, kit = pcall(require, "ui.kit")
-  if ok_kit then
-    kit.confirm(opts)
-    return
-  end
-
-  local choice = vim.fn.confirm(opts.question or "", "&Yes\n&No", 2)
-  if opts.on_answer then opts.on_answer(choice == 1) end
+  require("lib.nvim.ui.kit").ask(opts)
 end
 
 return M

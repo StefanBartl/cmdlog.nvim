@@ -1,8 +1,8 @@
 # Tests
 
 Lightweight, framework-free tests for cmdlog.nvim. No network, no plugins
-beyond `lib.nvim` and `ui.nvim` (both auto-detected as sibling repos, or via
-`$REPOS_DIR`/`$LIB_NVIM_PATH`/`$UI_NVIM_PATH`). telescope.nvim (+ its own
+beyond `lib.nvim` (auto-detected as a sibling repo, or via
+`$REPOS_DIR`/`$LIB_NVIM_PATH`). telescope.nvim (+ its own
 plenary.nvim dependency) is optional and picked up the same way if present —
 CI now checks it out as a real sibling specifically so the telescope-only
 suites below run for real there instead of being skipped; locally, point
@@ -49,7 +49,7 @@ detection, the SHELL-unset candidate-probing branch (HOME faked via
 on what the dev machine actually has lying around), the `shell_history_path`
 override, every built-in per-shell history parser (zsh/bash/fish/nu/PSReadLine),
 per-shell delete-line matching, and the confirm-dialog path via a stubbed
-`ui.kit.confirm`; `core.errors`/`core.stats`/`core.tags` (each against a temp
+`lib.nvim.ui.kit.confirm.open`; `core.errors`/`core.stats`/`core.tags` (each against a temp
 JSON path); `core.project_history` (a real temp Git root, and the outside-any-
 repo case); `core.extra_files`; `core.history` against Neovim's real `:`
 command-line history (`histadd`/`histdel`); `core.utils.process_list`;

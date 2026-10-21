@@ -219,9 +219,8 @@ return function(refresh_fn, delete_fn, opts)
           return
         end
 
-        -- cmdlog.ui.confirm is a soft dependency on ui.nvim (LUA-01): falls
-        -- back to vim.fn.confirm() when ui.nvim isn't installed, matching
-        -- docs/installation.md's "ui.nvim is optional".
+        -- cmdlog.ui.confirm answers through lib.nvim's ui.kit.ask: anything but an
+        -- explicit yes is a no, and vim.ui.select takes over if the dialog cannot open.
         require("cmdlog.ui.confirm").ask({
           question = ("Delete %d selected entries from their underlying history?"):format(#targets),
           on_answer = function(yes)
